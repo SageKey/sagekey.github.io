@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SageKey — Brett Anderson</title>
+<meta name="description" content="I build integration systems and governed agent workforces for mid-market manufacturers. Three working demos and a written account of the method." />
+<link rel="canonical" href="https://sagekey.github.io/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="SageKey — Brett Anderson" />
+<meta property="og:description" content="Integration systems and governed agent workforces. Three working demos and the method behind them." />
+<meta name="theme-color" content="#0a0c10" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0c10'/%3E%3Ccircle cx='12' cy='16' r='5' fill='none' stroke='%2354d6a0' stroke-width='2.5'/%3E%3Cpath d='M17 16h10M23 16v5M27 16v4' stroke='%2354d6a0' stroke-width='2.5' fill='none'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg:#0a0c10; --panel:#12151d; --panel2:#171b25; --line:#222836;
+    --ink:#eaeef5; --dim:#8a94a6; --faint:#5b6474;
+    --l0:#6aa3e8; --l1:#f0b849; --l2:#54d6a0; --l3:#3e4657;
+    --accent:#54d6a0;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body {
+    background:var(--bg); color:var(--ink);
+    font:400 15px/1.65 ui-sans-serif,-apple-system,"SF Pro Text",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; padding:0 18px 80px;
+  }
+  .shell { max-width:840px; margin:0 auto; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  /* ---- nav ---- */
+  nav { display:flex; align-items:center; gap:20px; padding:22px 0 0; flex-wrap:wrap; }
+  .mark { display:flex; align-items:center; gap:9px; font-weight:600; font-size:15px;
+    color:var(--ink); letter-spacing:-.01em; }
+  .mark:hover { text-decoration:none; }
+  .mark svg { display:block; }
+  nav .links { margin-left:auto; display:flex; gap:18px; font-size:13.5px; }
+  nav .links a { color:var(--dim); }
+  nav .links a:hover { color:var(--ink); text-decoration:none; }
+
+  /* ---- hero ---- */
+  header.hero { padding:64px 0 8px; }
+  h1 { font-size:34px; line-height:1.2; font-weight:600; letter-spacing:-.025em; max-width:19ch; }
+  h1 em { font-style:normal; color:var(--accent); }
+  .lede { color:var(--dim); font-size:16.5px; line-height:1.7; margin-top:20px; max-width:62ch; }
+  .lede b { color:var(--ink); font-weight:500; }
+  .herocta { display:flex; gap:12px; margin-top:26px; flex-wrap:wrap; align-items:center; }
+  .btn { font-size:14px; font-weight:500; padding:10px 17px; border-radius:8px;
+    border:1px solid var(--line); background:#1b2130; color:var(--ink); display:inline-block; }
+  .btn:hover { background:#252d40; text-decoration:none; }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:#06231a; }
+  .btn.primary:hover { background:#48c491; }
+
+  /* ---- sections ---- */
+  section { padding-top:76px; }
+  h2 { font-size:12px; font-weight:600; color:var(--dim); letter-spacing:.09em;
+    text-transform:uppercase; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .intro { color:var(--dim); font-size:15px; margin-top:18px; max-width:64ch; }
+  h3 { font-size:18px; font-weight:600; letter-spacing:-.015em; }
+
+  /* ---- work cards ---- */
+  .cards { display:flex; flex-direction:column; gap:14px; margin-top:22px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; transition:border-color .18s, background .18s; }
+  .card:hover { border-color:#33405a; background:var(--panel2); }
+  .chead { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
+  .chead h3 a { color:var(--ink); }
+  .chead h3 a:hover { color:var(--accent); text-decoration:none; }
+  .tag { font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--faint);
+    border:1px solid var(--line); border-radius:999px; padding:3px 9px; }
+  .tag.sim { color:#f0b849; border-color:rgba(240,184,73,.4); }
+  .card p { color:var(--dim); font-size:14.5px; margin-top:9px; max-width:66ch; }
+  .card .built { color:var(--faint); font-size:13px; margin-top:11px; }
+  .clinks { display:flex; gap:16px; margin-top:13px; font-size:13.5px; }
+
+  /* ---- case study ---- */
+  .cs { margin-top:24px; }
+  .cs p { color:var(--dim); margin-bottom:16px; max-width:66ch; }
+  .cs p b, .cs li b { color:var(--ink); font-weight:500; }
+  .cs h3 { margin:34px 0 12px; }
+
+  .ladder { border:1px solid var(--line); border-radius:12px; background:var(--panel);
+    margin:20px 0 8px; overflow:hidden; }
+  .rung { display:flex; gap:13px; align-items:flex-start; padding:13px 18px;
+    border-top:1px solid var(--line); }
+  .rung:first-child { border-top:none; }
+  .rung .pip { width:9px; height:9px; border-radius:2px; margin-top:7px; flex:none; }
+  .rung .rname { font-size:14px; font-weight:600; }
+  .rung .rbody { font-size:13.5px; color:var(--dim); line-height:1.55; margin-top:2px; }
+  .rung.unused { opacity:.55; }
+  .rung.unused .rbody em { font-style:normal; color:var(--l1); }
+  .caption { color:var(--faint); font-size:13px; margin-bottom:18px; }
+
+  ul.pts { list-style:none; display:flex; flex-direction:column; gap:10px;
+    margin:4px 0 18px; }
+  ul.pts li { color:var(--dim); font-size:14.5px; padding-left:19px; position:relative;
+    max-width:66ch; line-height:1.6; }
+  ul.pts li::before { content:"→"; position:absolute; left:0; color:var(--accent); }
+
+  .pull { border-left:2px solid var(--accent); padding:2px 0 2px 16px; margin:22px 0;
+    color:var(--ink); font-size:15.5px; line-height:1.65; max-width:60ch; }
+
+  /* ---- contact ---- */
+  .contact { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:24px 26px; margin-top:22px; }
+  .contact p { color:var(--dim); font-size:15px; max-width:60ch; }
+  .rows { margin-top:18px; display:flex; flex-direction:column; gap:11px; }
+  .row { display:flex; gap:12px; align-items:baseline; font-size:14.5px; }
+  .row .k { color:var(--faint); font-size:12.5px; width:64px; flex:none;
+    letter-spacing:.05em; text-transform:uppercase; }
+
+  footer { margin-top:70px; padding-top:20px; border-top:1px solid var(--line);
+    color:var(--faint); font-size:12.5px; display:flex; gap:14px; flex-wrap:wrap; }
+  footer a { color:var(--faint); }
+
+  @media (max-width:640px) {
+    header.hero { padding-top:44px; }
+    h1 { font-size:27px; }
+    .lede { font-size:15.5px; }
+    section { padding-top:58px; }
+    nav .links { margin-left:0; width:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav>
+  <a class="mark" href="/">
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="12" cy="16" r="5" fill="none" stroke="#54d6a0" stroke-width="2.5"/>
+      <path d="M17 16h10M23 16v5M27 16v4" stroke="#54d6a0" stroke-width="2.5" fill="none"/>
+    </svg>
+    SageKey
+  </a>
+  <div class="links">
+    <a href="#work">Work</a>
+    <a href="#method">Method</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <h1>I build the systems that <em>run underneath</em> the business.</h1>
+  <p class="lede">
+    I'm Brett Anderson. For the last several years I've been the integration layer for a
+    mid-market remanufacturer — ERP, order flow, shipping, the internal tools nobody demos but
+    everybody depends on. Lately most of my work is <b>agent workforces</b>: putting language
+    models on real operational work with charters, autonomy limits and human gates, so the
+    question stops being "can it do the task" and becomes "what happens when it's wrong."
+  </p>
+  <p class="lede">
+    Below are three things you can actually open and use, and a written account of how the
+    agent work is governed.
+  </p>
+  <div class="herocta">
+    <a class="btn primary" href="#work">See the demos</a>
+    <a class="btn" href="mailto:bretta@sagekey.com">Email me</a>
+  </div>
+</header>
+
+<!-- ==================== WORK ==================== -->
+<section id="work">
+  <h2>Things you can open</h2>
+  <p class="intro">
+    All three are single static pages — no backend, no build step, no dependencies. Source is
+    public for each.
+  </p>
+
+  <div class="cards">
+
+    <article class="card">
+      <div class="chead">
+        <h3><a href="/agent-floor/">Agent Floor</a></h3>
+        <span class="tag sim">Simulation</span>
+      </div>
+      <p>
+        A shift on a governed agent workforce, and you're the overseer. Three agents at three
+        different autonomy levels work a support queue; anything leaving the building stops at a
+        gate you have to click. The interesting beats are where agents <em>stop</em> — one catches
+        its own charter violation mid-draft, another refuses work it is perfectly capable of
+        because its charter forbids it.
+      </p>
+      <div class="built">Scripted replay from a checked-in JSON file — deliberately not live inference.</div>
+      <div class="clinks">
+        <a href="/agent-floor/">Open demo →</a>
+        <a href="https://github.com/SageKey/agent-floor">Source</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="chead">
+        <h3><a href="/codebreaker/">Codebreaker</a></h3>
+        <span class="tag">Playable</span>
+      </div>
+      <p>
+        Mastermind with the deduction made visible: all 1,296 possible codes render as a grid, and
+        cells go dark as your guesses eliminate them. Two decent guesses take 1,296 down to about
+        30, and what survives forms a lattice, because the constraints are structural rather than
+        random. A Knuth minimax solver plays alongside you and is guaranteed to finish in five.
+      </p>
+      <div class="built">Solver verified over full runs: 25/25 solved, 4.48 guesses average, worst case 5.</div>
+      <div class="clinks">
+        <a href="/codebreaker/">Open demo →</a>
+        <a href="https://github.com/SageKey/codebreaker">Source</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="chead">
+        <h3><a href="/market-arena/">Market Arena</a></h3>
+        <span class="tag">Live data</span>
+      </div>
+      <p>
+        Live crypto markets rendered as a pixel battle. The 24-hour move decides where the front
+        line sits, three-minute momentum swings it, and individual trades arrive as gunfire sized
+        by notional value. It is a real-time data pipeline wearing a silly costume — the useful
+        part was learning which market signals actually correlate with price and which are noise.
+      </p>
+      <div class="built">Streams from Coinbase. Two visual themes via <code>?theme=</code>.</div>
+      <div class="clinks">
+        <a href="/market-arena/">Open demo →</a>
+        <a href="https://github.com/SageKey/market-arena">Source</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ==================== METHOD ==================== -->
+<section id="method">
+  <h2>Method — running an agent workforce</h2>
+  <p class="intro">
+    This is the part I actually get hired for, so it's worth writing down properly. Everything
+    below is described at the level of the pattern; the specifics belong to the clients I built
+    them for.
+  </p>
+
+  <div class="cs">
+
+    <p>
+      Getting a language model to do a piece of operational work stopped being the hard part some
+      time ago. Ask it to triage a ticket, reconcile two systems, draft the customer reply — it
+      will do a decent job. The hard part is everything around that: knowing what it's allowed to
+      touch, catching the confident mistake before it reaches a customer, and being able to answer
+      "who approved this?" three weeks later when someone asks.
+    </p>
+
+    <div class="pull">
+      A capable agent with no governance isn't an employee. It's an unsupervised contractor with
+      your credentials and no memory of what it did.
+    </div>
+
+    <p>
+      So the model I use treats agents like staff rather than like scripts. Staff have a written
+      job description, a level of trust they've earned, a manager who signs off on the risky
+      things, and a paper trail. All four of those turn out to have direct technical analogues.
+    </p>
+
+    <h3>1. Every agent has a charter</h3>
+    <p>
+      A charter is a short written document, kept in version control next to the code, that says
+      what one agent is for: the systems it may read, the systems it may write, the things it must
+      never do, and who owns it. It is written in plain language because its real audience is the
+      human who has to approve it, not the model.
+    </p>
+    <p>
+      The <b>MAY NOT</b> lines are the ones that earn their keep. They're usually specific and
+      slightly odd — the kind of rule that exists because of one bad afternoon. "Never link an
+      internal document to an external recipient; attach it instead." Those lines are the
+      institutional memory that would otherwise live in one person's head.
+    </p>
+
+    <h3>2. Autonomy is a ladder, and it's earned</h3>
+    <p>
+      A single "is this agent allowed to act" switch is too blunt. Four rungs cover nearly
+      everything, and an agent starts at the bottom and moves up on demonstrated track record —
+      not on how impressive its demo was.
+    </p>
+
+    <div class="ladder">
+      <div class="rung">
+        <div class="pip" style="background:var(--l0)"></div>
+        <div>
+          <div class="rname">Observe</div>
+          <div class="rbody">Reads systems, reports findings. Cannot change anything anywhere. Every new agent starts here.</div>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="pip" style="background:var(--l1)"></div>
+        <div>
+          <div class="rname">Draft</div>
+          <div class="rbody">Prepares the work — the reply, the ticket update, the reconciliation — but a human sends it. Most of the value shows up on this rung, and a lot of agents never need to leave it.</div>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="pip" style="background:var(--l2)"></div>
+        <div>
+          <div class="rname">Act with approval</div>
+          <div class="rbody">Executes inside a defined lane on its own, and stops at a gate for anything that leaves the building or crosses a threshold.</div>
+        </div>
+      </div>
+      <div class="rung unused">
+        <div class="pip" style="background:var(--l3)"></div>
+        <div>
+          <div class="rname">Autonomous</div>
+          <div class="rbody"><em>Deliberately unoccupied.</em> The rung exists so the ladder is honest about where it ends — and so that promoting something into it is a visible decision somebody has to make on purpose.</div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">The ladder from Agent Floor. The empty top rung is the point.</p>
+
+    <p>
+      Demotion matters as much as promotion. A charter violation drops an agent a rung, the same
+      way you'd pull back responsibility from someone who made a serious mistake, and it goes back
+      up by working correctly at the lower level for a while.
+    </p>
+
+    <h3>3. Human gates on anything irreversible</h3>
+    <p>
+      A gate is a hard stop in front of a specific class of action: anything that reaches a
+      customer or vendor, anything that moves money, anything that can't be undone. The agent does
+      all the work up to that line, then presents the finished artifact and waits.
+    </p>
+    <p>
+      The design detail that makes gates survive contact with reality is that <b>the gate has to
+      show its work</b>. A prompt that says "approve this action?" gets rubber-stamped within a
+      week. A gate that shows the actual email, names the rule that triggered the stop, and states
+      what happens on approve versus deny gets read. If your reviewers are clicking approve
+      without reading, you don't have a gate — you have a speed bump and a false sense of safety.
+    </p>
+
+    <h3>4. An append-only log, because someone will ask</h3>
+    <p>
+      Every action, every refusal and every human decision lands in a log that is written once and
+      never edited. Not for compliance theater — for the ordinary Tuesday when a customer asks why
+      they got a particular email and the honest answer needs to include which agent drafted it,
+      which rule let it through, and which human pressed send.
+    </p>
+    <p>
+      Refusals go in the log too, and they're the most useful entries in it. An agent that declined
+      work is telling you either that a charter is too tight or that a real hazard exists. Both are
+      worth knowing; neither shows up if you only log successes.
+    </p>
+
+    <h3>5. The oversight dashboard</h3>
+    <p>
+      Once more than two or three agents are running, the bottleneck moves to the human, and the
+      question becomes what one overseer needs on one screen to stay genuinely in control. In
+      practice it's four things:
+    </p>
+    <ul class="pts">
+      <li><b>Who's on shift and at what rung</b> — the current roster with each agent's autonomy level visible, so an escalation is noticeable rather than something you find out about later.</li>
+      <li><b>What's waiting on me</b> — the gate queue, oldest first. If this list is never empty, autonomy is set too low; if it's always empty, it's set too high.</li>
+      <li><b>What stopped, and why</b> — refusals and charter blocks, quoted against the specific rule that fired. This is the panel that tells you whether the governance is working or just decorative.</li>
+      <li><b>The running log</b> — one chronological stream across all agents, because most real problems are visible in the ordering of events rather than inside any single one.</li>
+    </ul>
+    <p>
+      The measure of the whole arrangement is simple: an overseer should be able to walk away for
+      an afternoon and, on returning, reconstruct exactly what happened and why — without asking
+      anyone.
+    </p>
+
+    <h3>Where I'd start</h3>
+    <p>
+      Pick one queue with real volume and low blast radius. Put a single agent on it at
+      <b>Draft</b> and leave it there longer than feels necessary. Write the charter before writing
+      any code. The first two weeks should produce more edits to the charter than to the
+      implementation — if they don't, the charter isn't specific enough to be doing any work.
+    </p>
+
+  </div>
+</section>
+
+<!-- ==================== CONTACT ==================== -->
+<section id="contact">
+  <h2>Contact</h2>
+  <div class="contact">
+    <p>
+      Best reached by email — I read everything and reply to anything that isn't a template. If
+      you're putting agents on real operational work, or you have an integration layer that's
+      become load-bearing and nobody wants to touch it, that's my territory.
+    </p>
+    <div class="rows">
+      <div class="row">
+        <span class="k">Email</span>
+        <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>
+      </div>
+      <div class="row">
+        <span class="k">Code</span>
+        <a href="https://github.com/SageKey">github.com/SageKey</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>SageKey</span>
+  <span>·</span>
+  <a href="https://github.com/SageKey">GitHub</a>
+  <span>·</span>
+  <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>
+</footer>
+
+</div>
+</body>
+</html>
