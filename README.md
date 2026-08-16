@@ -20,20 +20,38 @@ sagekey.github.io/agent-floor/     ← SageKey/agent-floor
 Every internal link on the page is **root-relative** (`/agent-floor/`, not a full URL) on purpose.
 See "Pointing sagekey.com at it" below.
 
-## Pointing sagekey.com at it later
+## sagekey.com
 
-The page is built so this takes zero edits to the HTML.
+`CNAME` claims the apex domain. Domain registrar and DNS: **GoDaddy**. Mail: **Google
+Workspace** — the `MX` and Google `TXT` records are what carry `bretta@sagekey.com` and must be
+left alone; only the `A` and `www` records below change.
 
-1. Add a `CNAME` file at the repo root containing `sagekey.com` (or set the custom domain under
-   repo **Settings → Pages**, which writes the same file).
-2. At the DNS registrar: four apex `A` records pointing at GitHub Pages' IPs, plus a `www` CNAME
-   pointing at `sagekey.github.io`. *(Per GitHub's docs — confirm the current IP list against
-   their custom-domain page at the time you do it rather than trusting this README.)*
-3. Enable **Enforce HTTPS** once the certificate provisions.
+The repo side is done. The registrar side is these records (values confirmed against GitHub's
+custom-domain docs on 2026-08-16):
 
-Because the links are root-relative, they resolve against whatever host is serving the page. The
-demo project pages inherit the custom domain automatically — `sagekey.com/agent-floor/` starts
-working without touching those repos either.
+| Type | Name | Value |
+|---|---|---|
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| CNAME | `www` | `sagekey.github.io` |
+
+The two pre-existing apex `A` records (`3.33.130.190`, `15.197.148.33`) are GoDaddy's parking
+lander and get deleted. Optional IPv6 — `AAAA` on `@`: `2606:50c0:8000::153` through
+`2606:50c0:8003::153`.
+
+Order matters: the domain is claimed on the Pages site *before* the DNS records point at GitHub,
+so nobody else can host on it in the gap. The tradeoff is that `sagekey.github.io` redirects to
+`sagekey.com` from the moment `CNAME` lands — so until the records are switched, the live site
+is the parking page. Don't leave that half-finished.
+
+After DNS propagates, turn on **Enforce HTTPS** in Settings → Pages (the certificate provisions
+automatically first; the checkbox is greyed out until it does).
+
+Because every internal link is root-relative, none of this touches the HTML — and the three demo
+project pages inherit the domain on their own, so `sagekey.com/agent-floor/` starts working
+without any change to those repos.
 
 ## Local development
 
