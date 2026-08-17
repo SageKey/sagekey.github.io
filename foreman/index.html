@@ -226,28 +226,40 @@ function inline(s) {
 function renderMarkdown(src) {
   const out = [];
   let list = null;
+  // Prohibitions arrive as a *section* — "**The agent MAY NOT:**" followed by
+  // plain bullets that don't repeat the phrase. Styling per line caught only
+  // the rare bullet that restated it, so track which section we're in and
+  // carry that down to its bullets.
+  let denySection = false;
 
   const closeList = () => { if (list) { out.push("<ul>" + list.join("") + "</ul>"); list = null; } };
+  const retarget = line => {
+    if (/\bmay not\b|\bmust not\b|\bwill not\b|\bprohibit/i.test(line)) denySection = true;
+    else if (/\bmay\b|\bmust\b|^#{1,3}\s|^---+$/i.test(line)) denySection = false;
+  };
 
   for (const raw of src.split("\n")) {
     const line = raw.trimEnd();
     if (!line.trim()) { closeList(); continue; }
 
-    if (/^---+$/.test(line.trim())) { closeList(); out.push("<hr />"); continue; }
-    if (/^###\s+/.test(line)) { closeList(); out.push("<h3>" + inline(line.replace(/^###\s+/, "")) + "</h3>"); continue; }
-    if (/^##\s+/.test(line))  { closeList(); out.push("<h2>" + inline(line.replace(/^##\s+/, "")) + "</h2>"); continue; }
-    if (/^#\s+/.test(line))   { closeList(); out.push("<h2>" + inline(line.replace(/^#\s+/, "")) + "</h2>"); continue; }
+    if (/^---+$/.test(line.trim())) { closeList(); denySection = false; out.push("<hr />"); continue; }
+    if (/^###\s+/.test(line)) { closeList(); retarget(line); out.push("<h3>" + inline(line.replace(/^###\s+/, "")) + "</h3>"); continue; }
+    if (/^##\s+/.test(line))  { closeList(); retarget(line); out.push("<h2>" + inline(line.replace(/^##\s+/, "")) + "</h2>"); continue; }
+    if (/^#\s+/.test(line))   { closeList(); retarget(line); out.push("<h2>" + inline(line.replace(/^#\s+/, "")) + "</h2>"); continue; }
 
     const bullet = line.match(/^\s*[-*]\s+(.*)$/);
     if (bullet) {
-      // A MAY NOT line gets the same red × the other demos use, so the
-      // prohibitions read as prohibitions at a glance.
-      const deny = /\bmay not\b|\bnever\b|\bmust not\b/i.test(bullet[1]);
+      // Prohibitions get the same red × Agent Floor uses, either because the
+      // bullet says so itself or because it sits under a MAY NOT heading.
+      const deny = denySection || /\bmay not\b|\bnever\b|\bmust not\b/i.test(bullet[1]);
       (list = list || []).push('<li class="' + (deny ? "deny" : "") + '">' + inline(bullet[1]) + "</li>");
       continue;
     }
 
     closeList();
+    // A bold lead-in like "**The agent MAY NOT:**" is a section header even
+    // though it isn't a markdown heading.
+    retarget(line);
     out.push("<p>" + inline(line) + "</p>");
   }
   closeList();
