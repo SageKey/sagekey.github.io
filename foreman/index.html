@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Foreman — draft a charter for real work</title>
+<meta name="description" content="Describe work you'd consider handing to an AI agent. Foreman returns a charter, an autonomy level, the human gates it needs, and what it should refuse. Live model, real spend ceiling, public log." />
+<meta property="og:title" content="Foreman — governance for agent work, running live" />
+<meta property="og:description" content="Not a simulation. A real model call, a policy engine that can refuse you, a hard daily spend ceiling, and a tamper-evident public log." />
+<meta name="theme-color" content="#0a0c10" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0c10'/%3E%3Crect x='6' y='8' width='20' height='3' rx='1.5' fill='%2354d6a0'/%3E%3Crect x='6' y='15' width='14' height='3' rx='1.5' fill='%23f0b849'/%3E%3Crect x='6' y='22' width='8' height='3' rx='1.5' fill='%236aa3e8'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg:#0a0c10; --panel:#12151d; --panel2:#171b25; --line:#222836;
+    --ink:#eaeef5; --dim:#8a94a6; --faint:#5b6474;
+    --l0:#6aa3e8; --l1:#f0b849; --l2:#54d6a0; --l3:#3e4657;
+    --alarm:#ff6b6b;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--ink); min-height:100vh; padding:22px 18px 70px;
+    font:400 15px/1.6 ui-sans-serif,-apple-system,"SF Pro Text",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; }
+  .shell { max-width:880px; margin:0 auto; }
+  a { color:var(--l2); }
+
+  header { margin-bottom:6px; }
+  .htop { display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
+  h1 { font-size:20px; font-weight:600; letter-spacing:-.015em; }
+  .live { font:600 10.5px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing:.13em;
+    text-transform:uppercase; background:var(--l2); color:#06231a; border-radius:4px;
+    padding:5px 8px; }
+  .sub { color:var(--dim); font-size:14px; margin-top:8px; max-width:64ch; }
+  .sub b { color:var(--ink); font-weight:500; }
+
+  /* budget */
+  .budget { display:flex; align-items:center; gap:12px; margin-top:18px; padding:11px 14px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; font-size:12.5px;
+    color:var(--dim); flex-wrap:wrap; }
+  .meter { flex:1; min-width:120px; height:5px; border-radius:3px; background:#232a38; overflow:hidden; }
+  .meter > i { display:block; height:100%; background:var(--l2); width:100%; transition:width .5s; }
+  .budget b { color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }
+
+  /* form */
+  form { margin-top:20px; }
+  label { display:block; font-size:12px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--dim); margin-bottom:8px; }
+  textarea { width:100%; min-height:120px; resize:vertical; background:var(--panel);
+    color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:13px 15px;
+    font:inherit; font-size:14.5px; line-height:1.6; }
+  textarea:focus { outline:none; border-color:#33405a; }
+  .row { display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+  button { font:inherit; font-size:14px; font-weight:500; padding:10px 18px; border-radius:8px;
+    border:1px solid var(--l2); background:var(--l2); color:#06231a; cursor:pointer; }
+  button:hover:not(:disabled) { background:#48c491; }
+  button:disabled { opacity:.45; cursor:default; }
+  .count { color:var(--faint); font-size:12px; margin-left:auto; font-variant-numeric:tabular-nums; }
+  .count.over { color:var(--alarm); }
+
+  .examples { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+  .ex { font-size:12.5px; color:var(--dim); background:var(--panel); border:1px solid var(--line);
+    border-radius:999px; padding:6px 12px; cursor:pointer; }
+  .ex:hover { border-color:#33405a; color:var(--ink); }
+
+  /* result */
+  .out { margin-top:24px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; }
+  .tag { display:inline-block; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+    padding:4px 9px; border-radius:999px; border:1px solid; margin-bottom:14px; }
+  .tag.ok { color:var(--l2); border-color:var(--l2); }
+  .tag.refused { color:var(--l1); border-color:var(--l1); }
+  .tag.fault { color:var(--alarm); border-color:var(--alarm); }
+
+  .md h2 { font-size:16px; font-weight:600; margin:22px 0 8px; letter-spacing:-.01em; }
+  .md h2:first-child { margin-top:0; }
+  .md h3 { font-size:14px; font-weight:600; color:var(--dim); margin:18px 0 6px;
+    letter-spacing:.04em; text-transform:uppercase; }
+  .md p { margin:9px 0; color:var(--dim); }
+  .md strong { color:var(--ink); font-weight:600; }
+  .md em { color:var(--ink); font-style:italic; }
+  .md ul { list-style:none; margin:9px 0; display:flex; flex-direction:column; gap:6px; }
+  .md li { color:var(--dim); padding-left:18px; position:relative; }
+  .md li::before { content:"·"; position:absolute; left:5px; color:var(--faint); }
+  .md li.deny { color:#c98a8a; }
+  .md li.deny::before { content:"×"; color:var(--alarm); font-size:11px; }
+  .md hr { border:0; border-top:1px solid var(--line); margin:20px 0; }
+
+  .spinner { display:inline-block; width:13px; height:13px; border:2px solid var(--line);
+    border-top-color:var(--l2); border-radius:50%; animation:spin .7s linear infinite;
+    vertical-align:-2px; margin-right:8px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .waiting { color:var(--dim); font-size:14px; }
+
+  .foot { margin-top:34px; color:var(--faint); font-size:12.5px; line-height:1.65; max-width:70ch; }
+  .foot b { color:var(--dim); font-weight:500; }
+  .backlink { margin-top:30px; padding-top:15px; border-top:1px solid var(--line);
+    display:flex; gap:15px; align-items:center; flex-wrap:wrap; font-size:12.5px; }
+  .backlink a { color:var(--dim); text-decoration:none; }
+  .backlink a:hover { color:var(--ink); }
+  .backlink a.home { color:var(--l2); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header>
+  <div class="htop">
+    <h1>Foreman</h1>
+    <span class="live">Live</span>
+  </div>
+  <p class="sub">
+    Describe a piece of operational work you'd consider handing to an AI agent. Foreman drafts the
+    <b>charter</b> for it — what the agent may do, what it may not, who owns it, how much autonomy
+    it has earned, and where a human has to sign off.
+  </p>
+  <p class="sub">
+    Unlike <a href="/agent-floor/">Agent Floor</a>, none of this is scripted. It is a real model
+    call, against a policy engine that can refuse you, under a hard daily spend ceiling.
+  </p>
+</header>
+
+<div class="budget">
+  <span>Today's budget</span>
+  <div class="meter"><i id="bar"></i></div>
+  <span><b id="left">—</b> of <b id="cap">—</b> left</span>
+</div>
+
+<form id="form">
+  <label for="text">The work</label>
+  <textarea id="text" placeholder="e.g. Every morning, reconcile our inbound freight invoices against purchase orders in the ERP and flag any that differ by more than 2%."></textarea>
+  <div class="examples" id="examples"></div>
+  <div class="row">
+    <button id="go" type="submit">Draft the charter</button>
+    <span class="count" id="count">0 / 4000</span>
+  </div>
+</form>
+
+<div class="out" id="out"></div>
+
+<p class="foot">
+  <b>What's actually happening.</b> Your description is sent as data, never as instructions — the
+  policy engine that decides what this agent may do lives in code, outside the model, so text in
+  the box cannot widen it. Before any call, Foreman prices the worst case and refuses if it would
+  breach the day's ceiling. Every outcome, including every refusal, is appended to a hash-chained
+  log you can <a id="loglink" href="#">read</a> and
+  <a id="verifylink" href="#">verify</a> yourself.
+</p>
+
+<nav class="backlink">
+  <a class="home" href="/">← SageKey · Brett Anderson</a>
+  <a href="/agent-floor/">Agent Floor</a>
+  <a href="/codebreaker/">Codebreaker</a>
+  <a href="/market-arena/">Market Arena</a>
+</nav>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Foreman — front end.
+//
+// Thin on purpose: the interesting parts (policy, ceiling, log) are all
+// server-side, because a governance control that lives in the browser is not
+// a control at all — anyone can open devtools and delete it.
+// ---------------------------------------------------------------------------
+
+const API = "https://foreman-production-2733.up.railway.app";
+const MAX = 4000;
+
+const $ = id => document.getElementById(id);
+
+$("loglink").href = API + "/log";
+$("verifylink").href = API + "/log/verify";
+
+const EXAMPLES = [
+  "Every morning, reconcile inbound freight invoices against purchase orders in the ERP and flag any that differ by more than 2%.",
+  "Triage inbound support email overnight and route each one to the right team with a suggested reply.",
+  "Watch our error tracker and open a ticket when a new exception type appears more than five times in an hour.",
+  "Review incoming vendor contracts and summarise the payment terms and termination clauses.",
+];
+
+EXAMPLES.forEach((text, i) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "ex";
+  b.textContent = ["Invoice reconciliation", "Support triage", "Error monitoring", "Contract review"][i];
+  b.onclick = () => { $("text").value = text; updateCount(); $("text").focus(); };
+  $("examples").appendChild(b);
+});
+
+function updateCount() {
+  const n = $("text").value.length;
+  $("count").textContent = n + " / " + MAX;
+  $("count").classList.toggle("over", n > MAX);
+  $("go").disabled = n < 20 || n > MAX;
+}
+$("text").addEventListener("input", updateCount);
+updateCount();
+
+// --- budget ---------------------------------------------------------------
+async function refreshBudget() {
+  try {
+    const h = await (await fetch(API + "/health")).json();
+    const left = parseFloat(h.remaining_usd), cap = parseFloat(h.ceiling_usd);
+    $("left").textContent = "$" + left.toFixed(2);
+    $("cap").textContent = "$" + cap.toFixed(2);
+    $("bar").style.width = Math.max(0, (left / cap) * 100) + "%";
+    $("bar").style.background = left / cap < 0.15 ? "var(--l1)" : "var(--l2)";
+  } catch { /* the page still works without the meter */ }
+}
+refreshBudget();
+
+// --- a very small markdown renderer ---------------------------------------
+// Just enough for what the model returns: headings, bold, italic, bullets,
+// rules. Deliberately not a library — the page stays one file with no
+// dependencies, same as the other three demos.
+function esc(s) {
+  return s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+}
+function inline(s) {
+  return esc(s)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+function renderMarkdown(src) {
+  const out = [];
+  let list = null;
+
+  const closeList = () => { if (list) { out.push("<ul>" + list.join("") + "</ul>"); list = null; } };
+
+  for (const raw of src.split("\n")) {
+    const line = raw.trimEnd();
+    if (!line.trim()) { closeList(); continue; }
+
+    if (/^---+$/.test(line.trim())) { closeList(); out.push("<hr />"); continue; }
+    if (/^###\s+/.test(line)) { closeList(); out.push("<h3>" + inline(line.replace(/^###\s+/, "")) + "</h3>"); continue; }
+    if (/^##\s+/.test(line))  { closeList(); out.push("<h2>" + inline(line.replace(/^##\s+/, "")) + "</h2>"); continue; }
+    if (/^#\s+/.test(line))   { closeList(); out.push("<h2>" + inline(line.replace(/^#\s+/, "")) + "</h2>"); continue; }
+
+    const bullet = line.match(/^\s*[-*]\s+(.*)$/);
+    if (bullet) {
+      // A MAY NOT line gets the same red × the other demos use, so the
+      // prohibitions read as prohibitions at a glance.
+      const deny = /\bmay not\b|\bnever\b|\bmust not\b/i.test(bullet[1]);
+      (list = list || []).push('<li class="' + (deny ? "deny" : "") + '">' + inline(bullet[1]) + "</li>");
+      continue;
+    }
+
+    closeList();
+    out.push("<p>" + inline(line) + "</p>");
+  }
+  closeList();
+  return out.join("");
+}
+
+// --- submit ---------------------------------------------------------------
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const text = $("text").value.trim();
+  if (text.length < 20) return;
+
+  $("go").disabled = true;
+  $("out").innerHTML =
+    '<div class="card"><span class="waiting"><span class="spinner"></span>' +
+    "Drafting — a real model call, usually 20–60 seconds.</span></div>";
+
+  try {
+    const res = await fetch(API + "/draft", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const body = await res.json().catch(() => ({}));
+
+    if (res.status === 429) return show("fault", "Rate limited", body.detail);
+    if (res.status === 503) return show("fault", "Foreman is down", body.detail);
+    if (!res.ok) return show("fault", "Something went wrong", "HTTP " + res.status + ".");
+
+    if (body.outcome === "refused") {
+      const title = {
+        charter: "Refused — outside its charter",
+        budget: "Refused — daily budget spent",
+        model: "Refused — the model declined",
+      }[body.kind] || "Refused";
+      show("refused", title, body.reason);
+    } else {
+      show("ok", null, null, body.charter);
+    }
+  } catch (err) {
+    show("fault", "Could not reach Foreman", "The API did not respond. It may be redeploying.");
+  } finally {
+    $("go").disabled = false;
+    refreshBudget();
+  }
+});
+
+function show(kind, title, message, markdown) {
+  const label = { ok: "Charter drafted", refused: title, fault: title }[kind];
+  const bodyHtml = markdown
+    ? '<div class="md">' + renderMarkdown(markdown) + "</div>"
+    : "<p>" + esc(message || "") + "</p>";
+  $("out").innerHTML =
+    '<div class="card"><span class="tag ' + kind + '">' + esc(label) + "</span>" + bodyHtml + "</div>";
+}
+</script>
+</body>
+</html>
