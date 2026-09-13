@@ -142,12 +142,14 @@ function render(d) {
     const bars = (b.config.bar_seconds * b.config.bar_factor) / 3600;
     const todayLine = t.fills + t.closes === 0
       ? `No trades today${t.refusals ? ` — ${t.refusals} setup${t.refusals > 1 ? 's' : ''} refused by the rules (${t.refusal_rules.join(', ')})` : ' — no setup qualified'}.`
-      : `${t.fills} entr${t.fills === 1 ? 'y' : 'ies'}, ${t.closes} exit${t.closes === 1 ? '' : 's'} today${t.refusals ? `, ${t.refusals} refused` : ''}.`;
+      : [t.fills ? `Opened ${t.fills} new position${t.fills > 1 ? 's' : ''} today` : null,
+         t.closes ? `closed ${t.closes} position${t.closes > 1 ? 's' : ''} today that ${t.closes > 1 ? 'were' : 'was'} opened on an earlier day` : null,
+         t.refusals ? `${t.refusals} setup${t.refusals > 1 ? 's' : ''} refused by the rules` : null].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) + '.';
     return `<div class="bot" style="--c:${css(COLORS[i])}">
       <div class="name"><b>${b.label}</b><span>${strat} · ${bars}h bars · ${b.config.symbols.map(x => x.split('-')[0]).join(' ')}</span></div>
-      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}<small>${pct(b.pnl_total_pct)} · equity $${b.equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}</small></div>
+      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}<small>${pct(b.pnl_total_pct)} since start · equity $${b.equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}</small></div>
       <div class="tiles">
-        <div class="tile"><div class="k">Today</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
+        <div class="tile"><div class="k">Today's P&amp;L</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
         <div class="tile"><div class="k">This week</div><div class="v ${cls(b.pnl_week_usd)}">${usd(b.pnl_week_usd)}</div></div>
         <div class="tile"><div class="k">This month</div><div class="v ${cls(b.pnl_month_usd)}">${usd(b.pnl_month_usd)}</div></div>
         <div class="tile"><div class="k">Open</div><div class="v">${b.positions.length} / ${b.config.max_open_positions}</div></div>
