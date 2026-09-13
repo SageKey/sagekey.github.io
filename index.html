@@ -165,8 +165,8 @@
 <section id="work">
   <h2>Things you can open</h2>
   <p class="intro">
-    All three are single static pages — no backend, no build step, no dependencies. Source is
-    public for each.
+    Static pages where possible, a small backend where the work needs one. Source is public for
+    the demos.
   </p>
 
   <div class="cards">
@@ -186,6 +186,24 @@
       <div class="built">FastAPI on Railway. Every outcome — including every refusal — is public and checkable.</div>
       <div class="clinks">
         <a href="/foreman/">Open demo →</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="chead">
+        <h3><a href="/ratchet/">Ratchet</a></h3>
+        <span class="tag live">Live · paper</span>
+      </div>
+      <p>
+        Three rule-based trading bots running around the clock on paper against live Coinbase
+        prices. Each follows a written trend-following rule set with a fixed risk per trade and a
+        daily loss budget, and the dashboard shows the whole record: every trade, every quiet day,
+        and every setup the rules turned down. Built by testing a dozen known strategy families
+        against three years of data and keeping only what survived out-of-sample.
+      </p>
+      <div class="built">Python engine, Postgres journal, static dashboard republished hourly. No real money, no advice.</div>
+      <div class="clinks">
+        <a href="/ratchet/">Open dashboard →</a>
       </div>
     </article>
 
