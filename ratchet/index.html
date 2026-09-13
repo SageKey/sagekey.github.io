@@ -137,7 +137,7 @@
 const COLORS = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7', '--s8'];
 const DESKS = {
   rules: { title: 'Rule desk', what: 'Four bots that never think. Fixed trend-following rules, tested on three years of history.' },
-  copy: { title: 'Copy desk', what: 'Follows the net stance of five screened OKX lead traders, one hour behind. Probationary.' },
+  copy: { title: 'Copy desk', what: 'Three bots that follow screened OKX lead traders one hour behind, each with a different idea of who is worth following. Probationary.' },
   sentiment: { title: 'Sentiment desk', what: 'Three analysts that read the crowd every four hours and propose trades. Fenced off, same risk rules, scored the same way. Probationary.' },
 };
 const ORDER = ['rules', 'copy', 'sentiment'];
@@ -200,7 +200,7 @@ function card(b) {
     <div class="rules"><b>${strategyLabel(b)}</b> · daily stop −${b.config.daily_stop_pct}% · <span title="${b.config.symbols.join(', ')}">${coinList(b.config.symbols)}</span>${b.halted_reason ? ' · <b style="color:var(--down)">HALTED today</b>' : ''}</div>
     <div class="today">${todayLine}</div>
     ${b.analyst ? analystBlock(b) : ''}
-    ${b.desk === 'copy' ? copyBlock() : ''}
+    ${b.desk === 'copy' ? copyBlock(b) : ''}
   </div>`;
 }
 
@@ -210,11 +210,12 @@ function analystBlock(b) {
   return `<div class="note" onclick="this.classList.toggle('open')"><span class="k">What ${a.display} is seeing${note ? ' · ' + fmtT(note.at) : ''}</span><div class="txt">${note ? note.text : 'No session yet.'}</div><span class="more">show more / less</span></div>` +
     (calls ? `<div class="calls"><span class="k" style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:2px">Calls</span>${calls}</div>` : '');
 }
-function copyBlock() {
-  const cb = DATA.desk_copy_book || {};
-  if (!cb.leaders) return '';
+function copyBlock(b) {
+  const cb = (DATA.desk_copy_book || {})[b.id] || {};
+  if (!cb.leaders) return '<div class="note open"><span class="k">Leaders</span><div class="txt">Screening lead traders…</div></div>';
+  const need = (b.config.strategies[0].params || {}).min_net || 2;
   const stance = Object.entries(cb.book || {}).map(([s, x]) => `${s.split('-')[0]} ${x.long}L/${x.short}S`).join(', ') || 'no positions';
-  return `<div class="note open"><span class="k">Following ${cb.leaders.length} OKX lead traders · refreshed ${fmtT(cb.refreshed_at)}</span><div class="txt">${cb.leaders.map(l => `${l.name} (${l.days}d, win ${Math.round(+l.win * 100)}%)`).join(' · ')}<br><span class="flat">Leaders' stance now: ${stance}. Copycat acts when two more leaders agree than disagree on a coin.</span></div></div>`;
+  return `<div class="note open"><span class="k">Following ${cb.leaders.length} OKX lead trader${cb.leaders.length > 1 ? 's' : ''} · refreshed ${fmtT(cb.refreshed_at)}</span><div class="txt">${cb.leaders.length ? cb.leaders.map(l => `${l.name} (${l.days}d, win ${Math.round(+l.win * 100)}%${l.copiers ? ', ' + l.copiers + ' copiers' : ''})`).join(' · ') : 'No leader passed this bot\'s screen this week.'}<br><span class="flat">Leaders' stance now: ${stance}. Acts when ${need === 1 ? 'any followed leader is in' : need + ' more leaders agree than disagree on a coin'}.</span></div></div>`;
 }
 
 function deskSection(key, bots, guard, extra) {
