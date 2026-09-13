@@ -94,6 +94,7 @@
 <div id="fixture" hidden style="background:#b3261e;color:#fff;padding:12px 28px;font-weight:600;margin-top:10px">SAMPLE DATA — not the live record.</div>
 <p class="intro" id="intro">Three desks trade crypto on paper against live Coinbase prices. Every bot has a written rule set, a fixed risk per trade, a daily loss budget, and a stop on every position. Nothing here is advice and no real money is involved. The record is complete: every trade, every quiet day, and every setup the rules turned down.</p>
 
+<div class="intro" id="timing" style="font-size:13.5px;padding-top:6px"></div>
 <nav class="desks" id="desknav"></nav>
 
 <main>
@@ -256,6 +257,7 @@ function render() {
   beat.classList.toggle('stale', !fresh);
   beat.title = fresh ? 'The Railway process reported within the last 2.5 hours; it reports every hour after the bar closes.' : 'No report for more than 2.5 hours — the process may be down.';
 
+  document.getElementById('timing').innerHTML = `<b>How often things change:</b> the bots decide once an hour, right after each hourly candle closes (the 4-hour and daily bots on the close of their own candle), so entries, exits and realized P&amp;L move on the hour. Open positions are marked to the live Coinbase price each time this page loads; the page reloads itself every 5 minutes. Data as of <b>${fmtT(d.generated_at)}</b>.`;
   d.bots.forEach((b, i) => { b._i = i; });
   const desksPresent = ORDER.filter(k => d.bots.some(b => b.desk === k));
   document.getElementById('sub').textContent = `Paper crypto desk · ${d.bots.length} bots across ${desksPresent.length} desks · Coinbase prices`;
