@@ -47,6 +47,10 @@
   .bot .name { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .bot .name b { font-size: 17px; }
   .bot .name .chip { font-size: 11px; color: var(--ink-2); background: var(--chip); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .score-hero { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+  .score-line { color: var(--ink-2); font-size: 15px; margin-top: 4px; }
+  .wl { display: inline-block; min-width: 18px; text-align: center; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; }
+  .wl.w { background: rgba(42,120,214,.15); color: var(--up); } .wl.l { background: rgba(235,104,52,.15); color: var(--down); }
   .hero { font-size: 34px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
   .hero-sub { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; }
@@ -98,6 +102,18 @@
 <nav class="desks" id="desknav"></nav>
 
 <main>
+  <section class="card" id="scoreboard"></section>
+
+  <section class="card">
+    <h3>Open trades — what each bot holds and where it expects to exit</h3>
+    <div class="scroll" id="open-trades"></div>
+  </section>
+
+  <section class="card">
+    <h3>Closed trades — did they win or lose</h3>
+    <div class="scroll" id="closed-trades"></div>
+  </section>
+
   <div id="desks"></div>
 
   <section class="two">
@@ -125,11 +141,6 @@
   <section class="card">
     <h3>Today's journal — every decision, including the ones not to trade</h3>
     <div class="scroll" id="journal"></div>
-  </section>
-
-  <section class="card">
-    <h3>Closed trades — most recent first</h3>
-    <div class="scroll" id="trades"></div>
   </section>
 
   <section class="card">
@@ -294,6 +305,31 @@ function render() {
   document.getElementById('desknav').innerHTML = [['all', 'All desks'], ...desksPresent.map(k => [k, DESKS[k].title])].map(([k, t]) => `<button class="${FILTER === k ? 'on' : ''}" onclick="setFilter('${k}')">${t}</button>`).join('') +
     (benchCount ? `<button class="${SHOW_BENCH ? 'on' : ''}" style="margin-left:auto" onclick="SHOW_BENCH=!SHOW_BENCH;render()" title="Shadow bots that run a paper book and can replace a live bot at the weekly review">${SHOW_BENCH ? 'Hide' : 'Show'} bench (${benchCount})</button>` : '');
 
+  // ---- SCOREBOARD: are we winning or losing, what is open, what closed
+  const live = bots.filter(b => !b.bench);
+  const totCap = live.reduce((a, b) => a + b.capital, 0), totEq = live.reduce((a, b) => a + b.equity, 0), totNet = totEq - totCap;
+  const totRealized = live.reduce((a, b) => a + b.realized_usd, 0), totUnreal = live.reduce((a, b) => a + b.unrealized_usd, 0);
+  const openN = live.reduce((a, b) => a + b.positions.length, 0), closedN = live.reduce((a, b) => a + b.stats.trades, 0);
+  const winsN = live.reduce((a, b) => a + (b.stats.wins || 0), 0), lossN = closedN - winsN;
+  const up = live.filter(b => b.pnl_total_usd > 0.005).length, down = live.filter(b => b.pnl_total_usd < -0.005).length;
+  const verdict = closedN === 0 && openN === 0 ? 'No trades yet — every bot is waiting for a setup that passes its rules.' : `${up} bot${up === 1 ? '' : 's'} up, ${down} down, ${live.length - up - down} flat · ${openN} open trade${openN === 1 ? '' : 's'} · ${closedN} closed (${winsN} won, ${lossN} lost)`;
+  document.getElementById('scoreboard').innerHTML = `<h3>Scoreboard — ${FILTER === 'all' ? 'all desks' : DESKS[FILTER].title} · paper money · since start</h3>
+    <div class="score-hero ${cls(totNet)}">${usd(totNet)} <span style="font-size:18px;font-weight:500;color:var(--ink-2)">${pct(totCap ? totNet / totCap * 100 : 0)} on ${usd0(totCap)}</span></div>
+    <div class="score-line">${verdict}</div>
+    <div class="score-line">Realized (closed trades): <b class="${cls(totRealized)}">${usd(totRealized)}</b> · Unrealized (open trades at current price): <b class="${cls(totUnreal)}">${usd(totUnreal)}</b> · both are net of fees</div>
+    <div class="scroll" style="margin-top:12px"><table><tr><th>Bot</th><th>Desk</th><th class="num">Net P&amp;L</th><th class="num">Return</th><th class="num">Open</th><th class="num">Closed</th><th class="num">Won / lost</th><th class="num">Realized</th><th class="num">Unrealized</th><th>Right now</th></tr>` +
+    live.map(b => `<tr><td><span class="dot" style="background:${css(COLORS[b._i])}"></span><b>${b.label}</b></td><td>${DESKS[b.desk].title.replace(' desk', '')}</td><td class="num ${cls(b.pnl_total_usd)}"><b>${usd(b.pnl_total_usd)}</b></td><td class="num ${cls(b.pnl_total_pct)}">${pct(b.pnl_total_pct)}</td><td class="num">${b.positions.length}</td><td class="num">${b.stats.trades}</td><td class="num">${b.stats.trades ? `<span class="wl w">${b.stats.wins}</span> <span class="wl l">${b.stats.losses}</span>` : '—'}</td><td class="num ${cls(b.realized_usd)}">${usd(b.realized_usd)}</td><td class="num ${cls(b.unrealized_usd)}">${usd(b.unrealized_usd)}</td><td class="flat">${b.positions.length ? b.positions.map(p => `${p.direction === 'short' ? 'short' : 'long'} ${p.symbol.split('-')[0]}`).join(', ') : (b.today.refusals ? `flat, ${b.today.refusals} setup${b.today.refusals > 1 ? 's' : ''} refused today` : 'flat, waiting')}</td></tr>`).join('') + `</table></div>`;
+
+  const openRows = live.flatMap(b => b.positions.map(p => ({ ...p, bot: b.label, i: b._i })));
+  document.getElementById('open-trades').innerHTML = openRows.length ? `<table><tr><th>Bot</th><th>Side</th><th class="num">Quantity</th><th>Coin</th><th class="num">Entry price</th><th class="num">Total spent</th><th class="num">Price now</th><th class="num">Unrealized</th><th class="num">Exit if right (target)</th><th class="num">Exit if wrong (stop)</th><th class="num">$ at risk</th><th>Opened</th></tr>` +
+    openRows.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.direction === 'short' ? 'Short' : 'Long'}</td><td class="num">${qty(p.units)}</td><td><b>${p.symbol.split('-')[0]}</b></td><td class="num">${px(p.entry_price)}</td><td class="num">${usd0(p.units * p.entry_price)}</td><td class="num">${px(p.mark)}</td><td class="num ${cls(p.unrealized_usd)}"><b>${usd(p.unrealized_usd)}</b> (${pct(p.unrealized_pct)})</td><td class="num pos">${px(p.target)}</td><td class="num neg">${px(p.stop)}</td><td class="num">$${(+p.risk_usd).toFixed(0)}</td><td>${fmtT(p.opened_at)}</td></tr>`).join('') + `</table><div class="empty" style="font-size:12px">Unrealized = (price now − entry) × quantity − the entry fee already paid. Exits happen on the hourly close after price crosses the target or stop, or at the bot's time limit.</div>`
+    : '<div class="empty">Nothing open. Every bot is flat and waiting for a setup that passes its rules.</div>';
+
+  const closedRows = live.flatMap(b => b.trades.map(t => ({ ...t, bot: b.label, i: b._i }))).sort((a, b) => b.exit_at.localeCompare(a.exit_at)).slice(0, 60);
+  document.getElementById('closed-trades').innerHTML = closedRows.length ? `<table><tr><th>Result</th><th>Bot</th><th>Side</th><th class="num">Quantity</th><th>Coin</th><th class="num">Entry price</th><th class="num">Exit price</th><th class="num">Total spent</th><th class="num">Net P&amp;L</th><th class="num">Fees</th><th>Why it closed</th><th>Opened</th><th>Closed</th></tr>` +
+    closedRows.map(t => `<tr><td>${t.pnl_usd > 0 ? '<span class="wl w">WIN</span>' : '<span class="wl l">LOSS</span>'}</td><td><span class="dot" style="background:${css(COLORS[t.i])}"></span>${t.bot}</td><td>${t.direction === 'short' ? 'Short' : 'Long'}</td><td class="num">${qty(t.units)}</td><td><b>${t.symbol.split('-')[0]}</b></td><td class="num">${px(t.entry_price)}</td><td class="num">${px(t.exit_price)}</td><td class="num">${usd0(t.units * t.entry_price)}</td><td class="num ${cls(t.pnl_usd)}"><b>${usd(t.pnl_usd)}</b> (${pct(t.pnl_usd / (t.units * t.entry_price) * 100)})</td><td class="num">$${t.fees_usd.toFixed(2)}</td><td>${({ stop: 'hit stop', target: 'hit target', time_stop: 'time limit', trailing_stop: 'trailing stop', channel_exit: 'trend exit', leaders_left: 'leaders exited', day_stop: 'daily loss stop', day_end: 'day end', max_hold: 'max hold', lost_midline: 'lost midline', reverted_to_mean: 'reverted to mean', trend_lost: 'trend lost', momentum_flip: 'momentum flipped', rank_lost: 'fell out of ranking' })[t.exit_reason] || t.exit_reason}</td><td>${fmtT(t.entry_at)}</td><td>${fmtT(t.exit_at)}</td></tr>`).join('') + '</table>'
+    : '<div class="empty">No closed trades yet.</div>';
+
   const guardFor = { rules: d.desk, copy: d.desk_copy, sentiment: d.desk_sentiment };
   document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && (SHOW_BENCH || !b.bench)), guardFor[k], (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
 
@@ -332,8 +368,8 @@ function render() {
     ev.slice(0, 80).map(e => `<tr><td>${fmtT(e.at)}</td><td><span class="dot" style="background:${css(COLORS[e.i])}"></span>${e.bot}</td><td>${e.kind.replace('_', ' ')}</td><td class="wrap">${describe(e)}</td></tr>`).join('') + '</table>'
     : `<div class="empty">Nothing yet today (${d.today}, ${d.day_tz}). A quiet day is a valid day: the rules did not find a setup.</div>`;
 
-  const tr = bots.flatMap(b => b.trades.map(t => ({ ...t, bot: b.label, i: b._i }))).sort((a, b) => b.exit_at.localeCompare(a.exit_at)).slice(0, 60);
-  document.getElementById('trades').innerHTML = tr.length ? `<table><tr><th>Closed</th><th>Bot</th><th>Coin</th><th>Side</th><th class="num">Entry</th><th class="num">Exit</th><th>Why</th><th class="num">Held</th><th class="num">Price move</th><th class="num">Fees</th><th class="num">Net P&amp;L</th><th class="num">R</th></tr>` +
+  const tr = [];
+  if (document.getElementById('trades')) document.getElementById('trades').innerHTML = tr.length ? `<table><tr><th>Closed</th><th>Bot</th><th>Coin</th><th>Side</th><th class="num">Entry</th><th class="num">Exit</th><th>Why</th><th class="num">Held</th><th class="num">Price move</th><th class="num">Fees</th><th class="num">Net P&amp;L</th><th class="num">R</th></tr>` +
     tr.map(t => { const held = (new Date(t.exit_at) - new Date(t.entry_at)) / 3600000; const gross = t.pnl_usd + t.fees_usd; return `<tr><td>${fmtT(t.exit_at)}</td><td><span class="dot" style="background:${css(COLORS[t.i])}"></span>${t.bot}</td><td>${t.symbol.split('-')[0]}</td><td>${t.direction}</td><td class="num">${t.entry_price.toFixed(t.entry_price < 10 ? 4 : 2)}</td><td class="num">${t.exit_price.toFixed(t.exit_price < 10 ? 4 : 2)}</td><td>${t.exit_reason.replace('_', ' ')}</td><td class="num">${held < 48 ? held.toFixed(0) + 'h' : (held / 24).toFixed(1) + 'd'}</td><td class="num ${cls(gross)}">${usd(gross)}</td><td class="num neg">−$${t.fees_usd.toFixed(2)}</td><td class="num ${cls(t.pnl_usd)}">${usd(t.pnl_usd)}</td><td class="num ${cls(t.r_multiple)}">${t.r_multiple > 0 ? '+' : ''}${t.r_multiple.toFixed(2)}</td></tr>`; }).join('') + '</table>'
     : '<div class="empty">No closed trades yet.</div>';
 
