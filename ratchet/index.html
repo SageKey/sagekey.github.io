@@ -122,17 +122,21 @@ const fmtT = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'shor
 const fmtD = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
 async function load() {
-  const src = new URLSearchParams(location.search).get('src');     // ?src=sample.json → preview a fixture
-  for (const url of src ? [src] : ['api/data', 'data.json']) {
+  const q = new URLSearchParams(location.search);
+  const src = q.get('src');                                          // ?src=sample.json → preview a fixture
+  const uat = q.get('uat') ? 'api/data?uat=1' : null;                // ?uat=1 → rehearsal ledgers (local only)
+  for (const url of src ? [src] : uat ? [uat] : ['api/data', 'data.json']) {
     try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r.json(); } catch (e) { /* try next */ }
   }
   throw new Error('no data source reachable');
 }
 
 function render(d) {
-  const isFixture = !!new URLSearchParams(location.search).get('src');
-  document.getElementById('fixture').hidden = !isFixture;
-  document.getElementById('mode').textContent = isFixture ? 'SAMPLE — NOT LIVE' : d.mode;
+  const qs = new URLSearchParams(location.search);
+  const isFixture = !!qs.get('src'), isUat = !!qs.get('uat');
+  document.getElementById('fixture').hidden = !(isFixture || isUat);
+  if (isUat) document.getElementById('fixture').textContent = 'UAT REHEARSAL — a real stretch of history replayed through the live code path into a separate ledger. Not the live bots.';
+  document.getElementById('mode').textContent = isFixture ? 'SAMPLE — NOT LIVE' : isUat ? 'UAT — NOT LIVE' : d.mode;
   const beat = document.getElementById('beat');
   const age = d.heartbeat ? (Date.now() - new Date(d.heartbeat)) / 60000 : Infinity;
   beat.textContent = d.heartbeat ? `bot heartbeat ${fmtT(d.heartbeat)} (${age < 60 ? Math.round(age) + ' min' : (age / 60).toFixed(1) + ' h'} ago)` : 'no heartbeat yet';
