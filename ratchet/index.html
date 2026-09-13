@@ -77,6 +77,7 @@
   <section>
     <h2>Bots</h2>
     <div class="bots" id="bots"></div>
+    <div class="today" id="desk" style="border:none;margin-top:10px"></div>
   </section>
 
   <section class="charts">
@@ -175,6 +176,13 @@ function render(d) {
       <div class="today">${todayLine}</div>
     </div>`;
   }).join('');
+
+  // ---- desk-wide guard
+  const g = d.desk || {};
+  const totalEq = d.bots.reduce((a, b) => a + b.equity, 0), totalCap = d.bots.reduce((a, b) => a + b.capital, 0);
+  const bySym = Object.entries(g.by_symbol || {}).map(([s, x]) => `${s.split('-')[0]} ${x.pct.toFixed(0)}% (${x.bots} bot${x.bots > 1 ? 's' : ''})`).join(', ');
+  document.getElementById('desk').innerHTML = `<b>Whole desk:</b> equity $${totalEq.toLocaleString(undefined, { maximumFractionDigits: 0 })} on $${totalCap.toLocaleString()} · <span class="${cls(totalEq - totalCap)}">${usd(totalEq - totalCap)}</span>` +
+    (g.max_heat_pct ? ` · open risk ${(g.open_heat_pct || 0).toFixed(1)}% of capital (cap ${g.max_heat_pct}%) · one coin capped at ${g.max_symbol_pct}% and ${g.max_bots_per_symbol} bots` + (bySym ? ` · holding: ${bySym}` : ' · holding nothing') : '');
 
   // ---- equity curve (one axis, three series, fixed colors)
   const days = [...new Set(d.bots.flatMap(b => b.curve.map(p => p.day)))].sort();
