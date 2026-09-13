@@ -194,10 +194,11 @@ async function load() {
   const src = q.get('src'), uat = q.get('uat') ? 'api/data?uat=1' : null;
   const remote = (document.querySelector('meta[name=ratchet-api]').content || '').replace(/\/$/, '');
   const sources = src ? [src] : uat ? [uat] : [remote ? remote + '/api/data' : null, 'api/data', 'data.json'].filter(Boolean);
+  let firstError = null;
   for (const url of sources) {
-    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r.json(); } catch (e) { /* next */ }
+    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); j._source = url; j._degraded = firstError; return j; } firstError = firstError || `${url} → HTTP ${r.status}`; } catch (e) { firstError = firstError || `${url} → ${e.message}`; }
   }
-  throw new Error('no data source reachable');
+  throw new Error('no data source reachable: ' + firstError);
 }
 
 function coinList(syms) {
@@ -303,6 +304,10 @@ function render() {
   document.getElementById('fixture').hidden = !(isFixture || isUat);
   if (isUat) document.getElementById('fixture').textContent = 'UAT REHEARSAL — history replayed through the live code path into a separate ledger. Not the live bots.';
   document.getElementById('mode').textContent = isFixture ? 'SAMPLE — NOT LIVE' : isUat ? 'UAT — NOT LIVE' : d.mode;
+  if (d._degraded && !isFixture && !isUat) {
+    const fx = document.getElementById('fixture'); fx.hidden = false;
+    fx.textContent = `LIVE DATA UNAVAILABLE — the desk's API did not answer (${d._degraded}). Showing a stale copy generated ${fmtT(d.generated_at)}. Nothing here is current; the bots may still be running.`;
+  }
   const beat = document.getElementById('beat');
   const age = d.heartbeat ? (Date.now() - new Date(d.heartbeat)) / 60000 : Infinity, fresh = age <= 150;
   beat.textContent = d.heartbeat ? `${fresh ? '💚' : '💔'} bots ${fresh ? 'alive' : 'QUIET'} — last heartbeat ${fmtT(d.heartbeat)} (${age < 60 ? Math.round(age) + ' min' : (age / 60).toFixed(1) + ' h'} ago)` : '💔 no heartbeat yet';
