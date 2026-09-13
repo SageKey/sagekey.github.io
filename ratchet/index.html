@@ -10,7 +10,7 @@
     color-scheme: light;
     --bg: #f4f4f2; --surface: #ffffff; --line: #e3e3df;
     --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a8985;
-    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;      /* categorical slots: conservative, moderate, aggressive */
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;   /* categorical slots, fixed order by bot id */
     --up: #2a78d6; --down: #eb6834; --grid: #ecece9;
   }
   @media (prefers-color-scheme: dark) {
@@ -18,7 +18,7 @@
       color-scheme: dark;
       --bg: #121212; --surface: #1a1a19; --line: #2c2c2a;
       --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8a8985;
-      --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
       --up: #3987e5; --down: #d95926; --grid: #242423;
     }
   }
@@ -50,7 +50,7 @@
   canvas { max-width: 100%; }
   .legend { display: flex; gap: 18px; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
-  .multis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .multis { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
   @media (max-width: 900px) { .multis { grid-template-columns: 1fr; } }
   .multis .card h3 { margin: 0 0 6px; font-size: 14px; }
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
@@ -66,13 +66,13 @@
 <body>
 <header>
   <h1>Ratchet</h1>
-  <span class="sub">Rules-based crypto desk · three bots · Coinbase prices</span>
+  <span class="sub">Rules-based crypto desk · four bots · Coinbase prices</span>
   <span class="pill" id="mode">PAPER</span>
   <span class="beat" id="beat">loading…</span>
 </header>
 <div id="fixture" hidden style="background:#b3261e;color:#fff;padding:12px 28px;font-weight:600">SAMPLE DATA — this is a replay of the past year through the bots' rules, built to test the page layout. It is NOT the live record. The live bots started 2026-09-13; their real record is at <a href="./" style="color:#fff">the main page</a>.</div>
 <main>
-  <p style="margin:0;max-width:900px;color:var(--ink-2)">Three rule-based bots trading BTC, ETH and SOL on paper against live Coinbase prices. Each follows a written trend-following rule set with a fixed risk per trade and a daily loss budget; nothing here is advice and no real money is involved. The record below is complete: every trade, every quiet day, and every setup the rules turned down.</p>
+  <p style="margin:0;max-width:900px;color:var(--ink-2)">Four rule-based bots trading crypto on paper against live Coinbase prices. Each follows a written trend-following rule set with a fixed risk per trade and a daily loss budget; nothing here is advice and no real money is involved. The record below is complete: every trade, every quiet day, and every setup the rules turned down.</p>
   <section>
     <h2>Bots</h2>
     <div class="bots" id="bots"></div>
@@ -113,7 +113,7 @@
 <footer id="foot"></footer>
 
 <script>
-const COLORS = ['--s1', '--s2', '--s3'];
+const COLORS = ['--s1', '--s2', '--s3', '--s4'];
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const usd = (x, sign = true) => (sign && x > 0 ? '+' : '') + (x < 0 ? '−' : '') + '$' + Math.abs(x).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (x, d = 2) => (x > 0 ? '+' : '') + x.toFixed(d) + '%';
