@@ -142,8 +142,10 @@ function render(d) {
   document.getElementById('mode').textContent = isFixture ? 'SAMPLE — NOT LIVE' : isUat ? 'UAT — NOT LIVE' : d.mode;
   const beat = document.getElementById('beat');
   const age = d.heartbeat ? (Date.now() - new Date(d.heartbeat)) / 60000 : Infinity;
-  beat.textContent = d.heartbeat ? `bot heartbeat ${fmtT(d.heartbeat)} (${age < 60 ? Math.round(age) + ' min' : (age / 60).toFixed(1) + ' h'} ago)` : 'no heartbeat yet';
-  beat.classList.toggle('stale', age > 150);
+  const fresh = age <= 150;
+  beat.textContent = d.heartbeat ? `${fresh ? '💚' : '💔'} bots ${fresh ? 'alive' : 'QUIET'} — last heartbeat ${fmtT(d.heartbeat)} (${age < 60 ? Math.round(age) + ' min' : (age / 60).toFixed(1) + ' h'} ago)` : '💔 no heartbeat yet';
+  beat.classList.toggle('stale', !fresh);
+  beat.title = fresh ? 'The Railway process reported within the last 2.5 hours (it reports every hour after the bar closes).' : 'No report for more than 2.5 hours — the process may be down.';
 
   // ---- bot cards
   document.getElementById('bots').innerHTML = d.bots.map((b, i) => {
