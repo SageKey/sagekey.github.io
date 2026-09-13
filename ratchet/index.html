@@ -147,12 +147,13 @@ function render(d) {
          t.refusals ? `${t.refusals} setup${t.refusals > 1 ? 's' : ''} refused by the rules` : null].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) + '.';
     return `<div class="bot" style="--c:${css(COLORS[i])}">
       <div class="name"><b>${b.label}</b><span>${strat} · ${bars}h bars · ${b.config.symbols.map(x => x.split('-')[0]).join(' ')}</span></div>
-      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}<small>${pct(b.pnl_total_pct)} since start · equity $${b.equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}</small></div>
+      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}<small>${pct(b.pnl_total_pct)} total since start (realized + open) · equity $${b.equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}</small></div>
       <div class="tiles">
         <div class="tile"><div class="k">Today's P&amp;L</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
         <div class="tile"><div class="k">This week</div><div class="v ${cls(b.pnl_week_usd)}">${usd(b.pnl_week_usd)}</div></div>
         <div class="tile"><div class="k">This month</div><div class="v ${cls(b.pnl_month_usd)}">${usd(b.pnl_month_usd)}</div></div>
-        <div class="tile"><div class="k">Open</div><div class="v">${b.positions.length} / ${b.config.max_open_positions}</div></div>
+        <div class="tile"><div class="k">Realized (closed trades)</div><div class="v ${cls(b.realized_usd)}">${usd(b.realized_usd)}</div></div>
+        <div class="tile"><div class="k">Open positions</div><div class="v">${b.positions.length} / ${b.config.max_open_positions} <span class="${cls(b.unrealized_usd)}" style="font-size:13px">${b.positions.length ? usd(b.unrealized_usd) + ' unrealized' : ''}</span></div></div>
         <div class="tile"><div class="k">Trades · win</div><div class="v">${s.trades} · ${s.trades ? s.win_rate.toFixed(0) + '%' : '—'}</div></div>
         <div class="tile"><div class="k">Max drawdown</div><div class="v">${b.max_drawdown_pct.toFixed(1)}%</div></div>
         <div class="tile"><div class="k">Risk / trade</div><div class="v">${b.config.risk_per_trade_pct}%</div></div>
@@ -181,8 +182,8 @@ function render(d) {
 
   // ---- open positions
   const pos = d.bots.flatMap((b, i) => b.positions.map(p => ({ ...p, bot: b.label, i })));
-  document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Symbol</th><th>Side</th><th class="num">Entry</th><th class="num">Mark</th><th class="num">Stop</th><th class="num">Unrealized</th></tr>` +
-    pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol}</td><td>${p.direction}</td><td class="num">${p.entry_price.toFixed(2)}</td><td class="num">${p.mark.toFixed(2)}</td><td class="num">${p.stop.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)} (${pct(p.unrealized_pct)})</td></tr>`).join('') + '</table>'
+  document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Symbol</th><th>Side</th><th>Opened</th><th class="num">Entry</th><th class="num">Mark</th><th class="num">Stop</th><th class="num">Unrealized</th></tr>` +
+    pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol}</td><td>${p.direction}</td><td>${fmtT(p.opened_at)}</td><td class="num">${p.entry_price.toFixed(2)}</td><td class="num">${p.mark.toFixed(2)}</td><td class="num">${p.stop.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)} (${pct(p.unrealized_pct)})</td></tr>`).join('') + '</table>'
     : '<div class="empty">Flat. No open positions — the bots are waiting for a setup that passes the rules.</div>';
 
   // ---- daily P&L small multiples (polarity: two hues, one per sign)
