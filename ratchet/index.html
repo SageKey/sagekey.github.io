@@ -24,6 +24,7 @@
     }
   }
   * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
   header { padding: 22px 28px 0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
@@ -86,8 +87,9 @@
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
   footer { color: var(--ink-3); font-size: 12px; padding: 0 28px 30px; }
   tr.clickable { cursor: pointer; } tr.clickable:hover td { background: var(--chip); }
-  #drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 95vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: -12px 0 30px rgba(0,0,0,.25); z-index: 10; overflow-y: auto; padding: 22px 24px; transform: translateX(100%); transition: transform .18s ease; }
-  #drawer.open { transform: none; }
+  #drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 95vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: -12px 0 30px rgba(0,0,0,.25); z-index: 10; overflow-y: auto; padding: 22px 24px; transform: translateX(100%); visibility: hidden; transition: transform .18s ease, visibility 0s .18s; }
+  #drawer.open { transform: none; visibility: visible; transition: transform .18s ease; }
+  td.why { white-space: normal; max-width: 360px; color: var(--ink-2); font-size: 12.5px; }
   #drawer h2 { margin: 0 0 4px; font-size: 20px; }
   #drawer .close { position: absolute; top: 14px; right: 16px; border: 0; background: var(--chip); color: var(--ink); border-radius: 999px; width: 32px; height: 32px; font-size: 18px; cursor: pointer; }
   #drawer h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 18px 0 6px; }
@@ -337,7 +339,7 @@ function render() {
   const openRows = live.flatMap(b => b.positions.map(p => ({ ...p, bot: b.label, i: b._i, desk: b.desk, kind: 'open' })));
   openRows.forEach((p, n) => { ROWS['o' + n] = p; });
   document.getElementById('open-trades').innerHTML = openRows.length ? `<table><tr><th>Bot</th><th>Side</th><th class="num">Quantity</th><th>Coin</th><th class="num">Entry price</th><th class="num">Total spent</th><th class="num">Price now</th><th class="num">Unrealized</th><th class="num">Exit if right (target)</th><th class="num">Exit if wrong (stop)</th><th class="num">$ at risk</th><th>Opened</th><th>Why</th></tr>` +
-    openRows.map((p, n) => `<tr class="clickable" onclick="openDrawer('o${n}')"><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.direction === 'short' ? 'Short' : 'Long'}</td><td class="num">${qty(p.units)}</td><td><b>${p.symbol.split('-')[0]}</b></td><td class="num">${px(p.entry_price)}</td><td class="num">${usd0(p.units * p.entry_price)}</td><td class="num">${px(p.mark)}</td><td class="num ${cls(p.unrealized_usd)}"><b>${usd(p.unrealized_usd)}</b> (${pct(p.unrealized_pct)})</td><td class="num pos">${px(p.target)}</td><td class="num neg">${px(p.stop)}</td><td class="num">$${(+p.risk_usd).toFixed(0)}</td><td>${fmtT(p.opened_at)}</td><td class="flat">${((p.explain || {}).why || {}).text || (p.explain || {}).reason || ''}</td></tr>`).join('') + `</table><div class="empty" style="font-size:12px">Click a row for the full reasoning. Unrealized = (price now − entry) × quantity − the entry fee already paid. Exits happen on the hourly close after price crosses the target or stop, or at the bot's time limit.</div>`
+    openRows.map((p, n) => `<tr class="clickable" onclick="openDrawer('o${n}')"><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.direction === 'short' ? 'Short' : 'Long'}</td><td class="num">${qty(p.units)}</td><td><b>${p.symbol.split('-')[0]}</b></td><td class="num">${px(p.entry_price)}</td><td class="num">${usd0(p.units * p.entry_price)}</td><td class="num">${px(p.mark)}</td><td class="num ${cls(p.unrealized_usd)}"><b>${usd(p.unrealized_usd)}</b> (${pct(p.unrealized_pct)})</td><td class="num pos">${px(p.target)}</td><td class="num neg">${px(p.stop)}</td><td class="num">$${(+p.risk_usd).toFixed(0)}</td><td>${fmtT(p.opened_at)}</td><td class="why">${(((p.explain || {}).why || {}).text || (p.explain || {}).reason || '').slice(0, 140)}${((((p.explain || {}).why || {}).text || (p.explain || {}).reason || '').length > 140) ? '…' : ''}</td></tr>`).join('') + `</table><div class="empty" style="font-size:12px">Click a row for the full reasoning. Unrealized = (price now − entry) × quantity − the entry fee already paid. Exits happen on the hourly close after price crosses the target or stop, or at the bot's time limit.</div>`
     : '<div class="empty">Nothing open. Every bot is flat and waiting for a setup that passes its rules.</div>';
 
   const closedRows = live.flatMap(b => b.trades.map(t => ({ ...t, bot: b.label, i: b._i, desk: b.desk, kind: 'closed' }))).sort((a, b) => b.exit_at.localeCompare(a.exit_at)).slice(0, 60);
