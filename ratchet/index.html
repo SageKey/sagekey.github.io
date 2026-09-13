@@ -159,6 +159,8 @@ const pct = (x, d = 2) => (x > 0 ? '+' : '') + x.toFixed(d) + '%';
 const cls = x => x > 0.005 ? 'pos' : x < -0.005 ? 'neg' : 'flat';
 const fmtT = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
 const fmtD = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const px = v => v == null ? '—' : '$' + (+v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: +v < 10 ? 4 : 2 });
+const qty = v => (+v).toLocaleString(undefined, { maximumFractionDigits: +v < 10 ? 4 : 2 });
 let DATA = null, FILTER = 'all', CHART = null, DAILY_CHARTS = [], SHOW_BENCH = false;
 
 async function load() {
@@ -211,6 +213,7 @@ function card(b) {
     </div>
     <div class="rules"><b>${strategyLabel(b)}</b> · daily stop −${b.config.daily_stop_pct}% · <span title="${b.config.symbols.join(', ')}">${coinList(b.config.symbols)}</span>${b.halted_reason ? ' · <b style="color:var(--down)">HALTED today</b>' : ''}</div>
     <div class="today">${todayLine}</div>
+    ${b.positions.length ? `<div class="calls">${b.positions.map(p => `<div><b>${p.direction === 'short' ? 'Short' : 'Long'} ${qty(p.units)} ${p.symbol.split('-')[0]}</b> from ${px(p.entry_price)} (${usd0(p.units * p.entry_price)}) · now ${px(p.mark)} <span class="${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</span> · stop ${px(p.stop)} · target ${px(p.target)} · risking $${(+p.risk_usd).toFixed(0)} · since ${fmtT(p.opened_at)}</div>`).join('')}</div>` : ''}
     ${b.analyst ? analystBlock(b) : ''}
     ${b.desk === 'copy' ? copyBlock(b) : ''}
   </div>`;
@@ -218,7 +221,19 @@ function card(b) {
 
 function analystBlock(b) {
   const a = b.analyst, note = a.notes.find(n => n.kind === 'note');
-  const calls = a.proposals.slice(0, 3).map(p => `<div><span class="tag">${p.status}</span><b>${p.symbol.split('-')[0]}</b> ${p.conviction} · stop −${p.stop_pct}% · target +${p.target_pct}% · ${fmtT(p.created_at)}${p.pnl_usd != null ? ` · <span class="${cls(p.pnl_usd)}">${usd(p.pnl_usd)}</span>` : ''}<br><span class="flat">${p.thesis}</span></div>`).join('');
+  const calls = a.proposals.slice(0, 3).map(p => {
+    const coin = p.symbol.split('-')[0];
+    const live = b.positions.find(x => x.symbol === p.symbol);
+    let trade = '';
+    if (p.fill) {
+      const f = p.fill;
+      trade = `<div style="margin:4px 0 2px;color:var(--ink)"><b>${f.direction === 'short' ? 'Sold short' : 'Bought'} ${qty(f.units)} ${coin} at ${px(f.price)}</b> = ${usd0(f.notional_usd)} position · stop ${px(f.stop)} · target ${px(f.target)} · risking $${f.risk_usd.toFixed(0)} · ${fmtT(f.at)}`
+        + (live ? ` · <b>now ${px(live.mark)} (<span class="${cls(live.unrealized_usd)}">${usd(live.unrealized_usd)}</span>)</b>` : '')
+        + (p.horizon_hours && !p.exit ? ` · time stop ${fmtT(new Date(new Date(f.at).getTime() + p.horizon_hours * 3600000).toISOString())}` : '')
+        + (p.exit ? ` · <b>closed ${px(p.exit.price)} ${fmtT(p.exit.at)} (${p.exit.reason.replace('_', ' ')}): <span class="${cls(p.exit.pnl_usd)}">${usd(p.exit.pnl_usd)}</span> after $${p.exit.fees_usd.toFixed(2)} fees</b>` : '') + `</div>`;
+    }
+    return `<div><span class="tag">${p.status}</span><b>${coin}</b> ${p.conviction} conviction · asked for stop −${p.stop_pct}% / target +${p.target_pct}% · ${fmtT(p.created_at)}${p.status === 'refused' || p.status === 'expired' ? ` · <span class="flat">${p.status_detail || ''}</span>` : ''}${trade}<span class="flat">${p.thesis}</span></div>`;
+  }).join('');
   return `<div class="note" onclick="this.classList.toggle('open')"><span class="k">What ${a.display} is seeing${note ? ' · ' + fmtT(note.at) : ''}</span><div class="txt">${note ? note.text : 'No session yet.'}</div><span class="more">show more / less</span></div>` +
     (calls ? `<div class="calls"><span class="k" style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:2px">Calls</span>${calls}</div>` : '');
 }
