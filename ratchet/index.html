@@ -187,6 +187,7 @@ function render(d) {
       </div>
       <div class="today">${todayLine}</div>
       ${b.analyst ? analystBlock(b.analyst) : ''}
+      ${b.id === 'copycat' && d.desk_copy_book && d.desk_copy_book.leaders ? `<div class="note"><span class="k">Following ${d.desk_copy_book.leaders.length} OKX lead traders · book refreshed ${fmtT(d.desk_copy_book.refreshed_at)}</span>${d.desk_copy_book.leaders.map(l => `${l.name} (${l.days}d, win ${Math.round((+l.win) * 100)}%)`).join(' · ')}<br><span class="flat">Leaders' net stance now: ${Object.entries(d.desk_copy_book.book || {}).map(([s, x]) => `${s.split('-')[0]} ${x.long}L/${x.short}S`).join(', ') || 'flat'}</span></div>` : ''}
     </div>`;
   };
   const analystBlock = a => {
