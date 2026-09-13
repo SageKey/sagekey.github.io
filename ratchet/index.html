@@ -11,281 +11,307 @@
     color-scheme: light;
     --bg: #f4f4f2; --surface: #ffffff; --line: #e3e3df;
     --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a8985;
-    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;   /* categorical slots, fixed order */
-    --up: #2a78d6; --down: #eb6834; --grid: #ecece9;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    --up: #2a78d6; --down: #eb6834; --grid: #ecece9; --chip: #ececea;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
       --bg: #121212; --surface: #1a1a19; --line: #2c2c2a;
       --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8a8985;
-      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
-      --up: #3987e5; --down: #d95926; --grid: #242423;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+      --up: #3987e5; --down: #d95926; --grid: #242423; --chip: #262625;
     }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
-  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 22px 28px 6px; }
+  header { padding: 22px 28px 0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
   header .sub { color: var(--ink-2); }
   .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: .04em; background: #fff1e8; color: #9a3d12; border: 1px solid #f3c9b3; }
   .beat { margin-left: auto; color: var(--ink-3); font-size: 13px; }
   .beat.stale { color: var(--down); font-weight: 600; }
-  main { padding: 10px 28px 40px; display: grid; gap: 22px; }
-  section h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
-  .bots { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-  .bot { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; border-top: 4px solid var(--c); }
-  .bot .name { display: flex; justify-content: space-between; align-items: baseline; }
+  .intro { padding: 8px 28px 0; color: var(--ink-2); max-width: 980px; }
+  nav.desks { display: flex; gap: 8px; padding: 16px 28px 12px; flex-wrap: wrap; position: sticky; top: 0; background: var(--bg); z-index: 2; }
+  nav.desks button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 14px; border-radius: 999px; font: inherit; font-size: 13.5px; cursor: pointer; }
+  nav.desks button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  main { padding: 4px 28px 40px; display: grid; gap: 26px; }
+  #desks { display: grid; gap: 26px; }
+  .desk-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+  .desk-head h2 { font-size: 17px; margin: 0; }
+  .desk-head .what { color: var(--ink-2); font-size: 14px; }
+  .desk-sum { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); margin: 0 0 12px; }
+  .desk-sum b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .bots { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .bot { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; border-top: 4px solid var(--c); display: flex; flex-direction: column; gap: 10px; }
+  .bot .name { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .bot .name b { font-size: 17px; }
-  .bot .name span { color: var(--ink-3); font-size: 12px; }
-  .hero { font-size: 40px; font-weight: 650; letter-spacing: -0.02em; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
-  .hero small { font-size: 16px; color: var(--ink-2); font-weight: 500; margin-left: 8px; }
-  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 14px; margin-top: 14px; }
-  .tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
-  .tile .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .bot .name .chip { font-size: 11px; color: var(--ink-2); background: var(--chip); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .hero { font-size: 34px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .hero-sub { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; }
+  .tile .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); white-space: nowrap; }
+  .tile .v { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .pos { color: var(--up); } .neg { color: var(--down); } .flat { color: var(--ink-2); }
-  .today { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); color: var(--ink-2); font-size: 14px; }
-  .note { margin-top: 10px; padding: 10px 12px; background: var(--bg); border-radius: 10px; font-size: 13.5px; white-space: pre-wrap; color: var(--ink); }
-  .note .k { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin-bottom: 4px; }
-  .props { margin-top: 8px; font-size: 13px; }
-  .props div { padding: 4px 0; border-top: 1px solid var(--grid); }
-  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--grid); color: var(--ink-2); margin-right: 6px; }
+  .rules { font-size: 12.5px; color: var(--ink-3); border-top: 1px dashed var(--line); padding-top: 8px; line-height: 1.5; }
+  .rules b { color: var(--ink-2); font-weight: 600; }
+  .today { color: var(--ink-2); font-size: 13.5px; }
+  .note { padding: 9px 11px; background: var(--bg); border-radius: 10px; font-size: 13px; color: var(--ink); cursor: pointer; }
+  .note .k { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin-bottom: 3px; }
+  .note .txt { white-space: pre-wrap; max-height: 4.4em; overflow: hidden; }
+  .note.open .txt { max-height: none; }
+  .note .more { color: var(--s1); font-size: 12px; margin-top: 4px; display: inline-block; }
+  .calls { font-size: 12.5px; }
+  .calls div { padding: 5px 0; border-top: 1px solid var(--grid); }
+  .tag { display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: var(--chip); color: var(--ink-2); margin-right: 6px; text-transform: uppercase; letter-spacing: .04em; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
-  .charts { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-  @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
+  .card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
+  .two { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+  @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
   canvas { max-width: 100%; }
-  .legend { display: flex; gap: 18px; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; }
-  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
-  .multis { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
-  @media (max-width: 900px) { .multis { grid-template-columns: 1fr; } }
-  .multis .card h3 { margin: 0 0 6px; font-size: 14px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
-  th { text-align: left; color: var(--ink-3); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-  td { padding: 8px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .multis { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; color: var(--ink-3); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; vertical-align: top; }
   td.num, th.num { text-align: right; }
-  .wrap { overflow-x: auto; }
-  .empty { color: var(--ink-3); padding: 14px 0; }
+  td.wrap { white-space: normal; }
+  .scroll { overflow-x: auto; }
+  .empty { color: var(--ink-3); padding: 10px 0; font-size: 14px; }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
   footer { color: var(--ink-3); font-size: 12px; padding: 0 28px 30px; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <header>
   <h1>Ratchet</h1>
-  <span class="sub">Rules-based crypto desk · four bots · Coinbase prices</span>
+  <span class="sub" id="sub">Paper crypto desk</span>
   <span class="pill" id="mode">PAPER</span>
   <span class="beat" id="beat">loading…</span>
 </header>
-<div id="fixture" hidden style="background:#b3261e;color:#fff;padding:12px 28px;font-weight:600">SAMPLE DATA — this is a replay of the past year through the bots' rules, built to test the page layout. It is NOT the live record. The live bots started 2026-09-13; their real record is at <a href="./" style="color:#fff">the main page</a>.</div>
+<div id="fixture" hidden style="background:#b3261e;color:#fff;padding:12px 28px;font-weight:600;margin-top:10px">SAMPLE DATA — not the live record.</div>
+<p class="intro" id="intro">Three desks trade crypto on paper against live Coinbase prices. Every bot has a written rule set, a fixed risk per trade, a daily loss budget, and a stop on every position. Nothing here is advice and no real money is involved. The record is complete: every trade, every quiet day, and every setup the rules turned down.</p>
+
+<nav class="desks" id="desknav"></nav>
+
 <main>
-  <p style="margin:0;max-width:900px;color:var(--ink-2)">Four rule-based bots trading crypto on paper against live Coinbase prices. Each follows a written trend-following rule set with a fixed risk per trade and a daily loss budget; nothing here is advice and no real money is involved. The record below is complete: every trade, every quiet day, and every setup the rules turned down.</p>
-  <section>
-    <h2>Rule desk — four bots that never think</h2>
-    <div class="bots" id="bots"></div>
-    <div class="today" id="desk" style="border:none;margin-top:10px"></div>
-  </section>
+  <div id="desks"></div>
 
-  <section>
-    <h2>Copy desk — follows the net stance of five screened OKX lead traders, one hour behind</h2>
-    <div class="bots" id="copybots"></div>
-    <div class="today" id="desk3" style="border:none;margin-top:10px"></div>
-  </section>
-
-  <section>
-    <h2>Sentiment desk — three analysts that read the crowd, fenced off, scored the same way</h2>
-    <div class="bots" id="analysts"></div>
-    <div class="today" id="desk2" style="border:none;margin-top:10px"></div>
-  </section>
-
-  <section class="charts">
+  <section class="two">
     <div class="card">
-      <h2>Equity — all bots, $25,000 start each</h2>
+      <h3>Return since start — %</h3>
       <div class="legend" id="legend"></div>
-      <canvas id="equity" height="120"></canvas>
+      <canvas id="equity" height="110"></canvas>
     </div>
     <div class="card">
-      <h2>Open positions</h2>
-      <div class="wrap" id="positions"></div>
+      <h3>Open positions</h3>
+      <div class="scroll" id="positions"></div>
     </div>
   </section>
 
-  <section>
-    <h2>Daily P&amp;L</h2>
+  <section class="card">
+    <h3>Daily P&amp;L</h3>
     <div class="multis" id="daily"></div>
   </section>
 
   <section class="card">
-    <h2>Week over week</h2>
-    <div class="wrap" id="weekly"></div>
+    <h3>Week over week</h3>
+    <div class="scroll" id="weekly"></div>
   </section>
 
   <section class="card">
-    <h2>Today's journal — every decision, including the ones not to trade</h2>
-    <div class="wrap" id="journal"></div>
+    <h3>Today's journal — every decision, including the ones not to trade</h3>
+    <div class="scroll" id="journal"></div>
   </section>
 
   <section class="card">
-    <h2>Closed trades (most recent first)</h2>
-    <div class="wrap" id="trades"></div>
+    <h3>Closed trades — most recent first</h3>
+    <div class="scroll" id="trades"></div>
   </section>
 </main>
 <footer id="foot"></footer>
 
 <script>
-const COLORS = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7'];
+const COLORS = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7', '--s8'];
+const DESKS = {
+  rules: { title: 'Rule desk', what: 'Four bots that never think. Fixed trend-following rules, tested on three years of history.' },
+  copy: { title: 'Copy desk', what: 'Follows the net stance of five screened OKX lead traders, one hour behind. Probationary.' },
+  sentiment: { title: 'Sentiment desk', what: 'Three analysts that read the crowd every four hours and propose trades. Fenced off, same risk rules, scored the same way. Probationary.' },
+};
+const ORDER = ['rules', 'copy', 'sentiment'];
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const usd = (x, sign = true) => (sign && x > 0 ? '+' : '') + (x < 0 ? '−' : '') + '$' + Math.abs(x).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usd = x => (x > 0 ? '+' : '') + (x < 0 ? '−' : '') + '$' + Math.abs(x).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usd0 = x => '$' + Math.round(x).toLocaleString();
 const pct = (x, d = 2) => (x > 0 ? '+' : '') + x.toFixed(d) + '%';
 const cls = x => x > 0.005 ? 'pos' : x < -0.005 ? 'neg' : 'flat';
 const fmtT = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
 const fmtD = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+let DATA = null, FILTER = 'all', CHART = null, DAILY_CHARTS = [];
 
 async function load() {
   const q = new URLSearchParams(location.search);
-  const src = q.get('src');                                          // ?src=sample.json → preview a fixture
-  const uat = q.get('uat') ? 'api/data?uat=1' : null;                // ?uat=1 → rehearsal ledgers (local only)
+  const src = q.get('src'), uat = q.get('uat') ? 'api/data?uat=1' : null;
   const remote = (document.querySelector('meta[name=ratchet-api]').content || '').replace(/\/$/, '');
   const sources = src ? [src] : uat ? [uat] : [remote ? remote + '/api/data' : null, 'api/data', 'data.json'].filter(Boolean);
   for (const url of sources) {
-    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r.json(); } catch (e) { /* try next */ }
+    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r.json(); } catch (e) { /* next */ }
   }
   throw new Error('no data source reachable');
 }
 
-function render(d) {
+function coinList(syms) {
+  const short = syms.map(s => s.split('-')[0]);
+  return short.length <= 6 ? short.join(' ') : `${short.slice(0, 5).join(' ')} +${short.length - 5} more`;
+}
+function strategyLabel(b) {
+  return b.config.strategies.map(x => {
+    const p = x.params || {};
+    if (x.family === 'donchian_trend') return `Donchian ${p.entry_n}/${p.exit_n}${p.pyramid_max ? ' +adds' : ''}`;
+    if (x.family === 'squeeze_breakout') return 'Squeeze breakout';
+    if (x.family === 'copy_leaders') return 'Copy leaders';
+    if (x.family === 'sentiment') return 'Analyst calls';
+    return x.family.replace('_', ' ');
+  }).join(' · ');
+}
+
+function card(b) {
+  const i = b._i, s = b.stats, t = b.today;
+  const bars = (b.config.bar_seconds * b.config.bar_factor) / 3600;
+  const todayLine = t.fills + t.closes === 0
+    ? `Quiet today${t.refusals ? ` — ${t.refusals} setup${t.refusals > 1 ? 's' : ''} refused by the rules (${t.refusal_rules.join(', ')})` : ', no setup qualified'}.`
+    : [t.fills ? `${t.fills} new position${t.fills > 1 ? 's' : ''} today` : null, t.closes ? `${t.closes} closed today (opened earlier)` : null, t.refusals ? `${t.refusals} refused` : null].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) + '.';
+  const openTxt = b.positions.length ? `${b.positions.length} / ${b.config.max_open_positions} <span class="${cls(b.unrealized_usd)}" style="font-size:12px">${usd(b.unrealized_usd)}</span>` : `0 / ${b.config.max_open_positions}`;
+  return `<div class="bot" style="--c:${css(COLORS[i])}">
+    <div class="name"><b>${b.label}</b><span class="chip">${bars >= 24 ? 'daily' : bars + 'h'} bars · risk ${b.config.risk_per_trade_pct}%</span></div>
+    <div>
+      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}</div>
+      <div class="hero-sub">${pct(b.pnl_total_pct)} since start · equity ${usd0(b.equity)} of ${usd0(b.capital)} · realized ${usd(b.realized_usd)}</div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="k">Today</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
+      <div class="tile"><div class="k">This week</div><div class="v ${cls(b.pnl_week_usd)}">${usd(b.pnl_week_usd)}</div></div>
+      <div class="tile"><div class="k">This month</div><div class="v ${cls(b.pnl_month_usd)}">${usd(b.pnl_month_usd)}</div></div>
+      <div class="tile"><div class="k">Open</div><div class="v">${openTxt}</div></div>
+      <div class="tile"><div class="k">Trades · win</div><div class="v">${s.trades} · ${s.trades ? s.win_rate.toFixed(0) + '%' : '—'}</div></div>
+      <div class="tile"><div class="k">Max drawdown</div><div class="v">${b.max_drawdown_pct.toFixed(1)}%</div></div>
+    </div>
+    <div class="rules"><b>${strategyLabel(b)}</b> · daily stop −${b.config.daily_stop_pct}% · <span title="${b.config.symbols.join(', ')}">${coinList(b.config.symbols)}</span>${b.halted_reason ? ' · <b style="color:var(--down)">HALTED today</b>' : ''}</div>
+    <div class="today">${todayLine}</div>
+    ${b.analyst ? analystBlock(b) : ''}
+    ${b.desk === 'copy' ? copyBlock() : ''}
+  </div>`;
+}
+
+function analystBlock(b) {
+  const a = b.analyst, note = a.notes.find(n => n.kind === 'note');
+  const calls = a.proposals.slice(0, 3).map(p => `<div><span class="tag">${p.status}</span><b>${p.symbol.split('-')[0]}</b> ${p.conviction} · stop −${p.stop_pct}% · target +${p.target_pct}% · ${fmtT(p.created_at)}${p.pnl_usd != null ? ` · <span class="${cls(p.pnl_usd)}">${usd(p.pnl_usd)}</span>` : ''}<br><span class="flat">${p.thesis}</span></div>`).join('');
+  return `<div class="note" onclick="this.classList.toggle('open')"><span class="k">What ${a.display} is seeing${note ? ' · ' + fmtT(note.at) : ''}</span><div class="txt">${note ? note.text : 'No session yet.'}</div><span class="more">show more / less</span></div>` +
+    (calls ? `<div class="calls"><span class="k" style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:2px">Calls</span>${calls}</div>` : '');
+}
+function copyBlock() {
+  const cb = DATA.desk_copy_book || {};
+  if (!cb.leaders) return '';
+  const stance = Object.entries(cb.book || {}).map(([s, x]) => `${s.split('-')[0]} ${x.long}L/${x.short}S`).join(', ') || 'no positions';
+  return `<div class="note open"><span class="k">Following ${cb.leaders.length} OKX lead traders · refreshed ${fmtT(cb.refreshed_at)}</span><div class="txt">${cb.leaders.map(l => `${l.name} (${l.days}d, win ${Math.round(+l.win * 100)}%)`).join(' · ')}<br><span class="flat">Leaders' stance now: ${stance}. Copycat acts when two more leaders agree than disagree on a coin.</span></div></div>`;
+}
+
+function deskSection(key, bots, guard, extra) {
+  if (!bots.length) return '';
+  const eq = bots.reduce((a, b) => a + b.equity, 0), cap = bots.reduce((a, b) => a + b.capital, 0);
+  const g = guard || {};
+  const holding = Object.entries(g.by_symbol || {}).map(([s, x]) => `${s.split('-')[0]} ${x.pct.toFixed(0)}%`).join(', ');
+  return `<section>
+    <div class="desk-head"><h2>${DESKS[key].title}</h2><span class="what">${DESKS[key].what}</span></div>
+    <div class="desk-sum"><span>Equity <b>${usd0(eq)}</b> of ${usd0(cap)}</span><span>P&amp;L <b class="${cls(eq - cap)}">${usd(eq - cap)}</b></span>${g.max_heat_pct ? `<span>Open risk <b>${(g.open_heat_pct || 0).toFixed(1)}%</b> of capital, cap ${g.max_heat_pct}%</span><span>Holding <b>${holding || 'nothing'}</b></span>` : ''}${extra || ''}</div>
+    <div class="bots">${bots.map(card).join('')}</div>
+  </section>`;
+}
+
+function describe(e) {
+  const x = e.detail || {};
+  switch (e.kind) {
+    case 'fill': return `${x.add ? 'Added to' : (x.direction === 'short' ? 'Sold short' : 'Bought')} ${e.symbol} at ${(+x.price).toFixed(2)} — stop ${(+x.stop).toFixed(2)}, target ${(+x.target).toFixed(2)}, risking $${(+x.risk_usd).toFixed(0)}. ${x.reason || ''}`;
+    case 'close': return `Closed ${e.symbol} at ${(+x.price).toFixed(2)} — ${(x.reason || '').replace('_', ' ')}: ${usd(+x.pnl_usd)} (${(+x.r) > 0 ? '+' : ''}${(+x.r).toFixed(2)}R)`;
+    case 'refusal': return `Refused ${e.symbol} ${(e.strategy || '').replace('_', ' ')} entry — rule “${x.rule}”: ${x.reason}`;
+    case 'day_stop': return `Daily ${x.outcome} hit — flattened and halted for the day (equity $${(+x.equity).toFixed(0)})`;
+    case 'day_close': return `Day closed: ${pct(+x.pnl_pct)}, ${x.trades} trade(s), ${x.outcome}`;
+    case 'note': return x.leaders ? `Re-screened lead traders: ${x.leaders.map(l => l.name).join(', ')}` : JSON.stringify(x);
+    default: return JSON.stringify(x);
+  }
+}
+
+function render() {
+  const d = DATA;
   const qs = new URLSearchParams(location.search);
   const isFixture = !!qs.get('src'), isUat = !!qs.get('uat');
   document.getElementById('fixture').hidden = !(isFixture || isUat);
-  if (isUat) document.getElementById('fixture').textContent = 'UAT REHEARSAL — a real stretch of history replayed through the live code path into a separate ledger. Not the live bots.';
+  if (isUat) document.getElementById('fixture').textContent = 'UAT REHEARSAL — history replayed through the live code path into a separate ledger. Not the live bots.';
   document.getElementById('mode').textContent = isFixture ? 'SAMPLE — NOT LIVE' : isUat ? 'UAT — NOT LIVE' : d.mode;
   const beat = document.getElementById('beat');
-  const age = d.heartbeat ? (Date.now() - new Date(d.heartbeat)) / 60000 : Infinity;
-  const fresh = age <= 150;
+  const age = d.heartbeat ? (Date.now() - new Date(d.heartbeat)) / 60000 : Infinity, fresh = age <= 150;
   beat.textContent = d.heartbeat ? `${fresh ? '💚' : '💔'} bots ${fresh ? 'alive' : 'QUIET'} — last heartbeat ${fmtT(d.heartbeat)} (${age < 60 ? Math.round(age) + ' min' : (age / 60).toFixed(1) + ' h'} ago)` : '💔 no heartbeat yet';
   beat.classList.toggle('stale', !fresh);
-  beat.title = fresh ? 'The Railway process reported within the last 2.5 hours (it reports every hour after the bar closes).' : 'No report for more than 2.5 hours — the process may be down.';
+  beat.title = fresh ? 'The Railway process reported within the last 2.5 hours; it reports every hour after the bar closes.' : 'No report for more than 2.5 hours — the process may be down.';
 
-  // ---- bot cards (index i is the fixed color slot across both desks)
   d.bots.forEach((b, i) => { b._i = i; });
-  const card = (b) => { const i = b._i;
-    const s = b.stats, t = b.today;
-    const strat = b.config.strategies.map(x => `${x.family.replace('_', ' ')} ${x.params.entry_n ? x.params.entry_n + '/' + x.params.exit_n : ''}`).join(' + ');
-    const bars = (b.config.bar_seconds * b.config.bar_factor) / 3600;
-    const todayLine = t.fills + t.closes === 0
-      ? `No trades today${t.refusals ? ` — ${t.refusals} setup${t.refusals > 1 ? 's' : ''} refused by the rules (${t.refusal_rules.join(', ')})` : ' — no setup qualified'}.`
-      : [t.fills ? `Opened ${t.fills} new position${t.fills > 1 ? 's' : ''} today` : null,
-         t.closes ? `closed ${t.closes} position${t.closes > 1 ? 's' : ''} today that ${t.closes > 1 ? 'were' : 'was'} opened on an earlier day` : null,
-         t.refusals ? `${t.refusals} setup${t.refusals > 1 ? 's' : ''} refused by the rules` : null].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) + '.';
-    return `<div class="bot" style="--c:${css(COLORS[i])}">
-      <div class="name"><b>${b.label}</b><span>${strat} · ${bars}h bars · ${b.config.symbols.map(x => x.split('-')[0]).join(' ')}</span></div>
-      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}<small>${pct(b.pnl_total_pct)} total since start (realized + open) · equity $${b.equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}</small></div>
-      <div class="tiles">
-        <div class="tile"><div class="k">Today's P&amp;L</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
-        <div class="tile"><div class="k">This week</div><div class="v ${cls(b.pnl_week_usd)}">${usd(b.pnl_week_usd)}</div></div>
-        <div class="tile"><div class="k">This month</div><div class="v ${cls(b.pnl_month_usd)}">${usd(b.pnl_month_usd)}</div></div>
-        <div class="tile"><div class="k">Realized (closed trades)</div><div class="v ${cls(b.realized_usd)}">${usd(b.realized_usd)}</div></div>
-        <div class="tile"><div class="k">Open positions</div><div class="v">${b.positions.length} / ${b.config.max_open_positions} <span class="${cls(b.unrealized_usd)}" style="font-size:13px">${b.positions.length ? usd(b.unrealized_usd) + ' unrealized' : ''}</span></div></div>
-        <div class="tile"><div class="k">Trades · win</div><div class="v">${s.trades} · ${s.trades ? s.win_rate.toFixed(0) + '%' : '—'}</div></div>
-        <div class="tile"><div class="k">Max drawdown</div><div class="v">${b.max_drawdown_pct.toFixed(1)}%</div></div>
-        <div class="tile"><div class="k">Risk / trade</div><div class="v">${b.config.risk_per_trade_pct}%</div></div>
-        <div class="tile"><div class="k">Daily stop</div><div class="v">−${b.config.daily_stop_pct}%${b.halted_reason ? ' · HALTED' : ''}</div></div>
-        <div class="tile"><div class="k">Green days</div><div class="v">${s.days ? s.green_days + ' / ' + s.days : '—'}</div></div>
-      </div>
-      <div class="today">${todayLine}</div>
-      ${b.analyst ? analystBlock(b.analyst) : ''}
-      ${b.id === 'copycat' && d.desk_copy_book && d.desk_copy_book.leaders ? `<div class="note"><span class="k">Following ${d.desk_copy_book.leaders.length} OKX lead traders · book refreshed ${fmtT(d.desk_copy_book.refreshed_at)}</span>${d.desk_copy_book.leaders.map(l => `${l.name} (${l.days}d, win ${Math.round((+l.win) * 100)}%)`).join(' · ')}<br><span class="flat">Leaders' net stance now: ${Object.entries(d.desk_copy_book.book || {}).map(([s, x]) => `${s.split('-')[0]} ${x.long}L/${x.short}S`).join(', ') || 'flat'}</span></div>` : ''}
-    </div>`;
-  };
-  const analystBlock = a => {
-    const note = a.notes.find(n => n.kind === 'note');
-    const props = a.proposals.slice(0, 5).map(p => `<div><span class="tag">${p.status}</span><b>${p.symbol}</b> ${p.conviction} · stop −${p.stop_pct}% / target +${p.target_pct}% · ${fmtT(p.created_at)}${p.pnl_usd != null ? ` · <span class="${cls(p.pnl_usd)}">${usd(p.pnl_usd)}</span>` : ''}<br><span class="flat">${p.thesis}</span></div>`).join('');
-    return `<div class="note"><span class="k">What ${a.display} is seeing ${note ? '· ' + fmtT(note.at) : ''}</span>${note ? note.text : 'No session yet.'}</div>` + (props ? `<div class="props"><span class="k" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:8px 0 2px">Calls</span>${props}</div>` : '');
-  };
-  document.getElementById('bots').innerHTML = d.bots.filter(b => b.desk === 'rules').map(card).join('');
-  document.getElementById('copybots').innerHTML = d.bots.filter(b => b.desk === 'copy').map(card).join('') || '<div class="empty">Copy desk not running.</div>';
-  document.getElementById('analysts').innerHTML = d.bots.filter(b => b.desk === 'sentiment').map(card).join('') || '<div class="empty">No analysts configured.</div>';
+  const desksPresent = ORDER.filter(k => d.bots.some(b => b.desk === k));
+  document.getElementById('sub').textContent = `Paper crypto desk · ${d.bots.length} bots across ${desksPresent.length} desks · Coinbase prices`;
+  const visible = b => FILTER === 'all' || b.desk === FILTER;
+  const bots = d.bots.filter(visible);
 
-  // ---- desk-wide guards
-  const deskLine = (el, g, bots, extra = '') => {
-    const totalEq = bots.reduce((a, b) => a + b.equity, 0), totalCap = bots.reduce((a, b) => a + b.capital, 0);
-    const bySym = Object.entries(g.by_symbol || {}).map(([s, x]) => `${s.split('-')[0]} ${x.pct.toFixed(0)}% (${x.bots} bot${x.bots > 1 ? 's' : ''})`).join(', ');
-    document.getElementById(el).innerHTML = bots.length ? `<b>Whole desk:</b> equity $${totalEq.toLocaleString(undefined, { maximumFractionDigits: 0 })} on $${totalCap.toLocaleString()} · <span class="${cls(totalEq - totalCap)}">${usd(totalEq - totalCap)}</span>` +
-      (g.max_heat_pct ? ` · open risk ${(g.open_heat_pct || 0).toFixed(1)}% of capital (cap ${g.max_heat_pct}%) · one coin capped at ${g.max_symbol_pct}% and ${g.max_bots_per_symbol} bots` + (bySym ? ` · holding: ${bySym}` : ' · holding nothing') : '') + extra : '';
-  };
-  deskLine('desk', d.desk || {}, d.bots.filter(b => b.desk === 'rules'));
-  deskLine('desk3', d.desk_copy || {}, d.bots.filter(b => b.desk === 'copy'));
-  deskLine('desk2', d.desk_sentiment || {}, d.bots.filter(b => b.desk === 'sentiment'), d.model_spend_today ? ` · model spend today $${d.model_spend_today.usd.toFixed(2)} (${d.model_spend_today.calls} sessions)` : '');
+  document.getElementById('desknav').innerHTML = [['all', 'All desks'], ...desksPresent.map(k => [k, DESKS[k].title])].map(([k, t]) => `<button class="${FILTER === k ? 'on' : ''}" onclick="setFilter('${k}')">${t}</button>`).join('');
 
-  // ---- equity curve (one axis, three series, fixed colors)
-  const days = [...new Set(d.bots.flatMap(b => b.curve.map(p => p.day)))].sort();
-  document.getElementById('legend').innerHTML = d.bots.map((b, i) => `<span><i style="background:${css(COLORS[i])}"></i>${b.label}</span>`).join('');
-  new Chart(document.getElementById('equity'), {
+  const guardFor = { rules: d.desk, copy: d.desk_copy, sentiment: d.desk_sentiment };
+  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k), guardFor[k], k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '')).join('');
+
+  const days = [...new Set(bots.flatMap(b => b.curve.map(p => p.day)))].sort();
+  document.getElementById('legend').innerHTML = bots.map(b => `<span><i style="background:${css(COLORS[b._i])}"></i>${b.label}</span>`).join('');
+  if (CHART) CHART.destroy();
+  CHART = new Chart(document.getElementById('equity'), {
     type: 'line',
-    data: { labels: days.map(fmtD), datasets: d.bots.map((b, i) => {
-      const m = Object.fromEntries(b.curve.map(p => [p.day, p.equity]));
-      let last = null;
-      return { label: b.label, data: days.map(x => { if (m[x] != null) last = m[x]; return last; }), borderColor: css(COLORS[i]), backgroundColor: css(COLORS[i]), borderWidth: 2, pointRadius: days.length > 60 ? 0 : 3, pointHoverRadius: 5, tension: 0 };
-    }) },
-    options: { responsive: true, animation: false, interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: $${c.parsed.y.toLocaleString(undefined, { maximumFractionDigits: 0 })}` } } },
-      scales: { x: { grid: { display: false }, ticks: { color: css('--ink-3'), maxTicksLimit: 10 } },
-                y: { grid: { color: css('--grid') }, ticks: { color: css('--ink-3'), callback: v => '$' + (v / 1000).toFixed(1) + 'k' } } } }
+    data: { labels: days.map(fmtD), datasets: bots.map(b => { const m = Object.fromEntries(b.curve.map(p => [p.day, (p.equity / b.capital - 1) * 100])); let last = null; return { label: b.label, data: days.map(x => { if (m[x] != null) last = m[x]; return last; }), borderColor: css(COLORS[b._i]), backgroundColor: css(COLORS[b._i]), borderWidth: 2, pointRadius: days.length > 60 ? 0 : 3, pointHoverRadius: 5, tension: 0 }; }) },
+    options: { responsive: true, animation: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${pct(c.parsed.y)}` } } },
+      scales: { x: { grid: { display: false }, ticks: { color: css('--ink-3'), maxTicksLimit: 10 } }, y: { grid: { color: css('--grid') }, ticks: { color: css('--ink-3'), callback: v => v.toFixed(1) + '%' } } } }
   });
 
-  // ---- open positions
-  const pos = d.bots.flatMap((b, i) => b.positions.map(p => ({ ...p, bot: b.label, i })));
-  document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Symbol</th><th>Side</th><th>Opened</th><th class="num">Entry</th><th class="num">Mark</th><th class="num">Stop</th><th class="num">Unrealized</th></tr>` +
-    pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol}</td><td>${p.direction}</td><td>${fmtT(p.opened_at)}</td><td class="num">${p.entry_price.toFixed(2)}</td><td class="num">${p.mark.toFixed(2)}</td><td class="num">${p.stop.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)} (${pct(p.unrealized_pct)})</td></tr>`).join('') + '</table>'
-    : '<div class="empty">Flat. No open positions — the bots are waiting for a setup that passes the rules.</div>';
+  const pos = bots.flatMap(b => b.positions.map(p => ({ ...p, bot: b.label, i: b._i })));
+  document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Coin</th><th>Side</th><th>Opened</th><th class="num">Entry</th><th class="num">Now</th><th class="num">Stop</th><th class="num">Unrealized</th></tr>` +
+    pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol.split('-')[0]}</td><td>${p.direction}</td><td>${fmtT(p.opened_at)}</td><td class="num">${p.entry_price.toFixed(2)}</td><td class="num">${p.mark.toFixed(2)}</td><td class="num">${p.stop.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)} (${pct(p.unrealized_pct)})</td></tr>`).join('') + '</table>'
+    : '<div class="empty">Flat. No open positions — waiting for a setup that passes the rules.</div>';
 
-  // ---- daily P&L small multiples (polarity: two hues, one per sign)
-  const dailyEl = document.getElementById('daily');
-  dailyEl.innerHTML = d.bots.map((b, i) => `<div class="card"><h3><span class="dot" style="background:${css(COLORS[i])}"></span>${b.label}</h3>${b.daily.length ? `<canvas id="daily-${i}" height="140"></canvas>` : '<div class="empty">No completed trading day yet.</div>'}</div>`).join('');
-  d.bots.forEach((b, i) => {
-    if (!b.daily.length) return;
+  DAILY_CHARTS.forEach(c => c.destroy()); DAILY_CHARTS = [];
+  const withDays = bots.filter(b => b.daily.length);
+  document.getElementById('daily').innerHTML = withDays.length ? withDays.map(b => `<div><div style="font-size:13px;margin-bottom:4px"><span class="dot" style="background:${css(COLORS[b._i])}"></span>${b.label}</div><canvas id="daily-${b._i}" height="120"></canvas></div>`).join('') : `<div class="empty">The first daily bars appear after the first completed trading day (midnight ${d.day_tz}).</div>`;
+  withDays.forEach(b => {
     const last = b.daily.slice(-45);
-    new Chart(document.getElementById(`daily-${i}`), {
-      type: 'bar',
-      data: { labels: last.map(x => fmtD(x.day)), datasets: [{ data: last.map(x => x.pnl_usd), backgroundColor: last.map(x => x.pnl_usd >= 0 ? css('--up') : css('--down')), borderRadius: 4, borderSkipped: false, maxBarThickness: 18 }] },
-      options: { responsive: true, animation: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${usd(c.parsed.y)} · ${last[c.dataIndex].trades} trade(s) · ${last[c.dataIndex].outcome}` } } },
-        scales: { x: { grid: { display: false }, ticks: { color: css('--ink-3'), maxTicksLimit: 8 } }, y: { grid: { color: css('--grid') }, ticks: { color: css('--ink-3'), callback: v => '$' + v } } } }
-    });
+    DAILY_CHARTS.push(new Chart(document.getElementById(`daily-${b._i}`), { type: 'bar', data: { labels: last.map(x => fmtD(x.day)), datasets: [{ data: last.map(x => x.pnl_usd), backgroundColor: last.map(x => x.pnl_usd >= 0 ? css('--up') : css('--down')), borderRadius: 4, borderSkipped: false, maxBarThickness: 18 }] },
+      options: { responsive: true, animation: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${usd(c.parsed.y)} · ${last[c.dataIndex].trades} trade(s) · ${last[c.dataIndex].outcome}` } } }, scales: { x: { grid: { display: false }, ticks: { color: css('--ink-3'), maxTicksLimit: 6 } }, y: { grid: { color: css('--grid') }, ticks: { color: css('--ink-3'), callback: v => '$' + v } } } } }));
   });
 
-  // ---- weekly table
-  const weeks = [...new Set(d.bots.flatMap(b => b.weekly.map(w => w.week)))].sort().reverse();
-  document.getElementById('weekly').innerHTML = weeks.length ? `<table><tr><th>Week of</th>${d.bots.map(b => `<th class="num" colspan="2">${b.label}</th>`).join('')}</tr><tr><th></th>${d.bots.map(() => '<th class="num">P&amp;L</th><th class="num">Cumulative</th>').join('')}</tr>` +
-    weeks.map(w => `<tr><td>${fmtD(d.bots.flatMap(b => b.weekly).find(x => x.week === w).start)}</td>${d.bots.map(b => { const x = b.weekly.find(y => y.week === w); return x ? `<td class="num ${cls(x.pnl_usd)}">${usd(x.pnl_usd)} <span class="flat">(${pct(x.pnl_pct)}, ${x.trades} tr)</span></td><td class="num ${cls(x.cumulative_usd)}">${usd(x.cumulative_usd)}</td>` : '<td class="num flat">—</td><td></td>'; }).join('')}</tr>`).join('') + '</table>'
+  const weeks = [...new Set(bots.flatMap(b => b.weekly.map(w => w.week)))].sort().reverse();
+  document.getElementById('weekly').innerHTML = weeks.length ? `<table><tr><th>Week of</th>${bots.map(b => `<th class="num">${b.label}</th>`).join('')}</tr>` +
+    weeks.map(w => `<tr><td>${fmtD(bots.flatMap(b => b.weekly).find(x => x.week === w).start)}</td>${bots.map(b => { const x = b.weekly.find(y => y.week === w); return x ? `<td class="num ${cls(x.pnl_usd)}">${usd(x.pnl_usd)}<br><span class="flat" style="font-size:11px">${pct(x.pnl_pct)} · ${x.trades} tr · cum ${usd(x.cumulative_usd)}</span></td>` : '<td class="num flat">—</td>'; }).join('')}</tr>`).join('') + '</table>'
     : '<div class="empty">The first weekly row appears after the first completed trading day.</div>';
 
-  // ---- today's journal
-  const ev = d.bots.flatMap((b, i) => b.today.events.map(e => ({ ...e, bot: b.label, i }))).sort((a, b) => a.at.localeCompare(b.at));
-  const describe = e => {
-    const x = e.detail || {};
-    switch (e.kind) {
-      case 'fill': return `Entered ${x.direction || 'long'} ${e.symbol} at ${(+x.price).toFixed(2)} — stop ${(+x.stop).toFixed(2)}, target ${(+x.target).toFixed(2)}, risking $${(+x.risk_usd).toFixed(0)} (${x.reason})`;
-      case 'close': return `Closed ${e.symbol} at ${(+x.price).toFixed(2)} — ${x.reason}: ${usd(+x.pnl_usd)} (${(+x.r) > 0 ? '+' : ''}${(+x.r).toFixed(2)}R)`;
-      case 'refusal': return `Refused ${e.symbol} ${e.strategy} entry — rule “${x.rule}”: ${x.reason}`;
-      case 'day_stop': return `Daily ${x.outcome} hit — flattened and halted for the day (equity $${(+x.equity).toFixed(0)})`;
-      case 'day_close': return `Day closed: ${pct(+x.pnl_pct)}, ${x.trades} trade(s), ${x.outcome}`;
-      default: return JSON.stringify(x);
-    }
-  };
+  const ev = bots.flatMap(b => b.today.events.map(e => ({ ...e, bot: b.label, i: b._i }))).filter(e => e.kind !== 'day_start').sort((a, b) => b.at.localeCompare(a.at));
   document.getElementById('journal').innerHTML = ev.length ? `<table><tr><th>Time</th><th>Bot</th><th>Event</th><th>What happened</th></tr>` +
-    ev.map(e => `<tr><td>${fmtT(e.at)}</td><td><span class="dot" style="background:${css(COLORS[e.i])}"></span>${e.bot}</td><td>${e.kind.replace('_', ' ')}</td><td style="white-space:normal">${describe(e)}</td></tr>`).join('') + '</table>'
+    ev.slice(0, 80).map(e => `<tr><td>${fmtT(e.at)}</td><td><span class="dot" style="background:${css(COLORS[e.i])}"></span>${e.bot}</td><td>${e.kind.replace('_', ' ')}</td><td class="wrap">${describe(e)}</td></tr>`).join('') + '</table>'
     : `<div class="empty">Nothing yet today (${d.today}, ${d.day_tz}). A quiet day is a valid day: the rules did not find a setup.</div>`;
 
-  // ---- trades
-  const tr = d.bots.flatMap((b, i) => b.trades.map(t => ({ ...t, bot: b.label, i }))).sort((a, b) => b.exit_at.localeCompare(a.exit_at)).slice(0, 60);
-  document.getElementById('trades').innerHTML = tr.length ? `<table><tr><th>Closed</th><th>Bot</th><th>Symbol</th><th>Side</th><th class="num">Entry</th><th class="num">Exit</th><th>Exit reason</th><th class="num">Held</th><th class="num">P&amp;L</th><th class="num">R</th></tr>` +
-    tr.map(t => { const held = (new Date(t.exit_at) - new Date(t.entry_at)) / 3600000; return `<tr><td>${fmtT(t.exit_at)}</td><td><span class="dot" style="background:${css(COLORS[t.i])}"></span>${t.bot}</td><td>${t.symbol}</td><td>${t.direction}</td><td class="num">${t.entry_price.toFixed(2)}</td><td class="num">${t.exit_price.toFixed(2)}</td><td>${t.exit_reason.replace('_', ' ')}</td><td class="num">${held < 48 ? held.toFixed(0) + 'h' : (held / 24).toFixed(1) + 'd'}</td><td class="num ${cls(t.pnl_usd)}">${usd(t.pnl_usd)}</td><td class="num ${cls(t.r_multiple)}">${t.r_multiple > 0 ? '+' : ''}${t.r_multiple.toFixed(2)}</td></tr>`; }).join('') + '</table>'
+  const tr = bots.flatMap(b => b.trades.map(t => ({ ...t, bot: b.label, i: b._i }))).sort((a, b) => b.exit_at.localeCompare(a.exit_at)).slice(0, 60);
+  document.getElementById('trades').innerHTML = tr.length ? `<table><tr><th>Closed</th><th>Bot</th><th>Coin</th><th>Side</th><th class="num">Entry</th><th class="num">Exit</th><th>Why</th><th class="num">Held</th><th class="num">P&amp;L</th><th class="num">R</th></tr>` +
+    tr.map(t => { const held = (new Date(t.exit_at) - new Date(t.entry_at)) / 3600000; return `<tr><td>${fmtT(t.exit_at)}</td><td><span class="dot" style="background:${css(COLORS[t.i])}"></span>${t.bot}</td><td>${t.symbol.split('-')[0]}</td><td>${t.direction}</td><td class="num">${t.entry_price.toFixed(2)}</td><td class="num">${t.exit_price.toFixed(2)}</td><td>${t.exit_reason.replace('_', ' ')}</td><td class="num">${held < 48 ? held.toFixed(0) + 'h' : (held / 24).toFixed(1) + 'd'}</td><td class="num ${cls(t.pnl_usd)}">${usd(t.pnl_usd)}</td><td class="num ${cls(t.r_multiple)}">${t.r_multiple > 0 ? '+' : ''}${t.r_multiple.toFixed(2)}</td></tr>`; }).join('') + '</table>'
     : '<div class="empty">No closed trades yet.</div>';
 
   document.getElementById('foot').textContent = `Simulation only — no real money, no exchange connection. Costs modelled: perps-grade fees (0.05%) + 2 bps slippage on every fill. Trading day = midnight ${d.day_tz}. Generated ${fmtT(d.generated_at)}.`;
 }
 
-load().then(render).catch(e => { document.getElementById('beat').textContent = 'could not load data: ' + e.message; });
-setInterval(() => load().then(render).catch(() => {}), 5 * 60 * 1000);
+function setFilter(k) { FILTER = k; try { localStorage.setItem('ratchet.desk', k); } catch (e) {} render(); }
+try { FILTER = localStorage.getItem('ratchet.desk') || 'all'; } catch (e) {}
+load().then(d => { DATA = d; render(); }).catch(e => { document.getElementById('beat').textContent = 'could not load data: ' + e.message; });
+setInterval(() => load().then(d => { DATA = d; render(); }).catch(() => {}), 5 * 60 * 1000);
 </script>
 </body>
 </html>
