@@ -147,7 +147,7 @@
 <script>
 const COLORS = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7', '--s8'];
 const DESKS = {
-  rules: { title: 'Rule desk', what: 'Four bots that never think. Fixed trend-following rules, tested on three years of history.' },
+  rules: { title: 'Rule desk', what: 'Bots that never think. Fixed trend-following rules, tested on three years of history. Shadow candidates run on the bench and can take a seat at the weekly review.' },
   copy: { title: 'Copy desk', what: 'Three bots that follow screened OKX lead traders one hour behind, each with a different idea of who is worth following. Probationary.' },
   sentiment: { title: 'Sentiment desk', what: 'Three analysts that read the crowd every four hours and propose trades. Fenced off, same risk rules, scored the same way. Probationary.' },
 };
@@ -159,7 +159,7 @@ const pct = (x, d = 2) => (x > 0 ? '+' : '') + x.toFixed(d) + '%';
 const cls = x => x > 0.005 ? 'pos' : x < -0.005 ? 'neg' : 'flat';
 const fmtT = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
 const fmtD = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-let DATA = null, FILTER = 'all', CHART = null, DAILY_CHARTS = [];
+let DATA = null, FILTER = 'all', CHART = null, DAILY_CHARTS = [], SHOW_BENCH = false;
 
 async function load() {
   const q = new URLSearchParams(location.search);
@@ -195,7 +195,7 @@ function card(b) {
     : [t.fills ? `${t.fills} new position${t.fills > 1 ? 's' : ''} today` : null, t.closes ? `${t.closes} closed today (opened earlier)` : null, t.refusals ? `${t.refusals} refused` : null].filter(Boolean).join('; ').replace(/^./, c => c.toUpperCase()) + '.';
   const openTxt = b.positions.length ? `${b.positions.length} / ${b.config.max_open_positions} <span class="${cls(b.unrealized_usd)}" style="font-size:12px">${usd(b.unrealized_usd)}</span>` : `0 / ${b.config.max_open_positions}`;
   return `<div class="bot" style="--c:${css(COLORS[i])}">
-    <div class="name"><b>${b.label}</b><span class="chip">${bars >= 24 ? 'daily' : bars + 'h'} bars · risk ${b.config.risk_per_trade_pct}%</span></div>
+    <div class="name"><b>${b.label}</b><span class="chip">${b.bench ? 'BENCH · ' : ''}${bars >= 24 ? 'daily' : bars + 'h'} bars · risk ${b.config.risk_per_trade_pct}%</span></div>
     <div>
       <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}</div>
       <div class="hero-sub">${pct(b.pnl_total_pct)} since start · equity ${usd0(b.equity)} of ${usd0(b.capital)}</div>
@@ -237,7 +237,7 @@ function deskSection(key, bots, guard, extra) {
   const holding = Object.entries(g.by_symbol || {}).map(([s, x]) => `${s.split('-')[0]} ${x.pct.toFixed(0)}%`).join(', ');
   return `<section>
     <div class="desk-head"><h2>${DESKS[key].title}</h2><span class="what">${DESKS[key].what}</span></div>
-    <div class="desk-sum"><span>Equity <b>${usd0(eq)}</b> of ${usd0(cap)}</span><span>P&amp;L <b class="${cls(eq - cap)}">${usd(eq - cap)}</b></span>${g.max_heat_pct ? `<span>Open risk <b>${(g.open_heat_pct || 0).toFixed(1)}%</b> of capital, cap ${g.max_heat_pct}%</span><span>Holding <b>${holding || 'nothing'}</b></span>` : ''}${extra || ''}</div>
+    <div class="desk-sum"><span>Equity <b>${usd0(eq)}</b> of ${usd0(cap)}${bots.some(b => b.bench) ? ' (incl. bench)' : ''}</span><span>P&amp;L <b class="${cls(eq - cap)}">${usd(eq - cap)}</b></span>${g.max_heat_pct ? `<span>Open risk <b>${(g.open_heat_pct || 0).toFixed(1)}%</b> of capital, cap ${g.max_heat_pct}%</span><span>Holding <b>${holding || 'nothing'}</b></span>` : ''}${extra || ''}</div>
     <div class="bots">${bots.map(card).join('')}</div>
   </section>`;
 }
@@ -272,13 +272,15 @@ function render() {
   d.bots.forEach((b, i) => { b._i = i; });
   const desksPresent = ORDER.filter(k => d.bots.some(b => b.desk === k));
   document.getElementById('sub').textContent = `Paper crypto desk · ${d.bots.length} bots across ${desksPresent.length} desks · Coinbase prices`;
-  const visible = b => FILTER === 'all' || b.desk === FILTER;
+  const visible = b => (FILTER === 'all' || b.desk === FILTER) && (SHOW_BENCH || !b.bench);
   const bots = d.bots.filter(visible);
+  const benchCount = d.bots.filter(b => b.bench).length;
 
-  document.getElementById('desknav').innerHTML = [['all', 'All desks'], ...desksPresent.map(k => [k, DESKS[k].title])].map(([k, t]) => `<button class="${FILTER === k ? 'on' : ''}" onclick="setFilter('${k}')">${t}</button>`).join('');
+  document.getElementById('desknav').innerHTML = [['all', 'All desks'], ...desksPresent.map(k => [k, DESKS[k].title])].map(([k, t]) => `<button class="${FILTER === k ? 'on' : ''}" onclick="setFilter('${k}')">${t}</button>`).join('') +
+    (benchCount ? `<button class="${SHOW_BENCH ? 'on' : ''}" style="margin-left:auto" onclick="SHOW_BENCH=!SHOW_BENCH;render()" title="Shadow bots that run a paper book and can replace a live bot at the weekly review">${SHOW_BENCH ? 'Hide' : 'Show'} bench (${benchCount})</button>` : '');
 
   const guardFor = { rules: d.desk, copy: d.desk_copy, sentiment: d.desk_sentiment };
-  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k), guardFor[k], k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '')).join('');
+  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && (SHOW_BENCH || !b.bench)), guardFor[k], (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
 
   const days = [...new Set(bots.flatMap(b => b.curve.map(p => p.day)))].sort();
   document.getElementById('legend').innerHTML = bots.map(b => `<span><i style="background:${css(COLORS[b._i])}"></i>${b.label}</span>`).join('');
