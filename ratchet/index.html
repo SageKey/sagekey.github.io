@@ -11,7 +11,7 @@
     color-scheme: light;
     --bg: #f4f4f2; --surface: #ffffff; --line: #e3e3df;
     --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a8985;
-    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;   /* categorical slots, fixed order by bot id */
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;   /* categorical slots, fixed order */
     --up: #2a78d6; --down: #eb6834; --grid: #ecece9;
   }
   @media (prefers-color-scheme: dark) {
@@ -19,7 +19,7 @@
       color-scheme: dark;
       --bg: #121212; --surface: #1a1a19; --line: #2c2c2a;
       --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8a8985;
-      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
       --up: #3987e5; --down: #d95926; --grid: #242423;
     }
   }
@@ -45,6 +45,11 @@
   .tile .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .pos { color: var(--up); } .neg { color: var(--down); } .flat { color: var(--ink-2); }
   .today { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); color: var(--ink-2); font-size: 14px; }
+  .note { margin-top: 10px; padding: 10px 12px; background: var(--bg); border-radius: 10px; font-size: 13.5px; white-space: pre-wrap; color: var(--ink); }
+  .note .k { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin-bottom: 4px; }
+  .props { margin-top: 8px; font-size: 13px; }
+  .props div { padding: 4px 0; border-top: 1px solid var(--grid); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--grid); color: var(--ink-2); margin-right: 6px; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
   .charts { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
   @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
@@ -75,9 +80,15 @@
 <main>
   <p style="margin:0;max-width:900px;color:var(--ink-2)">Four rule-based bots trading crypto on paper against live Coinbase prices. Each follows a written trend-following rule set with a fixed risk per trade and a daily loss budget; nothing here is advice and no real money is involved. The record below is complete: every trade, every quiet day, and every setup the rules turned down.</p>
   <section>
-    <h2>Bots</h2>
+    <h2>Rule desk — four bots that never think</h2>
     <div class="bots" id="bots"></div>
     <div class="today" id="desk" style="border:none;margin-top:10px"></div>
+  </section>
+
+  <section>
+    <h2>Sentiment desk — three analysts that read the crowd, fenced off, scored the same way</h2>
+    <div class="bots" id="analysts"></div>
+    <div class="today" id="desk2" style="border:none;margin-top:10px"></div>
   </section>
 
   <section class="charts">
@@ -115,7 +126,7 @@
 <footer id="foot"></footer>
 
 <script>
-const COLORS = ['--s1', '--s2', '--s3', '--s4'];
+const COLORS = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7'];
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const usd = (x, sign = true) => (sign && x > 0 ? '+' : '') + (x < 0 ? '−' : '') + '$' + Math.abs(x).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (x, d = 2) => (x > 0 ? '+' : '') + x.toFixed(d) + '%';
@@ -148,8 +159,9 @@ function render(d) {
   beat.classList.toggle('stale', !fresh);
   beat.title = fresh ? 'The Railway process reported within the last 2.5 hours (it reports every hour after the bar closes).' : 'No report for more than 2.5 hours — the process may be down.';
 
-  // ---- bot cards
-  document.getElementById('bots').innerHTML = d.bots.map((b, i) => {
+  // ---- bot cards (index i is the fixed color slot across both desks)
+  d.bots.forEach((b, i) => { b._i = i; });
+  const card = (b) => { const i = b._i;
     const s = b.stats, t = b.today;
     const strat = b.config.strategies.map(x => `${x.family.replace('_', ' ')} ${x.params.entry_n ? x.params.entry_n + '/' + x.params.exit_n : ''}`).join(' + ');
     const bars = (b.config.bar_seconds * b.config.bar_factor) / 3600;
@@ -174,15 +186,26 @@ function render(d) {
         <div class="tile"><div class="k">Green days</div><div class="v">${s.days ? s.green_days + ' / ' + s.days : '—'}</div></div>
       </div>
       <div class="today">${todayLine}</div>
+      ${b.analyst ? analystBlock(b.analyst) : ''}
     </div>`;
-  }).join('');
+  };
+  const analystBlock = a => {
+    const note = a.notes.find(n => n.kind === 'note');
+    const props = a.proposals.slice(0, 5).map(p => `<div><span class="tag">${p.status}</span><b>${p.symbol}</b> ${p.conviction} · stop −${p.stop_pct}% / target +${p.target_pct}% · ${fmtT(p.created_at)}${p.pnl_usd != null ? ` · <span class="${cls(p.pnl_usd)}">${usd(p.pnl_usd)}</span>` : ''}<br><span class="flat">${p.thesis}</span></div>`).join('');
+    return `<div class="note"><span class="k">What ${a.display} is seeing ${note ? '· ' + fmtT(note.at) : ''}</span>${note ? note.text : 'No session yet.'}</div>` + (props ? `<div class="props"><span class="k" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:8px 0 2px">Her calls</span>${props}</div>` : '');
+  };
+  document.getElementById('bots').innerHTML = d.bots.filter(b => b.desk !== 'sentiment').map(card).join('');
+  document.getElementById('analysts').innerHTML = d.bots.filter(b => b.desk === 'sentiment').map(card).join('') || '<div class="empty">No analysts configured.</div>';
 
-  // ---- desk-wide guard
-  const g = d.desk || {};
-  const totalEq = d.bots.reduce((a, b) => a + b.equity, 0), totalCap = d.bots.reduce((a, b) => a + b.capital, 0);
-  const bySym = Object.entries(g.by_symbol || {}).map(([s, x]) => `${s.split('-')[0]} ${x.pct.toFixed(0)}% (${x.bots} bot${x.bots > 1 ? 's' : ''})`).join(', ');
-  document.getElementById('desk').innerHTML = `<b>Whole desk:</b> equity $${totalEq.toLocaleString(undefined, { maximumFractionDigits: 0 })} on $${totalCap.toLocaleString()} · <span class="${cls(totalEq - totalCap)}">${usd(totalEq - totalCap)}</span>` +
-    (g.max_heat_pct ? ` · open risk ${(g.open_heat_pct || 0).toFixed(1)}% of capital (cap ${g.max_heat_pct}%) · one coin capped at ${g.max_symbol_pct}% and ${g.max_bots_per_symbol} bots` + (bySym ? ` · holding: ${bySym}` : ' · holding nothing') : '');
+  // ---- desk-wide guards
+  const deskLine = (el, g, bots, extra = '') => {
+    const totalEq = bots.reduce((a, b) => a + b.equity, 0), totalCap = bots.reduce((a, b) => a + b.capital, 0);
+    const bySym = Object.entries(g.by_symbol || {}).map(([s, x]) => `${s.split('-')[0]} ${x.pct.toFixed(0)}% (${x.bots} bot${x.bots > 1 ? 's' : ''})`).join(', ');
+    document.getElementById(el).innerHTML = bots.length ? `<b>Whole desk:</b> equity $${totalEq.toLocaleString(undefined, { maximumFractionDigits: 0 })} on $${totalCap.toLocaleString()} · <span class="${cls(totalEq - totalCap)}">${usd(totalEq - totalCap)}</span>` +
+      (g.max_heat_pct ? ` · open risk ${(g.open_heat_pct || 0).toFixed(1)}% of capital (cap ${g.max_heat_pct}%) · one coin capped at ${g.max_symbol_pct}% and ${g.max_bots_per_symbol} bots` + (bySym ? ` · holding: ${bySym}` : ' · holding nothing') : '') + extra : '';
+  };
+  deskLine('desk', d.desk || {}, d.bots.filter(b => b.desk !== 'sentiment'));
+  deskLine('desk2', d.desk_sentiment || {}, d.bots.filter(b => b.desk === 'sentiment'), d.model_spend_today ? ` · model spend today $${d.model_spend_today.usd.toFixed(2)} (${d.model_spend_today.calls} sessions)` : '');
 
   // ---- equity curve (one axis, three series, fixed colors)
   const days = [...new Set(d.bots.flatMap(b => b.curve.map(p => p.day)))].sort();
