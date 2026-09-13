@@ -192,7 +192,7 @@ function render(d) {
   const analystBlock = a => {
     const note = a.notes.find(n => n.kind === 'note');
     const props = a.proposals.slice(0, 5).map(p => `<div><span class="tag">${p.status}</span><b>${p.symbol}</b> ${p.conviction} · stop −${p.stop_pct}% / target +${p.target_pct}% · ${fmtT(p.created_at)}${p.pnl_usd != null ? ` · <span class="${cls(p.pnl_usd)}">${usd(p.pnl_usd)}</span>` : ''}<br><span class="flat">${p.thesis}</span></div>`).join('');
-    return `<div class="note"><span class="k">What ${a.display} is seeing ${note ? '· ' + fmtT(note.at) : ''}</span>${note ? note.text : 'No session yet.'}</div>` + (props ? `<div class="props"><span class="k" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:8px 0 2px">Her calls</span>${props}</div>` : '');
+    return `<div class="note"><span class="k">What ${a.display} is seeing ${note ? '· ' + fmtT(note.at) : ''}</span>${note ? note.text : 'No session yet.'}</div>` + (props ? `<div class="props"><span class="k" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:8px 0 2px">Calls</span>${props}</div>` : '');
   };
   document.getElementById('bots').innerHTML = d.bots.filter(b => b.desk !== 'sentiment').map(card).join('');
   document.getElementById('analysts').innerHTML = d.bots.filter(b => b.desk === 'sentiment').map(card).join('') || '<div class="empty">No analysts configured.</div>';
