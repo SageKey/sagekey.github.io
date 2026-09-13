@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ratchet — paper trading desk</title>
+<meta name="ratchet-api" content="https://ratchet-production-a779.up.railway.app">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -125,7 +126,9 @@ async function load() {
   const q = new URLSearchParams(location.search);
   const src = q.get('src');                                          // ?src=sample.json → preview a fixture
   const uat = q.get('uat') ? 'api/data?uat=1' : null;                // ?uat=1 → rehearsal ledgers (local only)
-  for (const url of src ? [src] : uat ? [uat] : ['api/data', 'data.json']) {
+  const remote = (document.querySelector('meta[name=ratchet-api]').content || '').replace(/\/$/, '');
+  const sources = src ? [src] : uat ? [uat] : [remote ? remote + '/api/data' : null, 'api/data', 'data.json'].filter(Boolean);
+  for (const url of sources) {
     try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r.json(); } catch (e) { /* try next */ }
   }
   throw new Error('no data source reachable');
