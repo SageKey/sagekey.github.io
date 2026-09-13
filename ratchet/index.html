@@ -199,7 +199,7 @@ function card(b) {
     <div>
       <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}</div>
       <div class="hero-sub">${pct(b.pnl_total_pct)} since start · equity ${usd0(b.equity)} of ${usd0(b.capital)}</div>
-      <div class="hero-sub">Price moves ${usd(b.realized_gross_usd + b.positions.reduce((a, p) => a + p.gross_usd, 0))} − fees ${usd(-(b.realized_fees_usd + b.open_fees_paid_usd)).replace('+', '')} = net ${usd(b.pnl_total_usd)}</div>
+      <div class="hero-sub">Price moves ${usd((b.realized_gross_usd ?? 0) + b.positions.reduce((a, p) => a + (p.gross_usd ?? 0), 0))} − fees $${((b.realized_fees_usd ?? 0) + (b.open_fees_paid_usd ?? 0)).toFixed(2)} = net ${usd(b.pnl_total_usd)}</div>
     </div>
     <div class="tiles">
       <div class="tile"><div class="k">Today</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
@@ -290,7 +290,7 @@ function render() {
       scales: { x: { grid: { display: false }, ticks: { color: css('--ink-3'), maxTicksLimit: 10 } }, y: { grid: { color: css('--grid') }, ticks: { color: css('--ink-3'), callback: v => v.toFixed(1) + '%' } } } }
   });
 
-  const pos = bots.flatMap(b => b.positions.map(p => ({ ...p, bot: b.label, i: b._i })));
+  const pos = bots.flatMap(b => b.positions.map(p => ({ gross_usd: 0, fees_paid_usd: 0, exit_fee_est_usd: 0, net_if_closed_now_usd: p.unrealized_usd, ...p, bot: b.label, i: b._i })));
   document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Coin</th><th>Side</th><th class="num">Entry</th><th class="num">Now</th><th class="num">Price move</th><th class="num">Fees paid</th><th class="num">Unrealized</th><th class="num">If closed now</th><th class="num">Stop</th></tr>` +
     pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol.split('-')[0]}</td><td>${p.direction}</td><td class="num">${p.entry_price.toFixed(p.entry_price < 10 ? 4 : 2)}</td><td class="num">${p.mark.toFixed(p.mark < 10 ? 4 : 2)}</td><td class="num ${cls(p.gross_usd)}">${usd(p.gross_usd)} (${pct(p.unrealized_pct)})</td><td class="num neg">−$${p.fees_paid_usd.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</td><td class="num ${cls(p.net_if_closed_now_usd)}" title="after the exit fee of $${p.exit_fee_est_usd.toFixed(2)}">${usd(p.net_if_closed_now_usd)}</td><td class="num">${p.stop.toFixed(p.stop < 10 ? 4 : 2)}</td></tr>`).join('') + '</table>'
     : '<div class="empty">Flat. No open positions — waiting for a setup that passes the rules.</div>';
