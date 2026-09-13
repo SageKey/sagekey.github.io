@@ -86,6 +86,12 @@
   </section>
 
   <section>
+    <h2>Copy desk — follows the net stance of five screened OKX lead traders, one hour behind</h2>
+    <div class="bots" id="copybots"></div>
+    <div class="today" id="desk3" style="border:none;margin-top:10px"></div>
+  </section>
+
+  <section>
     <h2>Sentiment desk — three analysts that read the crowd, fenced off, scored the same way</h2>
     <div class="bots" id="analysts"></div>
     <div class="today" id="desk2" style="border:none;margin-top:10px"></div>
@@ -195,7 +201,8 @@ function render(d) {
     const props = a.proposals.slice(0, 5).map(p => `<div><span class="tag">${p.status}</span><b>${p.symbol}</b> ${p.conviction} · stop −${p.stop_pct}% / target +${p.target_pct}% · ${fmtT(p.created_at)}${p.pnl_usd != null ? ` · <span class="${cls(p.pnl_usd)}">${usd(p.pnl_usd)}</span>` : ''}<br><span class="flat">${p.thesis}</span></div>`).join('');
     return `<div class="note"><span class="k">What ${a.display} is seeing ${note ? '· ' + fmtT(note.at) : ''}</span>${note ? note.text : 'No session yet.'}</div>` + (props ? `<div class="props"><span class="k" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:8px 0 2px">Calls</span>${props}</div>` : '');
   };
-  document.getElementById('bots').innerHTML = d.bots.filter(b => b.desk !== 'sentiment').map(card).join('');
+  document.getElementById('bots').innerHTML = d.bots.filter(b => b.desk === 'rules').map(card).join('');
+  document.getElementById('copybots').innerHTML = d.bots.filter(b => b.desk === 'copy').map(card).join('') || '<div class="empty">Copy desk not running.</div>';
   document.getElementById('analysts').innerHTML = d.bots.filter(b => b.desk === 'sentiment').map(card).join('') || '<div class="empty">No analysts configured.</div>';
 
   // ---- desk-wide guards
@@ -205,7 +212,8 @@ function render(d) {
     document.getElementById(el).innerHTML = bots.length ? `<b>Whole desk:</b> equity $${totalEq.toLocaleString(undefined, { maximumFractionDigits: 0 })} on $${totalCap.toLocaleString()} · <span class="${cls(totalEq - totalCap)}">${usd(totalEq - totalCap)}</span>` +
       (g.max_heat_pct ? ` · open risk ${(g.open_heat_pct || 0).toFixed(1)}% of capital (cap ${g.max_heat_pct}%) · one coin capped at ${g.max_symbol_pct}% and ${g.max_bots_per_symbol} bots` + (bySym ? ` · holding: ${bySym}` : ' · holding nothing') : '') + extra : '';
   };
-  deskLine('desk', d.desk || {}, d.bots.filter(b => b.desk !== 'sentiment'));
+  deskLine('desk', d.desk || {}, d.bots.filter(b => b.desk === 'rules'));
+  deskLine('desk3', d.desk_copy || {}, d.bots.filter(b => b.desk === 'copy'));
   deskLine('desk2', d.desk_sentiment || {}, d.bots.filter(b => b.desk === 'sentiment'), d.model_spend_today ? ` · model spend today $${d.model_spend_today.usd.toFixed(2)} (${d.model_spend_today.calls} sessions)` : '');
 
   // ---- equity curve (one axis, three series, fixed colors)
