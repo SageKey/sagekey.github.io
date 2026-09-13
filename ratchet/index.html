@@ -131,6 +131,16 @@
     <h3>Closed trades — most recent first</h3>
     <div class="scroll" id="trades"></div>
   </section>
+
+  <section class="card">
+    <h3>How P&amp;L is calculated</h3>
+    <div style="max-width:900px;font-size:14px;line-height:1.55;color:var(--ink-2)">
+      <p style="margin:0 0 8px"><b style="color:var(--ink)">Every fill is charged a fee and slippage the moment it happens.</b> Fee: 0.05% of the position's value on entry and again on exit (a perpetuals-exchange rate; retail spot on Coinbase is 0.40%, which the testing showed kills short-term trading). Slippage: 0.02% against you on each fill, applied to the fill price itself.</p>
+      <p style="margin:0 0 8px"><b style="color:var(--ink)">Price move</b> = units × (current or exit price − entry price), reversed for shorts. <b style="color:var(--ink)">Net P&amp;L</b> = price move − entry fee − exit fee. A $1,000 position starts about $0.70 down and needs a move of roughly 0.14% in its favor to break even.</p>
+      <p style="margin:0 0 8px"><b style="color:var(--ink)">Position size comes from the stop, with fees inside it.</b> Each bot risks a fixed fraction of its equity per trade (shown on its card). Risk per unit = distance to the stop + the round-trip cost. Units = dollars risked ÷ risk per unit. So a trade that hits its stop loses its stated risk including fees, never more. <b style="color:var(--ink)">R</b> is net P&amp;L divided by that dollar risk: +2R means the trade made twice what it risked, after costs.</p>
+      <p style="margin:0"><b style="color:var(--ink)">A setup whose target can't clear the fees is refused</b> before it becomes a trade (the journal shows it as "fees exceed reward"). Equity = cash + open positions at the current price; the daily loss budget and the desk-wide risk cap are measured on that number.</p>
+    </div>
+  </section>
 </main>
 <footer id="foot"></footer>
 
@@ -188,7 +198,8 @@ function card(b) {
     <div class="name"><b>${b.label}</b><span class="chip">${bars >= 24 ? 'daily' : bars + 'h'} bars · risk ${b.config.risk_per_trade_pct}%</span></div>
     <div>
       <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}</div>
-      <div class="hero-sub">${pct(b.pnl_total_pct)} since start · equity ${usd0(b.equity)} of ${usd0(b.capital)} · realized ${usd(b.realized_usd)}</div>
+      <div class="hero-sub">${pct(b.pnl_total_pct)} since start · equity ${usd0(b.equity)} of ${usd0(b.capital)}</div>
+      <div class="hero-sub">Price moves ${usd(b.realized_gross_usd + b.positions.reduce((a, p) => a + p.gross_usd, 0))} − fees ${usd(-(b.realized_fees_usd + b.open_fees_paid_usd)).replace('+', '')} = net ${usd(b.pnl_total_usd)}</div>
     </div>
     <div class="tiles">
       <div class="tile"><div class="k">Today</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
@@ -280,10 +291,10 @@ function render() {
   });
 
   const pos = bots.flatMap(b => b.positions.map(p => ({ ...p, bot: b.label, i: b._i })));
-  document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Coin</th><th>Side</th><th>Opened</th><th class="num">Entry</th><th class="num">Now</th><th class="num">Stop</th><th class="num">Unrealized</th></tr>` +
-    pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol.split('-')[0]}</td><td>${p.direction}</td><td>${fmtT(p.opened_at)}</td><td class="num">${p.entry_price.toFixed(2)}</td><td class="num">${p.mark.toFixed(2)}</td><td class="num">${p.stop.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)} (${pct(p.unrealized_pct)})</td></tr>`).join('') + '</table>'
+  document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Coin</th><th>Side</th><th class="num">Entry</th><th class="num">Now</th><th class="num">Price move</th><th class="num">Fees paid</th><th class="num">Unrealized</th><th class="num">If closed now</th><th class="num">Stop</th></tr>` +
+    pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol.split('-')[0]}</td><td>${p.direction}</td><td class="num">${p.entry_price.toFixed(p.entry_price < 10 ? 4 : 2)}</td><td class="num">${p.mark.toFixed(p.mark < 10 ? 4 : 2)}</td><td class="num ${cls(p.gross_usd)}">${usd(p.gross_usd)} (${pct(p.unrealized_pct)})</td><td class="num neg">−$${p.fees_paid_usd.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</td><td class="num ${cls(p.net_if_closed_now_usd)}" title="after the exit fee of $${p.exit_fee_est_usd.toFixed(2)}">${usd(p.net_if_closed_now_usd)}</td><td class="num">${p.stop.toFixed(p.stop < 10 ? 4 : 2)}</td></tr>`).join('') + '</table>'
     : '<div class="empty">Flat. No open positions — waiting for a setup that passes the rules.</div>';
-  if (pos.length) document.getElementById('positions').insertAdjacentHTML('beforeend', `<div class="empty" style="font-size:12px">Marked to the live Coinbase price on each load (page refreshes every 5 minutes). Entries and exits still happen on hourly closes.</div>`);
+  if (pos.length) document.getElementById('positions').insertAdjacentHTML('beforeend', `<div class="empty" style="font-size:12px"><b>Price move</b> is what the market has done since entry. <b>Fees paid</b> is the entry fee already charged. <b>Unrealized</b> = price move − fees paid. <b>If closed now</b> also subtracts the exit fee. A fresh position always starts slightly red: that is the entry fee, not a bad entry. Marked to the live Coinbase price on each load; entries and exits happen on hourly closes.</div>`);
 
   DAILY_CHARTS.forEach(c => c.destroy()); DAILY_CHARTS = [];
   const withDays = bots.filter(b => b.daily.length);
@@ -305,8 +316,8 @@ function render() {
     : `<div class="empty">Nothing yet today (${d.today}, ${d.day_tz}). A quiet day is a valid day: the rules did not find a setup.</div>`;
 
   const tr = bots.flatMap(b => b.trades.map(t => ({ ...t, bot: b.label, i: b._i }))).sort((a, b) => b.exit_at.localeCompare(a.exit_at)).slice(0, 60);
-  document.getElementById('trades').innerHTML = tr.length ? `<table><tr><th>Closed</th><th>Bot</th><th>Coin</th><th>Side</th><th class="num">Entry</th><th class="num">Exit</th><th>Why</th><th class="num">Held</th><th class="num">P&amp;L</th><th class="num">R</th></tr>` +
-    tr.map(t => { const held = (new Date(t.exit_at) - new Date(t.entry_at)) / 3600000; return `<tr><td>${fmtT(t.exit_at)}</td><td><span class="dot" style="background:${css(COLORS[t.i])}"></span>${t.bot}</td><td>${t.symbol.split('-')[0]}</td><td>${t.direction}</td><td class="num">${t.entry_price.toFixed(2)}</td><td class="num">${t.exit_price.toFixed(2)}</td><td>${t.exit_reason.replace('_', ' ')}</td><td class="num">${held < 48 ? held.toFixed(0) + 'h' : (held / 24).toFixed(1) + 'd'}</td><td class="num ${cls(t.pnl_usd)}">${usd(t.pnl_usd)}</td><td class="num ${cls(t.r_multiple)}">${t.r_multiple > 0 ? '+' : ''}${t.r_multiple.toFixed(2)}</td></tr>`; }).join('') + '</table>'
+  document.getElementById('trades').innerHTML = tr.length ? `<table><tr><th>Closed</th><th>Bot</th><th>Coin</th><th>Side</th><th class="num">Entry</th><th class="num">Exit</th><th>Why</th><th class="num">Held</th><th class="num">Price move</th><th class="num">Fees</th><th class="num">Net P&amp;L</th><th class="num">R</th></tr>` +
+    tr.map(t => { const held = (new Date(t.exit_at) - new Date(t.entry_at)) / 3600000; const gross = t.pnl_usd + t.fees_usd; return `<tr><td>${fmtT(t.exit_at)}</td><td><span class="dot" style="background:${css(COLORS[t.i])}"></span>${t.bot}</td><td>${t.symbol.split('-')[0]}</td><td>${t.direction}</td><td class="num">${t.entry_price.toFixed(t.entry_price < 10 ? 4 : 2)}</td><td class="num">${t.exit_price.toFixed(t.exit_price < 10 ? 4 : 2)}</td><td>${t.exit_reason.replace('_', ' ')}</td><td class="num">${held < 48 ? held.toFixed(0) + 'h' : (held / 24).toFixed(1) + 'd'}</td><td class="num ${cls(gross)}">${usd(gross)}</td><td class="num neg">−$${t.fees_usd.toFixed(2)}</td><td class="num ${cls(t.pnl_usd)}">${usd(t.pnl_usd)}</td><td class="num ${cls(t.r_multiple)}">${t.r_multiple > 0 ? '+' : ''}${t.r_multiple.toFixed(2)}</td></tr>`; }).join('') + '</table>'
     : '<div class="empty">No closed trades yet.</div>';
 
   document.getElementById('foot').textContent = `Simulation only — no real money, no exchange connection. Costs modelled: perps-grade fees (0.05%) + 2 bps slippage on every fill. Trading day = midnight ${d.day_tz}. Generated ${fmtT(d.generated_at)}.`;
