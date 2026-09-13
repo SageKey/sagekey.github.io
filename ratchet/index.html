@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ratchet — paper trading desk</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f4f2; --surface: #ffffff; --line: #e3e3df;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #8a8985;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;      /* categorical slots: conservative, moderate, aggressive */
+    --up: #2a78d6; --down: #eb6834; --grid: #ecece9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121212; --surface: #1a1a19; --line: #2c2c2a;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8a8985;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+      --up: #3987e5; --down: #d95926; --grid: #242423;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 22px 28px 6px; }
+  header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  header .sub { color: var(--ink-2); }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: .04em; background: #fff1e8; color: #9a3d12; border: 1px solid #f3c9b3; }
+  .beat { margin-left: auto; color: var(--ink-3); font-size: 13px; }
+  .beat.stale { color: var(--down); font-weight: 600; }
+  main { padding: 10px 28px 40px; display: grid; gap: 22px; }
+  section h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
+  .bots { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .bot { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; border-top: 4px solid var(--c); }
+  .bot .name { display: flex; justify-content: space-between; align-items: baseline; }
+  .bot .name b { font-size: 17px; }
+  .bot .name span { color: var(--ink-3); font-size: 12px; }
+  .hero { font-size: 40px; font-weight: 650; letter-spacing: -0.02em; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+  .hero small { font-size: 16px; color: var(--ink-2); font-weight: 500; margin-left: 8px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 14px; margin-top: 14px; }
+  .tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .tile .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pos { color: var(--up); } .neg { color: var(--down); } .flat { color: var(--ink-2); }
+  .today { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); color: var(--ink-2); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .charts { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
+  canvas { max-width: 100%; }
+  .legend { display: flex; gap: 18px; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .multis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .multis { grid-template-columns: 1fr; } }
+  .multis .card h3 { margin: 0 0 6px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; color: var(--ink-3); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  td.num, th.num { text-align: right; }
+  .wrap { overflow-x: auto; }
+  .empty { color: var(--ink-3); padding: 14px 0; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  footer { color: var(--ink-3); font-size: 12px; padding: 0 28px 30px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ratchet</h1>
+  <span class="sub">Rules-based crypto desk · three bots · Coinbase prices</span>
+  <span class="pill" id="mode">PAPER</span>
+  <span class="beat" id="beat">loading…</span>
+</header>
+<main>
+  <p style="margin:0;max-width:900px;color:var(--ink-2)">Three rule-based bots trading BTC, ETH and SOL on paper against live Coinbase prices. Each follows a written trend-following rule set with a fixed risk per trade and a daily loss budget; nothing here is advice and no real money is involved. The record below is complete: every trade, every quiet day, and every setup the rules turned down.</p>
+  <section>
+    <h2>Bots</h2>
+    <div class="bots" id="bots"></div>
+  </section>
+
+  <section class="charts">
+    <div class="card">
+      <h2>Equity — all bots, $25,000 start each</h2>
+      <div class="legend" id="legend"></div>
+      <canvas id="equity" height="120"></canvas>
+    </div>
+    <div class="card">
+      <h2>Open positions</h2>
+      <div class="wrap" id="positions"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Daily P&amp;L</h2>
+    <div class="multis" id="daily"></div>
+  </section>
+
+  <section class="card">
+    <h2>Week over week</h2>
+    <div class="wrap" id="weekly"></div>
+  </section>
+
+  <section class="card">
+    <h2>Today's journal — every decision, including the ones not to trade</h2>
+    <div class="wrap" id="journal"></div>
+  </section>
+
+  <section class="card">
+    <h2>Closed trades (most recent first)</h2>
+    <div class="wrap" id="trades"></div>
+  </section>
+</main>
+<footer id="foot"></footer>
+
+<script>
+const COLORS = ['--s1', '--s2', '--s3'];
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const usd = (x, sign = true) => (sign && x > 0 ? '+' : '') + (x < 0 ? '−' : '') + '$' + Math.abs(x).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pct = (x, d = 2) => (x > 0 ? '+' : '') + x.toFixed(d) + '%';
+const cls = x => x > 0.005 ? 'pos' : x < -0.005 ? 'neg' : 'flat';
+const fmtT = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+const fmtD = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+async function load() {
+  const src = new URLSearchParams(location.search).get('src');     // ?src=sample.json → preview a fixture
+  for (const url of src ? [src] : ['api/data', 'data.json']) {
+    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) return r.json(); } catch (e) { /* try next */ }
+  }
+  throw new Error('no data source reachable');
+}
+
+function render(d) {
+  document.getElementById('mode').textContent = d.mode;
+  const beat = document.getElementById('beat');
+  const age = d.heartbeat ? (Date.now() - new Date(d.heartbeat)) / 60000 : Infinity;
+  beat.textContent = d.heartbeat ? `bot heartbeat ${fmtT(d.heartbeat)} (${age < 60 ? Math.round(age) + ' min' : (age / 60).toFixed(1) + ' h'} ago)` : 'no heartbeat yet';
+  beat.classList.toggle('stale', age > 150);
+
+  // ---- bot cards
+  document.getElementById('bots').innerHTML = d.bots.map((b, i) => {
+    const s = b.stats, t = b.today;
+    const strat = b.config.strategies.map(x => `${x.family.replace('_', ' ')} ${x.params.entry_n ? x.params.entry_n + '/' + x.params.exit_n : ''}`).join(' + ');
+    const bars = (b.config.bar_seconds * b.config.bar_factor) / 3600;
+    const todayLine = t.fills + t.closes === 0
+      ? `No trades today${t.refusals ? ` — ${t.refusals} setup${t.refusals > 1 ? 's' : ''} refused by the rules (${t.refusal_rules.join(', ')})` : ' — no setup qualified'}.`
+      : `${t.fills} entr${t.fills === 1 ? 'y' : 'ies'}, ${t.closes} exit${t.closes === 1 ? '' : 's'} today${t.refusals ? `, ${t.refusals} refused` : ''}.`;
+    return `<div class="bot" style="--c:${css(COLORS[i])}">
+      <div class="name"><b>${b.label}</b><span>${strat} · ${bars}h bars · ${b.config.symbols.map(x => x.split('-')[0]).join(' ')}</span></div>
+      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}<small>${pct(b.pnl_total_pct)} · equity $${b.equity.toLocaleString(undefined, { maximumFractionDigits: 0 })}</small></div>
+      <div class="tiles">
+        <div class="tile"><div class="k">Today</div><div class="v ${cls(b.pnl_today_usd)}">${usd(b.pnl_today_usd)}</div></div>
+        <div class="tile"><div class="k">This week</div><div class="v ${cls(b.pnl_week_usd)}">${usd(b.pnl_week_usd)}</div></div>
+        <div class="tile"><div class="k">This month</div><div class="v ${cls(b.pnl_month_usd)}">${usd(b.pnl_month_usd)}</div></div>
+        <div class="tile"><div class="k">Open</div><div class="v">${b.positions.length} / ${b.config.max_open_positions}</div></div>
+        <div class="tile"><div class="k">Trades · win</div><div class="v">${s.trades} · ${s.trades ? s.win_rate.toFixed(0) + '%' : '—'}</div></div>
+        <div class="tile"><div class="k">Max drawdown</div><div class="v">${b.max_drawdown_pct.toFixed(1)}%</div></div>
+        <div class="tile"><div class="k">Risk / trade</div><div class="v">${b.config.risk_per_trade_pct}%</div></div>
+        <div class="tile"><div class="k">Daily stop</div><div class="v">−${b.config.daily_stop_pct}%${b.halted_reason ? ' · HALTED' : ''}</div></div>
+        <div class="tile"><div class="k">Green days</div><div class="v">${s.days ? s.green_days + ' / ' + s.days : '—'}</div></div>
+      </div>
+      <div class="today">${todayLine}</div>
+    </div>`;
+  }).join('');
+
+  // ---- equity curve (one axis, three series, fixed colors)
+  const days = [...new Set(d.bots.flatMap(b => b.curve.map(p => p.day)))].sort();
+  document.getElementById('legend').innerHTML = d.bots.map((b, i) => `<span><i style="background:${css(COLORS[i])}"></i>${b.label}</span>`).join('');
+  new Chart(document.getElementById('equity'), {
+    type: 'line',
+    data: { labels: days.map(fmtD), datasets: d.bots.map((b, i) => {
+      const m = Object.fromEntries(b.curve.map(p => [p.day, p.equity]));
+      let last = null;
+      return { label: b.label, data: days.map(x => { if (m[x] != null) last = m[x]; return last; }), borderColor: css(COLORS[i]), backgroundColor: css(COLORS[i]), borderWidth: 2, pointRadius: days.length > 60 ? 0 : 3, pointHoverRadius: 5, tension: 0 };
+    }) },
+    options: { responsive: true, animation: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: $${c.parsed.y.toLocaleString(undefined, { maximumFractionDigits: 0 })}` } } },
+      scales: { x: { grid: { display: false }, ticks: { color: css('--ink-3'), maxTicksLimit: 10 } },
+                y: { grid: { color: css('--grid') }, ticks: { color: css('--ink-3'), callback: v => '$' + (v / 1000).toFixed(1) + 'k' } } } }
+  });
+
+  // ---- open positions
+  const pos = d.bots.flatMap((b, i) => b.positions.map(p => ({ ...p, bot: b.label, i })));
+  document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Symbol</th><th>Side</th><th class="num">Entry</th><th class="num">Mark</th><th class="num">Stop</th><th class="num">Unrealized</th></tr>` +
+    pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol}</td><td>${p.direction}</td><td class="num">${p.entry_price.toFixed(2)}</td><td class="num">${p.mark.toFixed(2)}</td><td class="num">${p.stop.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)} (${pct(p.unrealized_pct)})</td></tr>`).join('') + '</table>'
+    : '<div class="empty">Flat. No open positions — the bots are waiting for a setup that passes the rules.</div>';
+
+  // ---- daily P&L small multiples (polarity: two hues, one per sign)
+  const dailyEl = document.getElementById('daily');
+  dailyEl.innerHTML = d.bots.map((b, i) => `<div class="card"><h3><span class="dot" style="background:${css(COLORS[i])}"></span>${b.label}</h3>${b.daily.length ? `<canvas id="daily-${i}" height="140"></canvas>` : '<div class="empty">No completed trading day yet.</div>'}</div>`).join('');
+  d.bots.forEach((b, i) => {
+    if (!b.daily.length) return;
+    const last = b.daily.slice(-45);
+    new Chart(document.getElementById(`daily-${i}`), {
+      type: 'bar',
+      data: { labels: last.map(x => fmtD(x.day)), datasets: [{ data: last.map(x => x.pnl_usd), backgroundColor: last.map(x => x.pnl_usd >= 0 ? css('--up') : css('--down')), borderRadius: 4, borderSkipped: false, maxBarThickness: 18 }] },
+      options: { responsive: true, animation: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${usd(c.parsed.y)} · ${last[c.dataIndex].trades} trade(s) · ${last[c.dataIndex].outcome}` } } },
+        scales: { x: { grid: { display: false }, ticks: { color: css('--ink-3'), maxTicksLimit: 8 } }, y: { grid: { color: css('--grid') }, ticks: { color: css('--ink-3'), callback: v => '$' + v } } } }
+    });
+  });
+
+  // ---- weekly table
+  const weeks = [...new Set(d.bots.flatMap(b => b.weekly.map(w => w.week)))].sort().reverse();
+  document.getElementById('weekly').innerHTML = weeks.length ? `<table><tr><th>Week of</th>${d.bots.map(b => `<th class="num" colspan="2">${b.label}</th>`).join('')}</tr><tr><th></th>${d.bots.map(() => '<th class="num">P&amp;L</th><th class="num">Cumulative</th>').join('')}</tr>` +
+    weeks.map(w => `<tr><td>${fmtD(d.bots.flatMap(b => b.weekly).find(x => x.week === w).start)}</td>${d.bots.map(b => { const x = b.weekly.find(y => y.week === w); return x ? `<td class="num ${cls(x.pnl_usd)}">${usd(x.pnl_usd)} <span class="flat">(${pct(x.pnl_pct)}, ${x.trades} tr)</span></td><td class="num ${cls(x.cumulative_usd)}">${usd(x.cumulative_usd)}</td>` : '<td class="num flat">—</td><td></td>'; }).join('')}</tr>`).join('') + '</table>'
+    : '<div class="empty">The first weekly row appears after the first completed trading day.</div>';
+
+  // ---- today's journal
+  const ev = d.bots.flatMap((b, i) => b.today.events.map(e => ({ ...e, bot: b.label, i }))).sort((a, b) => a.at.localeCompare(b.at));
+  const describe = e => {
+    const x = e.detail || {};
+    switch (e.kind) {
+      case 'fill': return `Entered ${x.direction || 'long'} ${e.symbol} at ${(+x.price).toFixed(2)} — stop ${(+x.stop).toFixed(2)}, target ${(+x.target).toFixed(2)}, risking $${(+x.risk_usd).toFixed(0)} (${x.reason})`;
+      case 'close': return `Closed ${e.symbol} at ${(+x.price).toFixed(2)} — ${x.reason}: ${usd(+x.pnl_usd)} (${(+x.r) > 0 ? '+' : ''}${(+x.r).toFixed(2)}R)`;
+      case 'refusal': return `Refused ${e.symbol} ${e.strategy} entry — rule “${x.rule}”: ${x.reason}`;
+      case 'day_stop': return `Daily ${x.outcome} hit — flattened and halted for the day (equity $${(+x.equity).toFixed(0)})`;
+      case 'day_close': return `Day closed: ${pct(+x.pnl_pct)}, ${x.trades} trade(s), ${x.outcome}`;
+      default: return JSON.stringify(x);
+    }
+  };
+  document.getElementById('journal').innerHTML = ev.length ? `<table><tr><th>Time</th><th>Bot</th><th>Event</th><th>What happened</th></tr>` +
+    ev.map(e => `<tr><td>${fmtT(e.at)}</td><td><span class="dot" style="background:${css(COLORS[e.i])}"></span>${e.bot}</td><td>${e.kind.replace('_', ' ')}</td><td style="white-space:normal">${describe(e)}</td></tr>`).join('') + '</table>'
+    : `<div class="empty">Nothing yet today (${d.today}, ${d.day_tz}). A quiet day is a valid day: the rules did not find a setup.</div>`;
+
+  // ---- trades
+  const tr = d.bots.flatMap((b, i) => b.trades.map(t => ({ ...t, bot: b.label, i }))).sort((a, b) => b.exit_at.localeCompare(a.exit_at)).slice(0, 60);
+  document.getElementById('trades').innerHTML = tr.length ? `<table><tr><th>Closed</th><th>Bot</th><th>Symbol</th><th>Side</th><th class="num">Entry</th><th class="num">Exit</th><th>Exit reason</th><th class="num">Held</th><th class="num">P&amp;L</th><th class="num">R</th></tr>` +
+    tr.map(t => { const held = (new Date(t.exit_at) - new Date(t.entry_at)) / 3600000; return `<tr><td>${fmtT(t.exit_at)}</td><td><span class="dot" style="background:${css(COLORS[t.i])}"></span>${t.bot}</td><td>${t.symbol}</td><td>${t.direction}</td><td class="num">${t.entry_price.toFixed(2)}</td><td class="num">${t.exit_price.toFixed(2)}</td><td>${t.exit_reason.replace('_', ' ')}</td><td class="num">${held < 48 ? held.toFixed(0) + 'h' : (held / 24).toFixed(1) + 'd'}</td><td class="num ${cls(t.pnl_usd)}">${usd(t.pnl_usd)}</td><td class="num ${cls(t.r_multiple)}">${t.r_multiple > 0 ? '+' : ''}${t.r_multiple.toFixed(2)}</td></tr>`; }).join('') + '</table>'
+    : '<div class="empty">No closed trades yet.</div>';
+
+  document.getElementById('foot').textContent = `Simulation only — no real money, no exchange connection. Costs modelled: perps-grade fees (0.05%) + 2 bps slippage on every fill. Trading day = midnight ${d.day_tz}. Generated ${fmtT(d.generated_at)}.`;
+}
+
+load().then(render).catch(e => { document.getElementById('beat').textContent = 'could not load data: ' + e.message; });
+setInterval(() => load().then(render).catch(() => {}), 5 * 60 * 1000);
+</script>
+</body>
+</html>
