@@ -281,6 +281,7 @@ function render() {
   document.getElementById('positions').innerHTML = pos.length ? `<table><tr><th>Bot</th><th>Coin</th><th>Side</th><th>Opened</th><th class="num">Entry</th><th class="num">Now</th><th class="num">Stop</th><th class="num">Unrealized</th></tr>` +
     pos.map(p => `<tr><td><span class="dot" style="background:${css(COLORS[p.i])}"></span>${p.bot}</td><td>${p.symbol.split('-')[0]}</td><td>${p.direction}</td><td>${fmtT(p.opened_at)}</td><td class="num">${p.entry_price.toFixed(2)}</td><td class="num">${p.mark.toFixed(2)}</td><td class="num">${p.stop.toFixed(2)}</td><td class="num ${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)} (${pct(p.unrealized_pct)})</td></tr>`).join('') + '</table>'
     : '<div class="empty">Flat. No open positions — waiting for a setup that passes the rules.</div>';
+  if (pos.length) document.getElementById('positions').insertAdjacentHTML('beforeend', `<div class="empty" style="font-size:12px">Marked to the live Coinbase price on each load (page refreshes every 5 minutes). Entries and exits still happen on hourly closes.</div>`);
 
   DAILY_CHARTS.forEach(c => c.destroy()); DAILY_CHARTS = [];
   const withDays = bots.filter(b => b.daily.length);
