@@ -288,7 +288,7 @@ function watchBlock(b) {
   const r = watchRows(b);
   if (!r || !r.rows.length) return '';
   const bar = r.w.bar_hours >= 24 ? 'daily' : `${r.w.bar_hours}-hour`;
-  return `<div class="note open"><span class="k">Waiting for · checked at every ${bar} close · last bar ${fmtT(r.w.as_of)}</span><div class="txt">${r.rows.map(x => `<div><b>${x.coin}</b> ${x.dist != null ? `<b style="color:${x.blocked ? 'var(--down)' : x.dist <= 2 ? 'var(--up)' : 'var(--ink-3)'}">${x.dist.toFixed(1)}% away</b> · ` : ''}<span class="flat">${x.setups.map(t => t.text).join(' · ')}</span></div>`).join('')}</div></div>`;
+  return `<div class="note open"><span class="k">Waiting for · checked at every ${bar} close · last close ${fmtT(new Date(new Date(r.w.as_of).getTime() + r.w.bar_hours * 3600000).toISOString())}</span><div class="txt">${r.rows.map(x => `<div><b>${x.coin}</b> ${x.dist != null ? `<b style="color:${x.blocked ? 'var(--down)' : x.dist <= 2 ? 'var(--up)' : 'var(--ink-3)'}">${x.dist.toFixed(1)}% away</b> · ` : ''}<span class="flat">${x.setups.map(t => t.text).join(' · ')}</span></div>`).join('')}</div></div>`;
 }
 function nearestSetup(d) {
   let best = null;
