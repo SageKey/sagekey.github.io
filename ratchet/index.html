@@ -68,6 +68,7 @@
   .note .more { color: var(--s1); font-size: 12px; margin-top: 4px; display: inline-block; }
   .calls { font-size: 12.5px; }
   .calls div { padding: 5px 0; border-top: 1px solid var(--grid); }
+  .calls div.clickable { cursor: pointer; } .calls div.clickable:hover { background: var(--chip); border-radius: 6px; }
   .tag { display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: var(--chip); color: var(--ink-2); margin-right: 6px; text-transform: uppercase; letter-spacing: .04em; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
   .card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
@@ -240,7 +241,7 @@ function card(b) {
     </div>
     <div class="rules"><b>${strategyLabel(b)}</b> · daily stop −${b.config.daily_stop_pct}% · <span title="${b.config.symbols.join(', ')}">${coinList(b.config.symbols)}</span>${b.halted_reason ? ' · <b style="color:var(--down)">HALTED today</b>' : ''}</div>
     <div class="today">${todayLine}</div>
-    ${b.positions.length ? `<div class="calls">${b.positions.map(p => `<div><b>${p.direction === 'short' ? 'Short' : 'Long'} ${qty(p.units)} ${p.symbol.split('-')[0]}</b> from ${px(p.entry_price)} (${usd0(p.units * p.entry_price)}) · now ${px(p.mark)} <span class="${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</span> · stop ${px(p.stop)} · target ${px(p.target)} · risking $${(+p.risk_usd).toFixed(0)} · since ${fmtT(p.opened_at)}</div>`).join('')}</div>` : ''}
+    ${b.positions.length ? `<div class="calls">${b.positions.map(p => `<div class="clickable" data-open="${b.id}|${p.symbol}" onclick="openByKey(this.dataset.open)" title="Click for the full reasoning"><b>${p.direction === 'short' ? 'Short' : 'Long'} ${qty(p.units)} ${p.symbol.split('-')[0]}</b> from ${px(p.entry_price)} (${usd0(p.units * p.entry_price)}) · now ${px(p.mark)} <span class="${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</span> · stop ${px(p.stop)} · target ${px(p.target)} · risking $${(+p.risk_usd).toFixed(0)} · since ${fmtT(p.opened_at)}</div>`).join('')}</div>` : ''}
     ${b.analyst ? analystBlock(b) : ''}
     ${b.desk === 'copy' ? copyBlock(b) : ''}
   </div>`;
@@ -259,7 +260,8 @@ function analystBlock(b) {
         + (p.horizon_hours && !p.exit ? ` · time stop ${fmtT(new Date(new Date(f.at).getTime() + p.horizon_hours * 3600000).toISOString())}` : '')
         + (p.exit ? ` · <b>closed ${px(p.exit.price)} ${fmtT(p.exit.at)} (${p.exit.reason.replace('_', ' ')}): <span class="${cls(p.exit.pnl_usd)}">${usd(p.exit.pnl_usd)}</span> after $${p.exit.fees_usd.toFixed(2)} fees</b>` : '') + `</div>`;
     }
-    return `<div><span class="tag">${p.status}</span><b>${coin}</b> ${p.conviction} conviction · asked for stop −${p.stop_pct}% / target +${p.target_pct}% · ${fmtT(p.created_at)}${p.status === 'refused' || p.status === 'expired' ? ` · <span class="flat">${p.status_detail || ''}</span>` : ''}${trade}<span class="flat">${p.thesis}</span></div>`;
+    const key = p.status === 'filled' ? `${b.id}|${p.symbol}` : p.status === 'closed' && p.exit ? `${b.id}|${p.symbol}|${p.exit.at}` : null;
+    return `<div class="${key ? 'clickable' : ''}" ${key ? `data-open="${key}" onclick="openByKey(this.dataset.open)" title="Click for the full reasoning"` : ''}><span class="tag">${p.status}</span><b>${coin}</b> ${p.conviction} conviction · asked for stop −${p.stop_pct}% / target +${p.target_pct}% · ${fmtT(p.created_at)}${p.status === 'refused' || p.status === 'expired' ? ` · <span class="flat">${p.status_detail || ''}</span>` : ''}${trade}<span class="flat">${p.thesis}</span></div>`;
   }).join('');
   return `<div class="note" onclick="this.classList.toggle('open')"><span class="k">What ${a.display} is seeing${note ? ' · ' + fmtT(note.at) : ''}</span><div class="txt">${note ? note.text : 'No session yet.'}</div><span class="more">show more / less</span></div>` +
     (calls ? `<div class="calls"><span class="k" style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:2px">Calls</span>${calls}</div>` : '');
@@ -422,6 +424,17 @@ function openDrawer(key) {
     ${kv ? `<h4>What it was looking at</h4><div class="kv">${kv}</div>` : ''}
     ${params ? `<h4>Rule settings</h4><div class="kv"><span>${params}</span></div>` : ''}`;
   document.getElementById('drawer').classList.add('open'); document.getElementById('scrim').classList.add('open');
+}
+function openByKey(key) {
+  const [bot, symbol, exitAt] = key.split('|');
+  const b = DATA.bots.find(x => x.id === bot); if (!b) return;
+  if (exitAt) {
+    const t = b.trades.find(x => x.symbol === symbol && x.exit_at === exitAt) || b.trades.find(x => x.symbol === symbol);
+    if (t) { ROWS['k'] = { ...t, bot: b.label, i: b._i, desk: b.desk, kind: 'closed' }; openDrawer('k'); }
+    return;
+  }
+  const p = b.positions.find(x => x.symbol === symbol);
+  if (p) { ROWS['k'] = { gross_usd: 0, fees_paid_usd: 0, exit_fee_est_usd: 0, net_if_closed_now_usd: p.unrealized_usd, ...p, bot: b.label, i: b._i, desk: b.desk, kind: 'open' }; openDrawer('k'); }
 }
 function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('scrim').classList.remove('open'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
