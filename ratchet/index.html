@@ -243,6 +243,7 @@ function card(b) {
     <div class="today">${todayLine}</div>
     ${b.positions.length ? `<div class="calls">${b.positions.map(p => `<div class="clickable" data-open="${b.id}|${p.symbol}" onclick="openByKey(this.dataset.open)" title="Click for the full reasoning"><b>${p.direction === 'short' ? 'Short' : 'Long'} ${qty(p.units)} ${p.symbol.split('-')[0]}</b> from ${px(p.entry_price)} (${usd0(p.units * p.entry_price)}) · now ${px(p.mark)} <span class="${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</span> · stop ${px(p.stop)} · target ${px(p.target)} · risking $${(+p.risk_usd).toFixed(0)} · since ${fmtT(p.opened_at)}</div>`).join('')}</div>` : ''}
     ${b.analyst ? analystBlock(b) : ''}
+    ${b.desk === 'rules' ? watchBlock(b) : ''}
     ${b.desk === 'copy' ? copyBlock(b) : ''}
   </div>`;
 }
@@ -272,6 +273,31 @@ function copyBlock(b) {
   const need = (b.config.strategies[0].params || {}).min_net || 2;
   const stance = Object.entries(cb.book || {}).map(([s, x]) => `${s.split('-')[0]} ${x.long}L/${x.short}S`).join(', ') || 'no positions';
   return `<div class="note open"><span class="k">Following ${cb.leaders.length} OKX lead trader${cb.leaders.length > 1 ? 's' : ''} · refreshed ${fmtT(cb.refreshed_at)}</span><div class="txt">${cb.leaders.length ? cb.leaders.map(l => `${l.name} (${l.days}d, win ${Math.round(+l.win * 100)}%${l.copiers ? ', ' + l.copiers + ' copiers' : ''})`).join(' · ') : 'No leader passed this bot\'s screen this week.'}<br><span class="flat">Leaders' stance now: ${stance}. Acts when ${need === 1 ? 'any followed leader is in' : need + ' more leaders agree than disagree on a coin'}.</span></div></div>`;
+}
+
+function watchRows(b) {
+  const w = (DATA.desk_watch || {})[b.id];
+  if (!w || !w.symbols) return null;
+  const rows = Object.entries(w.symbols).filter(([s, x]) => !x.held).map(([s, x]) => {
+    const best = x.setups.slice().sort((a, c) => (a.distance_pct ?? 1e9) - (c.distance_pct ?? 1e9))[0];
+    return { coin: s.split('-')[0], setups: x.setups, dist: best ? best.distance_pct : null, blocked: x.setups.every(t => t.state === 'blocked') };
+  }).sort((a, c) => (a.dist ?? 1e9) - (c.dist ?? 1e9));
+  return { w, rows };
+}
+function watchBlock(b) {
+  const r = watchRows(b);
+  if (!r || !r.rows.length) return '';
+  const bar = r.w.bar_hours >= 24 ? 'daily' : `${r.w.bar_hours}-hour`;
+  return `<div class="note open"><span class="k">Waiting for · checked at every ${bar} close · last bar ${fmtT(r.w.as_of)}</span><div class="txt">${r.rows.map(x => `<div><b>${x.coin}</b> ${x.dist != null ? `<b style="color:${x.blocked ? 'var(--down)' : x.dist <= 2 ? 'var(--up)' : 'var(--ink-3)'}">${x.dist.toFixed(1)}% away</b> · ` : ''}<span class="flat">${x.setups.map(t => t.text).join(' · ')}</span></div>`).join('')}</div></div>`;
+}
+function nearestSetup(d) {
+  let best = null;
+  for (const b of d.bots.filter(b => b.desk === 'rules' && !b.bench)) {
+    const r = watchRows(b);
+    if (!r) continue;
+    for (const x of r.rows) if (x.dist != null && !x.blocked && (!best || x.dist < best.dist)) best = { ...x, bot: b.label };
+  }
+  return best ? `<span title="How far the closest coin is from any live rule bot's entry trigger">Nearest setup <b>${best.coin} ${best.dist.toFixed(1)}%</b> from ${best.bot}'s trigger</span>` : '';
 }
 
 function deskSection(key, bots, guard, extra) {
@@ -356,7 +382,7 @@ function render() {
     : '<div class="empty">No closed trades yet.</div>';
 
   const guardFor = { rules: d.desk, copy: d.desk_copy, sentiment: d.desk_sentiment };
-  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && (SHOW_BENCH || !b.bench)), guardFor[k], (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
+  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && (SHOW_BENCH || !b.bench)), guardFor[k], (k === 'rules' ? nearestSetup(d) : '') + (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
 
   const days = [...new Set(bots.flatMap(b => b.curve.map(p => p.day)))].sort();
   document.getElementById('legend').innerHTML = bots.map(b => `<span><i style="background:${css(COLORS[b._i])}"></i>${b.label}</span>`).join('');
