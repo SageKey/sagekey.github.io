@@ -90,6 +90,12 @@
   tr.clickable { cursor: pointer; } tr.clickable:hover td { background: var(--chip); }
   #drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 95vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: -12px 0 30px rgba(0,0,0,.25); z-index: 10; overflow-y: auto; padding: 22px 24px; transform: translateX(100%); visibility: hidden; transition: transform .18s ease, visibility 0s .18s; }
   #drawer.open { transform: none; visibility: visible; transition: transform .18s ease; }
+  .dec-bar { border-top: 1px solid var(--line); padding: 5px 0; }
+  .dec-bar > summary { cursor: pointer; font-size: 12px; color: var(--ink-2); }
+  .dec-bar[open] > summary { color: var(--ink); }
+  .dec-row { display: block; padding: 4px 0 4px 10px; font-size: 12px; border-left: 2px solid var(--line); margin: 3px 0 3px 4px; }
+  .dec-coin { display: inline-block; min-width: 46px; font-weight: 700; }
+  .dec-why { color: var(--ink-3); font-size: 11.5px; padding-left: 46px; }
   td.why { white-space: normal; max-width: 360px; color: var(--ink-2); font-size: 12.5px; }
   #drawer h2 { margin: 0 0 4px; font-size: 20px; }
   #drawer .close { position: absolute; top: 14px; right: 16px; border: 0; background: var(--chip); color: var(--ink); border-radius: 999px; width: 32px; height: 32px; font-size: 18px; cursor: pointer; }
@@ -243,6 +249,7 @@ function card(b) {
     <div class="today">${todayLine}</div>
     ${b.positions.length ? `<div class="calls">${b.positions.map(p => `<div class="clickable" data-open="${b.id}|${p.symbol}" onclick="openByKey(this.dataset.open)" title="Click for the full reasoning"><b>${p.direction === 'short' ? 'Short' : 'Long'} ${qty(p.units)} ${p.symbol.split('-')[0]}</b> from ${px(p.entry_price)} (${usd0(p.units * p.entry_price)}) · now ${px(p.mark)} <span class="${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</span> · stop ${px(p.stop)} · target ${px(p.target)} · risking $${(+p.risk_usd).toFixed(0)} · since ${fmtT(p.opened_at)}</div>`).join('')}</div>` : ''}
     ${b.analyst ? analystBlock(b) : ''}
+    ${funnelLine(b)}
     ${b.desk === 'rules' ? watchBlock(b) : ''}
     ${b.desk === 'copy' ? copyBlock(b) : ''}
   </div>`;
@@ -274,6 +281,53 @@ function copyBlock(b) {
   const stance = Object.entries(cb.book || {}).map(([s, x]) => `${s.split('-')[0]} ${x.long}L/${x.short}S`).join(', ') || 'no positions';
   return `<div class="note open"><span class="k">Following ${cb.leaders.length} OKX lead trader${cb.leaders.length > 1 ? 's' : ''} · refreshed ${fmtT(cb.refreshed_at)}</span><div class="txt">${cb.leaders.length ? cb.leaders.map(l => `${l.name} (${l.days}d, win ${Math.round(+l.win * 100)}%${l.copiers ? ', ' + l.copiers + ' copiers' : ''})`).join(' · ') : 'No leader passed this bot\'s screen this week.'}<br><span class="flat">Leaders' stance now: ${stance}. Acts when ${need === 1 ? 'any followed leader is in' : need + ' more leaders agree than disagree on a coin'}.</span></div></div>`;
 }
+
+const OUTCOMES = {
+  filled: ['took it', 'var(--up)'], added: ['added', 'var(--up)'], refused: ['refused by risk', 'var(--down)'], add_refused: ['add refused', 'var(--down)'],
+  exited: ['closed out', 'var(--ink)'], holding: ['holding', 'var(--ink-2)'], busy: ['coin already held', 'var(--ink-3)'],
+  blocked_regime: ['trend filter blocked it', 'var(--down)'], no_setup: ['no setup', 'var(--ink-3)'], warming: ['warming up', 'var(--ink-3)'],
+};
+const GATES = {
+  no_trigger: 'price never reached the trigger', regime_ema: 'price below the long-term trend line', position_exists: 'already holding that coin',
+  max_positions: 'position slots full', max_trades: 'daily trade limit', reward_risk: 'reward:risk too thin after fees', fees_exceed_reward: 'fees would eat the target',
+  halted: 'bot halted for the day', sizing: 'position would be too small', guard_heat: 'desk risk cap', guard_symbol: 'desk per-coin cap', guard_bots: 'desk bots-per-coin cap',
+};
+function funnelLine(b) {
+  const f = (DATA.decisions_24h || {})[b.id];
+  if (!f || !f.evaluated) return '';
+  const top = Object.entries(f.gates || {}).sort((a, c) => c[1] - a[1]).slice(0, 2).map(([g, n]) => `${GATES[g] || g.replace(/_/g, ' ')} (${n})`).join(', ');
+  return `<div class="today clickable" data-dec="${b.id}" onclick="openDecisions(this.dataset.dec)" title="Click for the full decision log — every coin, every bar, and what stopped it">
+    <b>Last 24h:</b> ${f.evaluated.toLocaleString()} checks over ${f.bars} bars → ${f.proposed} setup${f.proposed === 1 ? '' : 's'} → <b class="${f.filled ? 'up' : ''}">${f.filled} taken</b>${f.refused ? `, ${f.refused} refused` : ''}${top ? ` · mostly: ${top}` : ''} <span class="flat">· see the log</span></div>`;
+}
+async function openDecisions(bot) {
+  const body = document.getElementById('drawer-body');
+  body.innerHTML = `<h2>${(DATA.bots.find(b => b.id === bot) || {}).label || bot} · decision log</h2><div class="flat" style="font-size:13px">Loading…</div>`;
+  document.getElementById('drawer').classList.add('open'); document.getElementById('scrim').classList.add('open');
+  const base = (DATA._source || '').replace(/\/api\/data.*$/, '');
+  let bars = [];
+  try {
+    const r = await fetch(`${base}/api/decisions?bot=${encodeURIComponent(bot)}&bars=18`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    bars = (await r.json()).bars || [];
+  } catch (e) {
+    body.innerHTML = `<h2>Decision log</h2><div class="why">Could not load the log: ${e.message}</div>`; return;
+  }
+  const label = (DATA.bots.find(b => b.id === bot) || {}).label || bot;
+  const tree = bars.map(bar => {
+    const rows = (bar.detail || []).slice().sort((a, c) => (ORDER_OUT.indexOf(a.outcome) - ORDER_OUT.indexOf(c.outcome)) || ((a.distance_pct ?? 1e9) - (c.distance_pct ?? 1e9)));
+    const head = `${fmtT(bar.acted_at)} · ${bar.evaluated} checks → ${bar.proposed} setup${bar.proposed === 1 ? '' : 's'} → ${bar.filled} taken${bar.refused ? `, ${bar.refused} refused` : ''}`;
+    const kids = rows.map(r => {
+      const [word, colour] = OUTCOMES[r.outcome] || [r.outcome, 'var(--ink-3)'];
+      const dist = r.distance_pct != null ? ` <span class="flat">(${r.distance_pct > 0 ? '+' : ''}${r.distance_pct.toFixed(1)}%)</span>` : '';
+      return `<div class="dec-row"><span class="dec-coin">${r.symbol.split('-')[0]}</span><span style="color:${colour}">${word}</span>${dist}<div class="dec-why">${r.text || ''}${r.gate && r.outcome !== 'no_setup' ? ` — ${GATES[r.gate] || r.gate.replace(/_/g, ' ')}` : ''}</div></div>`;
+    }).join('');
+    return `<details class="dec-bar"${bar.filled || bar.refused ? ' open' : ''}><summary>${head}</summary>${kids}</details>`;
+  }).join('');
+  body.innerHTML = `<h2>${label} · decision log</h2>
+    <div class="flat" style="font-size:13px">Every coin this bot checked, every bar, and what stopped it. Newest first. Bars where it acted are expanded.</div>
+    <h4>The tree</h4>${tree || '<div class="why">No decisions recorded yet — the log starts at the next bar close.</div>'}`;
+}
+const ORDER_OUT = ['filled', 'added', 'refused', 'add_refused', 'exited', 'holding', 'blocked_regime', 'busy', 'no_setup', 'warming'];
 
 function watchRows(b) {
   const w = (DATA.desk_watch || {})[b.id];
