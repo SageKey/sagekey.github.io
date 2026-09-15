@@ -314,7 +314,7 @@ async function openDecisions(bot) {
     body.innerHTML = `<h2>Decision log</h2><div class="why">Could not load the log: ${e.message}</div>`; return;
   }
   const label = (DATA.bots.find(b => b.id === bot) || {}).label || bot;
-  const tree = bars.map(bar => {
+  const tree = bars.map((bar, i) => {
     const rows = (bar.detail || []).slice().sort((a, c) => (ORDER_OUT.indexOf(a.outcome) - ORDER_OUT.indexOf(c.outcome)) || ((a.distance_pct ?? 1e9) - (c.distance_pct ?? 1e9)));
     const head = `${fmtT(bar.acted_at)} · ${bar.evaluated} checks → ${bar.proposed} setup${bar.proposed === 1 ? '' : 's'} → ${bar.filled} taken${bar.refused ? `, ${bar.refused} refused` : ''}`;
     const kids = rows.map(r => {
@@ -322,7 +322,7 @@ async function openDecisions(bot) {
       const dist = r.distance_pct != null ? ` <span class="flat">(${r.distance_pct > 0 ? '+' : ''}${r.distance_pct.toFixed(1)}%)</span>` : '';
       return `<div class="dec-row"><span class="dec-coin">${r.symbol.split('-')[0]}</span><span style="color:${colour}">${word}</span>${dist}<div class="dec-why">${r.text || ''}${r.gate && r.outcome !== 'no_setup' ? ` — ${GATES[r.gate] || r.gate.replace(/_/g, ' ')}` : ''}</div></div>`;
     }).join('');
-    return `<details class="dec-bar"${bar.filled || bar.refused ? ' open' : ''}><summary>${head}</summary>${kids}</details>`;
+    return `<details class="dec-bar"${bar.filled || bar.refused || i === 0 ? ' open' : ''}><summary>${head}</summary>${kids}</details>`;
   }).join('');
   body.innerHTML = `<h2>${label} · decision log</h2>
     <div class="flat" style="font-size:13px">Every coin this bot checked, every bar, and what stopped it. Newest first. Bars where it acted are expanded.</div>
