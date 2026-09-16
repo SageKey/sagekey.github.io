@@ -246,6 +246,7 @@ function card(b) {
       <div class="tile"><div class="k">Max drawdown</div><div class="v">${b.max_drawdown_pct.toFixed(1)}%</div></div>
     </div>
     <div class="rules"><b>${strategyLabel(b)}</b> · daily stop −${b.config.daily_stop_pct}% · <span title="${b.config.symbols.join(', ')}">${coinList(b.config.symbols)}</span>${b.halted_reason ? ' · <b style="color:var(--down)">HALTED today</b>' : ''}</div>
+    ${b.disabled_reason ? `<div class="today" style="border-left:3px solid var(--down);padding-left:8px"><b style="color:var(--down)">STOPPED — no new trades.</b> ${b.disabled_reason}</div>` : ''}
     <div class="today">${todayLine}</div>
     ${b.positions.length ? `<div class="calls">${b.positions.map(p => `<div class="clickable" data-open="${b.id}|${p.symbol}" onclick="openByKey(this.dataset.open)" title="Click for the full reasoning"><b>${p.direction === 'short' ? 'Short' : 'Long'} ${qty(p.units)} ${p.symbol.split('-')[0]}</b> from ${px(p.entry_price)} (${usd0(p.units * p.entry_price)}) · now ${px(p.mark)} <span class="${cls(p.unrealized_usd)}">${usd(p.unrealized_usd)}</span> · stop ${px(p.stop)} · target ${px(p.target)} · risking $${(+p.risk_usd).toFixed(0)} · since ${fmtT(p.opened_at)}</div>`).join('')}</div>` : ''}
     ${b.analyst ? analystBlock(b) : ''}
