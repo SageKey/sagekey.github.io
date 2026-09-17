@@ -32,6 +32,7 @@
   .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: .04em; background: #fff1e8; color: #9a3d12; border: 1px solid #f3c9b3; }
   .beat { margin-left: auto; color: var(--ink-3); font-size: 13px; }
   .beat.stale { color: var(--down); font-weight: 600; }
+  .desk-alarm { background: #b3261e; color: #fff; padding: 9px 12px; border-radius: 6px; font-weight: 600; font-size: 12.5px; margin: 8px 0 2px; }
   .intro { padding: 8px 28px 0; color: var(--ink-2); max-width: 980px; }
   nav.desks { display: flex; gap: 8px; padding: 16px 28px 12px; flex-wrap: wrap; position: sticky; top: 0; background: var(--bg); z-index: 2; }
   nav.desks button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 14px; border-radius: 999px; font: inherit; font-size: 13.5px; cursor: pointer; }
@@ -356,6 +357,14 @@ function nearestSetup(d) {
   return best ? `<span title="How far the closest coin is from any live rule bot's entry trigger">Nearest setup <b>${best.coin} ${best.dist.toFixed(1)}%</b> from ${best.bot}'s trigger</span>` : '';
 }
 
+function analystAlarm(key) {
+  if (key !== 'sentiment') return '';
+  const h = DATA.analyst_health;
+  if (!h || h.ok !== false) return '';
+  const since = h.failing_since ? ` since ${fmtT(h.failing_since)}` : '';
+  return `<div class="desk-alarm">SENTIMENT DESK DOWN${since} — the analysts cannot run: ${h.detail}. No new analyst trades until this is fixed. Open positions still run to their stops; the rule and copy desks are unaffected.</div>`;
+}
+
 function deskSection(key, bots, guard, extra) {
   if (!bots.length) return '';
   const eq = bots.reduce((a, b) => a + b.equity, 0), cap = bots.reduce((a, b) => a + b.capital, 0);
@@ -363,6 +372,7 @@ function deskSection(key, bots, guard, extra) {
   const holding = Object.entries(g.by_symbol || {}).map(([s, x]) => `${s.split('-')[0]} ${x.pct.toFixed(0)}%`).join(', ');
   return `<section>
     <div class="desk-head"><h2>${DESKS[key].title}</h2><span class="what">${DESKS[key].what}</span></div>
+    ${analystAlarm(key)}
     <div class="desk-sum"><span>Equity <b>${usd0(eq)}</b> of ${usd0(cap)}${bots.some(b => b.bench) ? ' (incl. bench)' : ''}</span><span>P&amp;L <b class="${cls(eq - cap)}">${usd(eq - cap)}</b></span>${g.max_heat_pct ? `<span>Open risk <b>${(g.open_heat_pct || 0).toFixed(1)}%</b> of capital, cap ${g.max_heat_pct}%</span><span>Holding <b>${holding || 'nothing'}</b></span>` : ''}${extra || ''}</div>
     <div class="bots">${bots.map(card).join('')}</div>
   </section>`;
@@ -438,7 +448,7 @@ function render() {
     : '<div class="empty">No closed trades yet.</div>';
 
   const guardFor = { rules: d.desk, copy: d.desk_copy, sentiment: d.desk_sentiment };
-  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && (SHOW_BENCH || !b.bench)), guardFor[k], (k === 'rules' ? nearestSetup(d) : '') + (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
+  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && (SHOW_BENCH || !b.bench)), guardFor[k], (k === 'rules' ? nearestSetup(d) : '') + (k === 'copy' && d.shadow_scorecard && d.shadow_scorecard.fills_seen ? `<span title="Sentiment as a validator, judged forward: Mira, Atlas and Nick score each copy-desk fill after it happens. Nothing here changes a trade.">Shadow scorer <b>${d.shadow_scorecard.scores}</b> scores on ${d.shadow_scorecard.fills_seen} fills</span>` : '') + (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
 
   const days = [...new Set(bots.flatMap(b => b.curve.map(p => p.day)))].sort();
   document.getElementById('legend').innerHTML = bots.map(b => `<span><i style="background:${css(COLORS[b._i])}"></i>${b.label}</span>`).join('');
@@ -498,11 +508,12 @@ function openDrawer(key) {
   const params = w.params ? Object.entries(w.params).map(([k, v]) => `${k}=${v}`).join(' · ') : '';
   const leaders = w.leaders && Object.keys(w.leaders).length ? `<h4>Leaders in this coin at the time</h4><div class="why">${Object.entries(w.leaders).map(([c, side]) => `${c}: ${side}`).join('\n')}</div>` : '';
   const analyst = ex.analyst_note ? `<h4>What the analyst was seeing (${fmtT(ex.analyst_note.at)})</h4><div class="why">${ex.analyst_note.text}</div>` : '';
+  const scores = (ex.scores && ex.scores.length) ? `<h4>What the analysts thought (shadow — did not affect the trade)</h4><div class="why">${ex.scores.map(s => `${s.scorer.charAt(0).toUpperCase() + s.scorer.slice(1)}: <b>${s.would_take ? 'would take it' : 'would pass'}</b> · crowd ${s.crowd || '?'} · ${s.catalyst ? 'catalyst: ' + (s.catalyst_text || 'yes') : 'no specific catalyst'}\n   ${s.reason || ''}`).join('\n')}</div>` : '';
   const thesis = w.thesis ? `<h4>The call</h4><div class="why">${w.conviction ? w.conviction + ' conviction · ' : ''}${w.thesis}${w.sources && w.sources.length ? '\n\nSources cited: ' + w.sources.join('; ') : ''}</div>` : '';
   document.getElementById('drawer-body').innerHTML = `<h2>${r.bot} · ${r.direction === 'short' ? 'short' : 'long'} ${coin}</h2><div class="flat" style="font-size:13px">${DESKS[r.desk].title} · ${isOpen ? 'open' : 'closed'} · decided ${fmtT(ex.decided_at || r.opened_at || r.entry_at)}</div>
     <h4>The trade</h4><div class="facts">${facts.map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join('')}</div>
     <h4>Why the bot did it</h4><div class="why">${w.text || ex.reason || 'No reasoning was recorded for this fill (it predates the reasoning log).'}${ex.reason && w.text && ex.reason !== w.text ? '\n\nRule fired: ' + ex.reason : ''}</div>
-    ${thesis}${analyst}${leaders}
+    ${thesis}${analyst}${leaders}${scores}
     ${kv ? `<h4>What it was looking at</h4><div class="kv">${kv}</div>` : ''}
     ${params ? `<h4>Rule settings</h4><div class="kv"><span>${params}</span></div>` : ''}`;
   document.getElementById('drawer').classList.add('open'); document.getElementById('scrim').classList.add('open');
