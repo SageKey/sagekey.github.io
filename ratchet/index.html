@@ -34,7 +34,7 @@
   .beat.stale { color: var(--down); font-weight: 600; }
   /* min-width:0 matters: as a grid/flex child the block otherwise grows to its table's intrinsic width
      (2,460px on 2026-09-18) and the section clips it, hiding every bench card past the screen edge. */
-  .bench-block { border-top: 1px dashed var(--line); margin-top: 16px; padding-top: 4px; min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; }
+  .bench-block { min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; }
   .bench-block .scroll { max-width: 100%; overflow-x: auto; }
   .bench-block td, .bench-block th { white-space: normal; }
   .bench-block td:last-child { min-width: 260px; max-width: 520px; }
@@ -45,6 +45,7 @@
   nav.desks button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   main { padding: 4px 28px 40px; display: grid; gap: 26px; }
   #desks { display: grid; gap: 26px; }
+  #desks > section { min-width: 0; max-width: 100%; }
   .desk-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
   .desk-head h2 { font-size: 17px; margin: 0; }
   .desk-head .what { color: var(--ink-2); font-size: 14px; }
@@ -204,8 +205,7 @@ const qty = v => (+v).toLocaleString(undefined, { maximumFractionDigits: +v < 10
 let DATA = null, FILTER = 'all', CHART = null, DAILY_CHARTS = [];
 // Brett (2026-09-18): "I would like to see all bots so that we can assess which are performing well."
 // Bench books are shown by default; the choice is remembered per browser.
-let SHOW_BENCH = true; try { SHOW_BENCH = localStorage.getItem('ratchet.showBench') !== 'no'; } catch (e) {}
-function toggleBench() { SHOW_BENCH = !SHOW_BENCH; try { localStorage.setItem('ratchet.showBench', SHOW_BENCH ? 'yes' : 'no'); } catch (e) {} render(); }
+// The bench has its own tab (Brett, 2026-09-18: "maybe a tab at the top for the bench"). Desk tabs show live seats only.
 
 async function load() {
   const q = new URLSearchParams(location.search);
@@ -392,23 +392,29 @@ function reviewStatus(b, deskBots) {
   }
   return r.score < 0 ? { text: 'seat at risk — negative with enough evidence; the best positive bench bot replaces it', tone: 'neg' } : { text: 'seat safe — positive with enough evidence', tone: 'pos' };
 }
-function benchBlock(key, bots) {
-  const bench = bots.filter(b => b.bench);
+function benchSection(d) {
+  const bench = d.bots.filter(b => b.bench);
   if (!bench.length) return '';
-  const bar = (bots.find(b => (b.review || {}).bar) || {}).review?.bar || { min_trades: 20, min_days: 60, window_days: 90 };
-  const rows = [...bots].sort((a, c) => ((c.review || {}).score || 0) - ((a.review || {}).score || 0)).map(b => {
-    const r = b.review || {}, st = reviewStatus(b, bots);
+  const bar = (d.bots.find(b => (b.review || {}).bar) || {}).review?.bar || { min_trades: 20, min_days: 60, window_days: 90 };
+  // standings: every bot on every desk that has a bench, so a candidate is read against the seats it could take
+  const desksWithBench = [...new Set(bench.map(b => b.desk))];
+  const field = d.bots.filter(b => desksWithBench.includes(b.desk));
+  const rows = [...field].sort((a, c) => (ORDER.indexOf(a.desk) - ORDER.indexOf(c.desk)) || (((c.review || {}).score || 0) - ((a.review || {}).score || 0))).map(b => {
+    const deskBots = d.bots.filter(x => x.desk === b.desk);
+    const r = b.review || {}, st = reviewStatus(b, deskBots);
     const tone = { pos: 'var(--up)', neg: 'var(--down)', flat: 'var(--ink-3)' }[st.tone];
-    return `<tr><td><span class="dot" style="background:${css(COLORS[b._i])}"></span><b>${b.label}</b></td><td>${b.bench ? '<span class="tag">bench</span>' : 'live seat'}</td>
+    return `<tr><td><span class="dot" style="background:${css(COLORS[b._i])}"></span><b>${b.label}</b></td><td>${DESKS[b.desk].title.replace(' desk', '')} · ${b.bench ? '<span class="tag">bench</span>' : 'live seat'}</td>
       <td class="num ${cls(r.return_pct || 0)}">${r.bar ? pct(r.return_pct) : '—'}</td><td class="num">${r.bar ? r.max_dd_pct.toFixed(1) + '%' : '—'}</td><td class="num"><b>${r.bar ? (r.score >= 0 ? '+' : '') + r.score.toFixed(2) : '—'}</b></td>
       <td class="num">${r.trades ?? 0} / ${bar.min_trades}</td><td class="num">${r.days ?? 0} / ${bar.min_days}</td><td style="color:${tone}">${st.text}</td></tr>`;
   }).join('');
-  return `<div class="bench-block">
-    <div class="desk-head" style="margin-top:18px"><h2 style="font-size:16px">Bench — ${bench.length} shadow bot${bench.length === 1 ? '' : 's'} competing for a seat</h2>
+  return `<section class="bench-block">
+    <div class="desk-head"><h2>Bench — ${bench.length} shadow bot${bench.length === 1 ? '' : 's'} competing for a seat</h2>
       <span class="what">Same rules, same prices, separate paper money. Every Sunday the review scores every bot on ${bar.window_days}-day return over max drawdown. A bench bot with ${bar.min_trades}+ closed trades, ${bar.min_days}+ days and a positive score replaces a live bot that has the same evidence and a negative score. One swap per desk per week.</span></div>
-    <div class="scroll"><table><tr><th>Bot</th><th>Role</th><th class="num">${bar.window_days}-day return</th><th class="num">Max drawdown</th><th class="num">Score</th><th class="num">Closed trades</th><th class="num">Days</th><th>Where it stands</th></tr>${rows}</table></div>
-    <div class="bots" style="margin-top:12px">${bench.map(card).join('')}</div>
-  </div>`;
+    <h3 style="margin:14px 0 6px">Standings — every seat and every candidate, as the Sunday review sees them</h3>
+    <div class="scroll"><table><tr><th>Bot</th><th>Desk · role</th><th class="num">${bar.window_days}-day return</th><th class="num">Max drawdown</th><th class="num">Score</th><th class="num">Closed trades</th><th class="num">Days</th><th>Where it stands</th></tr>${rows}</table></div>
+    <h3 style="margin:18px 0 6px">The bench bots</h3>
+    <div class="bots">${bench.map(card).join('')}</div>
+  </section>`;
 }
 
 function deskSection(key, bots, guard, extra) {
@@ -420,8 +426,7 @@ function deskSection(key, bots, guard, extra) {
     <div class="desk-head"><h2>${DESKS[key].title}</h2><span class="what">${DESKS[key].what}</span></div>
     ${analystAlarm(key)}
     <div class="desk-sum"><span>Equity <b>${usd0(eq)}</b> of ${usd0(cap)}${bots.some(b => b.bench) ? ' (incl. bench)' : ''}</span><span>P&amp;L <b class="${cls(eq - cap)}">${usd(eq - cap)}</b></span>${g.max_heat_pct ? `<span>Open risk <b>${(g.open_heat_pct || 0).toFixed(1)}%</b> of capital, cap ${g.max_heat_pct}%</span><span>Holding <b>${holding || 'nothing'}</b></span>` : ''}${extra || ''}</div>
-    <div class="bots">${bots.filter(b => !b.bench).map(card).join('')}</div>
-    ${benchBlock(key, bots)}
+    <div class="bots">${bots.map(card).join('')}</div>
   </section>`;
 }
 
@@ -458,27 +463,28 @@ function render() {
   document.getElementById('timing').innerHTML = `<b>How often things change:</b> the bots decide once an hour, right after each hourly candle closes (the 4-hour and daily bots on the close of their own candle), so entries, exits and realized P&amp;L move on the hour. Open positions are marked to the live Coinbase price each time this page loads; the page reloads itself every 5 minutes. Data as of <b>${fmtT(d.generated_at)}</b>.`;
   d.bots.forEach((b, i) => { b._i = i; });
   const desksPresent = ORDER.filter(k => d.bots.some(b => b.desk === k));
-  document.getElementById('sub').textContent = `Paper crypto desk · ${d.bots.length} bots across ${desksPresent.length} desks · Coinbase prices`;
-  const visible = b => (FILTER === 'all' || b.desk === FILTER) && (SHOW_BENCH || !b.bench);
-  const bots = d.bots.filter(visible);
   const benchCount = d.bots.filter(b => b.bench).length;
+  document.getElementById('sub').textContent = `Paper crypto desk · ${d.bots.length - benchCount} live bots across ${desksPresent.length} desks${benchCount ? ` + ${benchCount} on the bench` : ''} · Coinbase prices`;
+  const visible = b => FILTER === 'bench' ? b.bench : (!b.bench && (FILTER === 'all' || b.desk === FILTER));
+  const bots = d.bots.filter(visible);
 
   document.getElementById('desknav').innerHTML = [['all', 'All desks'], ...desksPresent.map(k => [k, DESKS[k].title])].map(([k, t]) => `<button class="${FILTER === k ? 'on' : ''}" onclick="setFilter('${k}')">${t}</button>`).join('') +
-    (benchCount ? `<button class="${SHOW_BENCH ? 'on' : ''}" style="margin-left:auto" onclick="toggleBench()" title="Shadow bots that run a paper book and can replace a live bot at the weekly review">${SHOW_BENCH ? 'Hide' : 'Show'} bench (${benchCount})</button>` : '');
+    (benchCount ? `<button class="${FILTER === 'bench' ? 'on' : ''}" style="margin-left:auto" onclick="setFilter('bench')" title="Shadow bots that run a paper book and can replace a live bot at the weekly review">Bench (${benchCount})</button>` : '');
 
   // ---- SCOREBOARD: are we winning or losing, what is open, what closed
-  const live = bots.filter(b => !b.bench);
+  const live = FILTER === 'bench' ? bots : bots.filter(b => !b.bench);
   const totCap = live.reduce((a, b) => a + b.capital, 0), totEq = live.reduce((a, b) => a + b.equity, 0), totNet = totEq - totCap;
   const totRealized = live.reduce((a, b) => a + b.realized_usd, 0), totUnreal = live.reduce((a, b) => a + b.unrealized_usd, 0);
   const openN = live.reduce((a, b) => a + b.positions.length, 0), closedN = live.reduce((a, b) => a + b.stats.trades, 0);
   const winsN = live.reduce((a, b) => a + (b.stats.wins || 0), 0), lossN = closedN - winsN;
   const up = live.filter(b => b.pnl_total_usd > 0.005).length, down = live.filter(b => b.pnl_total_usd < -0.005).length;
   const verdict = closedN === 0 && openN === 0 ? 'No trades yet — every bot is waiting for a setup that passes its rules.' : `${up} bot${up === 1 ? '' : 's'} up, ${down} down, ${live.length - up - down} flat · ${openN} open trade${openN === 1 ? '' : 's'} · ${closedN} closed (${winsN} won, ${lossN} lost)`;
-  const bench = bots.filter(b => b.bench);
-  const benchCap = bench.reduce((a, b) => a + b.capital, 0), benchNet = bench.reduce((a, b) => a + b.equity - b.capital, 0);
-  const benchLine = bench.length ? `<div class="score-line">Bench — ${bench.length} shadow book${bench.length === 1 ? '' : 's'} competing for a seat, <b>not counted above</b>: <b class="${cls(benchNet)}">${usd(benchNet)}</b> on ${usd0(benchCap)} of separate paper money</div>` : '';
-  const ranked = [...live, ...bench].sort((a, b) => b.pnl_total_pct - a.pnl_total_pct);
-  document.getElementById('scoreboard').innerHTML = `<h3>Scoreboard — ${FILTER === 'all' ? 'all desks' : DESKS[FILTER].title} · paper money · since start</h3>
+  const allBench = d.bots.filter(b => b.bench);
+  const benchCap = allBench.reduce((a, b) => a + b.capital, 0), benchNet = allBench.reduce((a, b) => a + b.equity - b.capital, 0);
+  const benchLine = FILTER === 'bench' ? `<div class="score-line">This is the bench's own paper money — <b>separate from, and not counted in, the desk's ${usd0(d.bots.filter(b => !b.bench).reduce((a, b) => a + b.capital, 0))}</b>.</div>`
+    : allBench.length ? `<div class="score-line">Bench — ${allBench.length} shadow book${allBench.length === 1 ? '' : 's'} competing for a seat, <b>not counted above</b>: <b class="${cls(benchNet)}">${usd(benchNet)}</b> on ${usd0(benchCap)} of separate paper money · <a href="#" onclick="setFilter('bench');return false">open the Bench tab</a></div>` : '';
+  const ranked = [...live].sort((a, b) => b.pnl_total_pct - a.pnl_total_pct);
+  document.getElementById('scoreboard').innerHTML = `<h3>Scoreboard — ${FILTER === 'all' ? 'all desks' : FILTER === 'bench' ? 'the bench' : DESKS[FILTER].title} · paper money · since start</h3>
     <div class="score-hero ${cls(totNet)}">${usd(totNet)} <span style="font-size:18px;font-weight:500;color:var(--ink-2)">${pct(totCap ? totNet / totCap * 100 : 0)} on ${usd0(totCap)}</span></div>
     <div class="score-line">${verdict}</div>${benchLine}
     <div class="score-line">Realized (closed trades): <b class="${cls(totRealized)}">${usd(totRealized)}</b> · Unrealized (open trades at current price): <b class="${cls(totUnreal)}">${usd(totUnreal)}</b> · both are net of fees</div>
@@ -499,7 +505,7 @@ function render() {
     : '<div class="empty">No closed trades yet.</div>';
 
   const guardFor = { rules: d.desk, copy: d.desk_copy, sentiment: d.desk_sentiment };
-  document.getElementById('desks').innerHTML = desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && (SHOW_BENCH || !b.bench)), guardFor[k], (k === 'rules' ? nearestSetup(d) : '') + (k === 'copy' && d.shadow_scorecard && d.shadow_scorecard.fills_seen ? `<span title="Sentiment as a validator, judged forward: Mira, Atlas and Nick score each copy-desk fill after it happens. Nothing here changes a trade.">Shadow scorer <b>${d.shadow_scorecard.scores}</b> scores on ${d.shadow_scorecard.fills_seen} fills</span>` : '') + (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
+  document.getElementById('desks').innerHTML = FILTER === 'bench' ? benchSection(d) : desksPresent.filter(k => FILTER === 'all' || FILTER === k).map(k => deskSection(k, d.bots.filter(b => b.desk === k && !b.bench), guardFor[k], (k === 'rules' ? nearestSetup(d) : '') + (k === 'copy' && d.shadow_scorecard && d.shadow_scorecard.fills_seen ? `<span title="Sentiment as a validator, judged forward: Mira, Atlas and Nick score each copy-desk fill after it happens. Nothing here changes a trade.">Shadow scorer <b>${d.shadow_scorecard.scores}</b> scores on ${d.shadow_scorecard.fills_seen} fills</span>` : '') + (k === 'sentiment' && d.model_spend_today ? `<span>Model spend today <b>$${d.model_spend_today.usd.toFixed(2)}</b> (${d.model_spend_today.calls} sessions)</span>` : '') + ((d.reviews || {})[k] ? `<span title="Weekly selection review: a live bot that is negative after 20+ trades and 60+ days loses its seat to a positive bench bot">Last review ${fmtT(d.reviews[k].at)}: <b>${d.reviews[k].summary}</b></span>` : `<span title="Weekly selection review runs Sundays; needs 20+ trades and 60+ days of evidence before it can act">Selection review: Sundays, first eligible after 60 days</span>`))).join('');
 
   const days = [...new Set(bots.flatMap(b => b.curve.map(p => p.day)))].sort();
   document.getElementById('legend').innerHTML = bots.map(b => `<span><i style="background:${css(COLORS[b._i])}"></i>${b.label}</span>`).join('');
