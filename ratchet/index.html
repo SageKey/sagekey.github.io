@@ -32,7 +32,12 @@
   .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: .04em; background: #fff1e8; color: #9a3d12; border: 1px solid #f3c9b3; }
   .beat { margin-left: auto; color: var(--ink-3); font-size: 13px; }
   .beat.stale { color: var(--down); font-weight: 600; }
-  .bench-block { border-top: 1px dashed var(--line); margin-top: 16px; padding-top: 4px; }
+  /* min-width:0 matters: as a grid/flex child the block otherwise grows to its table's intrinsic width
+     (2,460px on 2026-09-18) and the section clips it, hiding every bench card past the screen edge. */
+  .bench-block { border-top: 1px dashed var(--line); margin-top: 16px; padding-top: 4px; min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; }
+  .bench-block .scroll { max-width: 100%; overflow-x: auto; }
+  .bench-block td, .bench-block th { white-space: normal; }
+  .bench-block td:last-child { min-width: 260px; max-width: 520px; }
   .desk-alarm { background: #b3261e; color: #fff; padding: 9px 12px; border-radius: 6px; font-weight: 600; font-size: 12.5px; margin: 8px 0 2px; }
   .intro { padding: 8px 28px 0; color: var(--ink-2); max-width: 980px; }
   nav.desks { display: flex; gap: 8px; padding: 16px 28px 12px; flex-wrap: wrap; position: sticky; top: 0; background: var(--bg); z-index: 2; }
