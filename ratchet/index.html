@@ -32,6 +32,7 @@
   .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: .04em; background: #fff1e8; color: #9a3d12; border: 1px solid #f3c9b3; }
   .beat { margin-left: auto; color: var(--ink-3); font-size: 13px; }
   .beat.stale { color: var(--down); font-weight: 600; }
+  .bench-block { border-top: 1px dashed var(--line); margin-top: 16px; padding-top: 4px; }
   .desk-alarm { background: #b3261e; color: #fff; padding: 9px 12px; border-radius: 6px; font-weight: 600; font-size: 12.5px; margin: 8px 0 2px; }
   .intro { padding: 8px 28px 0; color: var(--ink-2); max-width: 980px; }
   nav.desks { display: flex; gap: 8px; padding: 16px 28px 12px; flex-wrap: wrap; position: sticky; top: 0; background: var(--bg); z-index: 2; }
@@ -369,6 +370,42 @@ function analystAlarm(key) {
   return `<div class="desk-alarm">SENTIMENT DESK DOWN${since} — the analysts cannot run: ${h.detail}. No new analyst trades until this is fixed. Open positions still run to their stops; the rule and copy desks are unaffected.</div>`;
 }
 
+function reviewStatus(b, deskBots) {
+  const r = b.review || {};
+  if (!r.bar) return { text: 'no review data yet', tone: 'flat' };
+  if (!r.eligible) {
+    const parts = [];
+    if (r.needs_trades) parts.push(`${r.needs_trades} more closed trade${r.needs_trades === 1 ? '' : 's'}`);
+    if (r.needs_days) parts.push(`${r.needs_days} more day${r.needs_days === 1 ? '' : 's'}`);
+    return { text: `unproven — needs ${parts.join(' and ')} before the review can act`, tone: 'flat' };
+  }
+  const liveAtRisk = deskBots.filter(x => !x.bench && (x.review || {}).eligible && (x.review || {}).score < 0).sort((a, c) => a.review.score - c.review.score);
+  if (b.bench) {
+    if (r.score <= 0) return { text: 'eligible, but not positive — cannot take a seat', tone: 'neg' };
+    return liveAtRisk.length ? { text: `eligible and positive — would take ${liveAtRisk[0].label}'s seat on Sunday if nothing changes`, tone: 'pos' }
+                             : { text: 'eligible and positive — waiting for a live bot to fall below zero', tone: 'pos' };
+  }
+  return r.score < 0 ? { text: 'seat at risk — negative with enough evidence; the best positive bench bot replaces it', tone: 'neg' } : { text: 'seat safe — positive with enough evidence', tone: 'pos' };
+}
+function benchBlock(key, bots) {
+  const bench = bots.filter(b => b.bench);
+  if (!bench.length) return '';
+  const bar = (bots.find(b => (b.review || {}).bar) || {}).review?.bar || { min_trades: 20, min_days: 60, window_days: 90 };
+  const rows = [...bots].sort((a, c) => ((c.review || {}).score || 0) - ((a.review || {}).score || 0)).map(b => {
+    const r = b.review || {}, st = reviewStatus(b, bots);
+    const tone = { pos: 'var(--up)', neg: 'var(--down)', flat: 'var(--ink-3)' }[st.tone];
+    return `<tr><td><span class="dot" style="background:${css(COLORS[b._i])}"></span><b>${b.label}</b></td><td>${b.bench ? '<span class="tag">bench</span>' : 'live seat'}</td>
+      <td class="num ${cls(r.return_pct || 0)}">${r.bar ? pct(r.return_pct) : '—'}</td><td class="num">${r.bar ? r.max_dd_pct.toFixed(1) + '%' : '—'}</td><td class="num"><b>${r.bar ? (r.score >= 0 ? '+' : '') + r.score.toFixed(2) : '—'}</b></td>
+      <td class="num">${r.trades ?? 0} / ${bar.min_trades}</td><td class="num">${r.days ?? 0} / ${bar.min_days}</td><td style="color:${tone}">${st.text}</td></tr>`;
+  }).join('');
+  return `<div class="bench-block">
+    <div class="desk-head" style="margin-top:18px"><h2 style="font-size:16px">Bench — ${bench.length} shadow bot${bench.length === 1 ? '' : 's'} competing for a seat</h2>
+      <span class="what">Same rules, same prices, separate paper money. Every Sunday the review scores every bot on ${bar.window_days}-day return over max drawdown. A bench bot with ${bar.min_trades}+ closed trades, ${bar.min_days}+ days and a positive score replaces a live bot that has the same evidence and a negative score. One swap per desk per week.</span></div>
+    <div class="scroll"><table><tr><th>Bot</th><th>Role</th><th class="num">${bar.window_days}-day return</th><th class="num">Max drawdown</th><th class="num">Score</th><th class="num">Closed trades</th><th class="num">Days</th><th>Where it stands</th></tr>${rows}</table></div>
+    <div class="bots" style="margin-top:12px">${bench.map(card).join('')}</div>
+  </div>`;
+}
+
 function deskSection(key, bots, guard, extra) {
   if (!bots.length) return '';
   const eq = bots.reduce((a, b) => a + b.equity, 0), cap = bots.reduce((a, b) => a + b.capital, 0);
@@ -378,7 +415,8 @@ function deskSection(key, bots, guard, extra) {
     <div class="desk-head"><h2>${DESKS[key].title}</h2><span class="what">${DESKS[key].what}</span></div>
     ${analystAlarm(key)}
     <div class="desk-sum"><span>Equity <b>${usd0(eq)}</b> of ${usd0(cap)}${bots.some(b => b.bench) ? ' (incl. bench)' : ''}</span><span>P&amp;L <b class="${cls(eq - cap)}">${usd(eq - cap)}</b></span>${g.max_heat_pct ? `<span>Open risk <b>${(g.open_heat_pct || 0).toFixed(1)}%</b> of capital, cap ${g.max_heat_pct}%</span><span>Holding <b>${holding || 'nothing'}</b></span>` : ''}${extra || ''}</div>
-    <div class="bots">${bots.map(card).join('')}</div>
+    <div class="bots">${bots.filter(b => !b.bench).map(card).join('')}</div>
+    ${benchBlock(key, bots)}
   </section>`;
 }
 
