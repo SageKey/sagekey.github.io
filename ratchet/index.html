@@ -223,12 +223,22 @@ function coinList(syms) {
   const short = syms.map(s => s.split('-')[0]);
   return short.length <= 6 ? short.join(' ') : `${short.slice(0, 5).join(' ')} +${short.length - 5} more`;
 }
+// A window of N bars, said in time a person can picture: "60-hour" under two days, else days.
+function spanText(bars, barHours) {
+  const h = bars * barHours;
+  if (h < 48) return `${h}-hour`;
+  const d = h / 24;
+  return `${Number.isInteger(d) ? d : d.toFixed(1).replace(/\.0$/, '')}-day`;
+}
 function strategyLabel(b) {
+  const barHours = (b.config.bar_seconds || 3600) * (b.config.bar_factor || 1) / 3600;
   return b.config.strategies.map(x => {
     const p = x.params || {};
-    if (x.family === 'donchian_trend') return `Donchian ${p.entry_n}/${p.exit_n}${p.pyramid_max ? ' +adds' : ''}`;
-    if (x.family === 'squeeze_breakout') return 'Squeeze breakout';
-    if (x.family === 'copy_leaders') return 'Copy leaders';
+    // Brett (2026-09-18): "can we rename the donchian ones? idk what that means" — so no surnames, just the rule.
+    if (x.family === 'donchian_trend') return `Buys a new ${spanText(p.entry_n, barHours)} high, sells on a new ${spanText(p.exit_n, barHours)} low${p.pyramid_max ? ', adds on the way up' : ''}`;
+    if (x.family === 'squeeze_breakout') return 'Buys a breakout from a tight range on heavy volume';
+    if (x.family === 'volume_jump') return `Buys a bar up ${p.jump_pct}%+ on ${p.vol_mult}× normal volume${p.confirm_high_n ? ` at a new ${spanText(p.confirm_high_n, barHours)} high` : ''}`;
+    if (x.family === 'copy_leaders') return 'Copies OKX lead traders';
     if (x.family === 'sentiment') return 'Analyst calls';
     return x.family.replace('_', ' ');
   }).join(' · ');
