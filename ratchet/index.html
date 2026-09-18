@@ -345,14 +345,14 @@ function watchBlock(b) {
   const r = watchRows(b);
   if (!r || !r.rows.length) return '';
   const bar = r.w.bar_hours >= 24 ? 'daily' : `${r.w.bar_hours}-hour`;
-  return `<div class="note open"><span class="k">Waiting for · checked at every ${bar} close · last close ${fmtT(new Date(new Date(r.w.as_of).getTime() + r.w.bar_hours * 3600000).toISOString())}</span><div class="txt">${r.rows.map(x => `<div><b>${x.coin}</b> ${x.dist != null ? `<b style="color:${x.blocked ? 'var(--down)' : x.dist <= 2 ? 'var(--up)' : 'var(--ink-3)'}">${x.dist.toFixed(1)}% away</b> · ` : ''}<span class="flat">${x.setups.map(t => t.text).join(' · ')}</span></div>`).join('')}</div></div>`;
+  return `<div class="note open"><span class="k">Waiting for · checked at every ${bar} close · last close ${fmtT(new Date(new Date(r.w.as_of).getTime() + r.w.bar_hours * 3600000).toISOString())}</span><div class="txt">${r.rows.map(x => `<div><b>${x.coin}</b> ${x.dist != null ? `<b style="color:${x.blocked ? 'var(--down)' : x.dist < 0 ? '#e0a000' : x.dist <= 2 ? 'var(--up)' : 'var(--ink-3)'}">${x.dist < 0 ? 'trigger crossed — see the log for what stopped it' : x.dist.toFixed(1) + '% away'}</b> · ` : ''}<span class="flat">${x.setups.map(t => t.text).join(' · ')}</span></div>`).join('')}</div></div>`;
 }
 function nearestSetup(d) {
   let best = null;
   for (const b of d.bots.filter(b => b.desk === 'rules' && !b.bench)) {
     const r = watchRows(b);
     if (!r) continue;
-    for (const x of r.rows) if (x.dist != null && !x.blocked && (!best || x.dist < best.dist)) best = { ...x, bot: b.label };
+    for (const x of r.rows) if (x.dist != null && x.dist >= 0 && !x.blocked && (!best || x.dist < best.dist)) best = { ...x, bot: b.label };
   }
   return best ? `<span title="How far the closest coin is from any live rule bot's entry trigger">Nearest setup <b>${best.coin} ${best.dist.toFixed(1)}%</b> from ${best.bot}'s trigger</span>` : '';
 }
