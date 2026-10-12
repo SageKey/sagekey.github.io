@@ -497,7 +497,7 @@ function render() {
   document.getElementById('timing').innerHTML = `<b>Rule one: don't lose money.</b> Every live bot risks 0.5% of its book per trade, moves its stop to breakeven once a trade is 1R ahead, and stops opening trades 10% below its own high-water mark. If the live desk is down 3% in a month, every bot trades at half size until the month ends. Settings are tightened freely and loosened only on evidence.<br>
 <b>How often things change:</b> the bots decide once an hour, right after each hourly candle closes (the 4-hour and daily bots on the close of their own candle), so entries, exits and realized P&amp;L move on the hour. Open positions are marked to the live Coinbase price each time this page loads; the page reloads itself every 5 minutes. Data as of <b>${fmtT(d.generated_at)}</b>.`;
   d.bots.forEach((b, i) => { b._i = i; });
-  const desksPresent = ORDER.filter(k => d.bots.some(b => b.desk === k));
+  const desksPresent = ORDER.filter(k => d.bots.some(b => b.desk === k && !b.bench));
   const benchCount = d.bots.filter(b => b.bench).length;
   document.getElementById('sub').textContent = `Paper crypto desk · ${d.bots.length - benchCount} live bots across ${desksPresent.length} desks${benchCount ? ` + ${benchCount} on the bench` : ''} · Coinbase prices`;
   const visible = b => FILTER === 'bench' ? b.bench : (!b.bench && (FILTER === 'all' || b.desk === FILTER));
