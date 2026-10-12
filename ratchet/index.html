@@ -82,6 +82,9 @@
   .card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
   .two { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
   @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+  .heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; margin: 4px 0 8px; }
+  .hero-block { min-width: 0; }
+  @media (max-width: 700px) { .heroes { grid-template-columns: 1fr; gap: 12px; } }
   .score-kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
   #scoreboard, .card, section { min-width: 0; max-width: 100%; }
   canvas { max-width: 100%; }
@@ -518,9 +521,17 @@ function render() {
   const bankedAll = FILTER === 'all' && d.banked ? d.banked.all_time_usd : totRealized;
   const ranked = [...live].sort((a, b) => (b.realized_usd / b.capital) - (a.realized_usd / a.capital));   // ranked by what is BANKED
   document.getElementById('scoreboard').innerHTML = `<h3>Scoreboard — ${FILTER === 'all' ? 'all desks' : FILTER === 'bench' ? 'the bench' : DESKS[FILTER].title} · paper money · since start</h3>
-    <div class="score-kicker">BANKED SINCE START · closed trades, net of fees · every book that has ever held a live seat, including ones since benched or retired</div>
-    <div class="score-hero ${cls(bankedAll)}">${usd(bankedAll)} <span style="font-size:18px;font-weight:500;color:var(--ink-2)">${(d.banked || {}).trades || 0} closed trades across ${(d.banked || {}).books || 0} books</span></div>
-    ${d.banked && d.banked.era ? `<div class="score-line" style="font-size:15px">Since <b>${d.banked.era.name}</b> took effect (${fmtT(d.banked.era.since)}), the new lineup has banked <b class="${cls(d.banked.era.usd)}">${usd(d.banked.era.usd)}</b> on ${d.banked.era.trades} closed trade${d.banked.era.trades === 1 ? '' : 's'} — this is the number that judges the current strategy.</div>` : ''}
+    <div class="heroes">
+      <div class="hero-block">
+        <div class="score-kicker">BANKED SINCE RULE ONE · ${d.banked && d.banked.era ? fmtT(d.banked.era.since) : ''} → now · the number that judges the current strategy</div>
+        <div class="score-hero ${cls((d.banked && d.banked.era) ? d.banked.era.usd : 0)}">${usd((d.banked && d.banked.era) ? d.banked.era.usd : 0)} <span style="font-size:16px;font-weight:500;color:var(--ink-2)">${(d.banked && d.banked.era) ? d.banked.era.trades : 0} closed trade${(d.banked && d.banked.era && d.banked.era.trades === 1) ? '' : 's'}</span></div>
+      </div>
+      <div class="hero-block">
+        <div class="score-kicker">BANKED SINCE START · every book that has ever held a live seat, incl. benched or retired</div>
+        <div class="score-hero ${cls(bankedAll)}">${usd(bankedAll)} <span style="font-size:16px;font-weight:500;color:var(--ink-2)">${(d.banked || {}).trades || 0} trades · ${(d.banked || {}).books || 0} books</span></div>
+      </div>
+    </div>
+    <div class="score-line">Both are closed trades only, net of fees. The first starts at zero on Oct 12, 2026, when rule one (don't lose money) took effect and the lineup changed; the second is the full record, including what the earlier strategy lost.</div>
     <div class="score-line">Current lineup (${live.length} seats on ${usd0(totCap)}): open trades at today's price <b class="${cls(totUnreal)}">${usd(totUnreal)}</b> — not ours until they close</div>
     <div class="score-line">${verdict}</div>${benchLine}
 
