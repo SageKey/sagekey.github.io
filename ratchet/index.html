@@ -82,6 +82,8 @@
   .card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
   .two { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
   @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+  .score-kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+  #scoreboard, .card, section { min-width: 0; max-width: 100%; }
   canvas { max-width: 100%; }
   .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); margin-bottom: 8px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
@@ -114,6 +116,23 @@
   #drawer .kv { font-size: 12.5px; color: var(--ink-2); display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin-top: 8px; }
   #scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 9; display: none; } #scrim.open { display: block; }
   [hidden] { display: none !important; }
+  @media (max-width: 700px) {
+    body { font-size: 14px; }
+    header, nav.desks, main { padding-left: 14px; padding-right: 14px; }
+    header { padding-top: 14px; }
+    nav.desks { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+    nav.desks button { white-space: nowrap; flex: 0 0 auto; }
+    .score-hero { font-size: 30px; }
+    .hero { font-size: 26px; }
+    .bots { grid-template-columns: 1fr; }
+    .bot { padding: 14px; }
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .desk-sum { gap: 10px 16px; font-size: 13px; }
+    .desk-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+    #drawer { width: 100vw; max-width: 100vw; padding: 16px; box-sizing: border-box; }
+    table { font-size: 12px; }
+    .intro, .lead, header p { font-size: 13px; }
+  }
 </style>
 </head>
 <body>
@@ -254,7 +273,9 @@ function card(b) {
   return `<div class="bot" style="--c:${css(COLORS[i])}">
     <div class="name"><b>${b.label}</b><span class="chip">${b.bench ? 'BENCH · ' : ''}${bars >= 24 ? 'daily' : bars + 'h'} bars · risk ${b.config.risk_per_trade_pct}%</span></div>
     <div>
-      <div class="hero ${cls(b.pnl_total_usd)}">${usd(b.pnl_total_usd)}</div>
+      <div class="score-kicker">banked</div>
+      <div class="hero ${cls(b.realized_usd)}">${usd(b.realized_usd)}</div>
+      <div class="hero-sub">open ${usd(b.unrealized_usd)} · equity if closed now ${usd(b.pnl_total_usd)} (${pct(b.pnl_total_pct)})</div>
       <div class="hero-sub">${pct(b.pnl_total_pct)} since start · equity ${usd0(b.equity)} of ${usd0(b.capital)}</div>
       <div class="hero-sub">Price moves ${usd((b.realized_gross_usd ?? 0) + b.positions.reduce((a, p) => a + (p.gross_usd ?? 0), 0))} − fees $${((b.realized_fees_usd ?? 0) + (b.open_fees_paid_usd ?? 0)).toFixed(2)} = net ${usd(b.pnl_total_usd)}</div>
     </div>
@@ -494,13 +515,15 @@ function render() {
   const benchCap = allBench.reduce((a, b) => a + b.capital, 0), benchNet = allBench.reduce((a, b) => a + b.equity - b.capital, 0);
   const benchLine = FILTER === 'bench' ? `<div class="score-line">This is the bench's own paper money — <b>separate from, and not counted in, the desk's ${usd0(d.bots.filter(b => !b.bench).reduce((a, b) => a + b.capital, 0))}</b>.</div>`
     : allBench.length ? `<div class="score-line">Bench — ${allBench.length} shadow book${allBench.length === 1 ? '' : 's'} competing for a seat, <b>not counted above</b>: <b class="${cls(benchNet)}">${usd(benchNet)}</b> on ${usd0(benchCap)} of separate paper money · <a href="#" onclick="setFilter('bench');return false">open the Bench tab</a></div>` : '';
-  const ranked = [...live].sort((a, b) => b.pnl_total_pct - a.pnl_total_pct);
+  const ranked = [...live].sort((a, b) => (b.realized_usd / b.capital) - (a.realized_usd / a.capital));   // ranked by what is BANKED
   document.getElementById('scoreboard').innerHTML = `<h3>Scoreboard — ${FILTER === 'all' ? 'all desks' : FILTER === 'bench' ? 'the bench' : DESKS[FILTER].title} · paper money · since start</h3>
-    <div class="score-hero ${cls(totNet)}">${usd(totNet)} <span style="font-size:18px;font-weight:500;color:var(--ink-2)">${pct(totCap ? totNet / totCap * 100 : 0)} on ${usd0(totCap)}</span></div>
+    <div class="score-kicker">BANKED · closed trades, net of fees · money that is actually ours</div>
+    <div class="score-hero ${cls(totRealized)}">${usd(totRealized)} <span style="font-size:18px;font-weight:500;color:var(--ink-2)">${pct(totCap ? totRealized / totCap * 100 : 0)} on ${usd0(totCap)}</span></div>
+    <div class="score-line">Open trades at today's price: <b class="${cls(totUnreal)}">${usd(totUnreal)}</b> — not ours until they close · equity if everything closed now: <b class="${cls(totNet)}">${usd(totNet)}</b></div>
     <div class="score-line">${verdict}</div>${benchLine}
-    <div class="score-line">Realized (closed trades): <b class="${cls(totRealized)}">${usd(totRealized)}</b> · Unrealized (open trades at current price): <b class="${cls(totUnreal)}">${usd(totUnreal)}</b> · both are net of fees</div>
-    <div class="scroll" style="margin-top:12px"><table><tr><th>Bot</th><th>Desk</th><th class="num">Net P&amp;L</th><th class="num">Return</th><th class="num">Open</th><th class="num">Closed</th><th class="num">Won / lost</th><th class="num">Realized</th><th class="num">Unrealized</th><th>Right now</th></tr>` +
-    ranked.map(b => `<tr${b.bench ? ' style="opacity:.85"' : ''}><td><span class="dot" style="background:${css(COLORS[b._i])}"></span><b>${b.label}</b>${b.bench ? ' <span class="tag">bench</span>' : ''}</td><td>${DESKS[b.desk].title.replace(' desk', '')}</td><td class="num ${cls(b.pnl_total_usd)}"><b>${usd(b.pnl_total_usd)}</b></td><td class="num ${cls(b.pnl_total_pct)}">${pct(b.pnl_total_pct)}</td><td class="num">${b.positions.length}</td><td class="num">${b.stats.trades}</td><td class="num">${b.stats.trades ? `<span class="wl w">${b.stats.wins}</span> <span class="wl l">${b.stats.losses}</span>` : '—'}</td><td class="num ${cls(b.realized_usd)}">${usd(b.realized_usd)}</td><td class="num ${cls(b.unrealized_usd)}">${usd(b.unrealized_usd)}</td><td class="flat">${b.positions.length ? b.positions.map(p => `${p.direction === 'short' ? 'short' : 'long'} ${p.symbol.split('-')[0]}`).join(', ') : (b.today.refusals ? `flat, ${b.today.refusals} setup${b.today.refusals > 1 ? 's' : ''} refused today` : 'flat, waiting')}</td></tr>`).join('') + `</table></div>`;
+
+    <div class="scroll" style="margin-top:12px"><table><tr><th>Bot</th><th>Desk</th><th class="num">Banked</th><th class="num">Banked %</th><th class="num">Open P&amp;L</th><th class="num">Open</th><th class="num">Closed</th><th class="num">Won / lost</th><th>Right now</th></tr>` +
+    ranked.map(b => `<tr${b.bench ? ' style="opacity:.85"' : ''}><td><span class="dot" style="background:${css(COLORS[b._i])}"></span><b>${b.label}</b>${b.bench ? ' <span class="tag">bench</span>' : ''}</td><td>${DESKS[b.desk].title.replace(' desk', '')}</td><td class="num ${cls(b.realized_usd)}"><b>${usd(b.realized_usd)}</b></td><td class="num ${cls(b.realized_usd)}">${pct(b.realized_usd / b.capital * 100)}</td><td class="num ${cls(b.unrealized_usd)}">${usd(b.unrealized_usd)}</td><td class="num">${b.positions.length}</td><td class="num">${b.stats.trades}</td><td class="num">${b.stats.trades ? `<span class="wl w">${b.stats.wins}</span> <span class="wl l">${b.stats.losses}</span>` : '—'}</td><td class="flat">${b.positions.length ? b.positions.map(p => `${p.direction === 'short' ? 'short' : 'long'} ${p.symbol.split('-')[0]}`).join(', ') : (b.today.refusals ? `flat, ${b.today.refusals} setup${b.today.refusals > 1 ? 's' : ''} refused today` : 'flat, waiting')}</td></tr>`).join('') + `</table></div>`;
 
   ROWS = {};
   const openRows = bots.flatMap(b => b.positions.map(p => ({ ...p, bot: b.label + (b.bench ? ' (bench)' : ''), i: b._i, desk: b.desk, kind: 'open' })));
