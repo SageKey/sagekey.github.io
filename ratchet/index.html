@@ -520,7 +520,8 @@ function render() {
   document.getElementById('scoreboard').innerHTML = `<h3>Scoreboard — ${FILTER === 'all' ? 'all desks' : FILTER === 'bench' ? 'the bench' : DESKS[FILTER].title} · paper money · since start</h3>
     <div class="score-kicker">BANKED SINCE START · closed trades, net of fees · every book that has ever held a live seat, including ones since benched or retired</div>
     <div class="score-hero ${cls(bankedAll)}">${usd(bankedAll)} <span style="font-size:18px;font-weight:500;color:var(--ink-2)">${(d.banked || {}).trades || 0} closed trades across ${(d.banked || {}).books || 0} books</span></div>
-    <div class="score-line">Current lineup only (${live.length} seats on ${usd0(totCap)}): banked <b class="${cls(totRealized)}">${usd(totRealized)}</b> · open trades at today's price <b class="${cls(totUnreal)}">${usd(totUnreal)}</b> — not ours until they close</div>
+    ${d.banked && d.banked.era ? `<div class="score-line" style="font-size:15px">Since <b>${d.banked.era.name}</b> took effect (${fmtT(d.banked.era.since)}), the new lineup has banked <b class="${cls(d.banked.era.usd)}">${usd(d.banked.era.usd)}</b> on ${d.banked.era.trades} closed trade${d.banked.era.trades === 1 ? '' : 's'} — this is the number that judges the current strategy.</div>` : ''}
+    <div class="score-line">Current lineup (${live.length} seats on ${usd0(totCap)}): open trades at today's price <b class="${cls(totUnreal)}">${usd(totUnreal)}</b> — not ours until they close</div>
     <div class="score-line">${verdict}</div>${benchLine}
 
     <div class="scroll" style="margin-top:12px"><table><tr><th>Bot</th><th>Desk</th><th class="num">Banked</th><th class="num">Banked %</th><th class="num">Open P&amp;L</th><th class="num">Open</th><th class="num">Closed</th><th class="num">Won / lost</th><th>Right now</th></tr>` +
