@@ -542,7 +542,7 @@ function render() {
     <div class="heroes">
       <div class="hero-block">
         <div class="score-kicker">BANKED SINCE RULE ONE · ${d.banked && d.banked.era ? fmtT(d.banked.era.since) : ''} → now · the number that judges the current strategy</div>
-        <div class="score-hero ${cls((d.banked && d.banked.era) ? d.banked.era.usd : 0)}">${usd((d.banked && d.banked.era) ? d.banked.era.usd : 0)} <span style="font-size:16px;font-weight:500;color:var(--ink-2)">${(d.banked && d.banked.era) ? d.banked.era.trades : 0} closed trade${(d.banked && d.banked.era && d.banked.era.trades === 1) ? '' : 's'}</span></div>
+        <div class="score-hero ${cls((d.banked && d.banked.era) ? d.banked.era.usd : 0)}">${usd((d.banked && d.banked.era) ? d.banked.era.usd : 0)} <span style="font-size:16px;font-weight:500;color:var(--ink-2)">${(d.banked && d.banked.era) ? d.banked.era.trades : 0} closed trade${(d.banked && d.banked.era && d.banked.era.trades === 1) ? '' : 's'}${(d.banked && d.banked.era && d.banked.era.funding_days) ? ` + ${d.banked.era.funding_days} funding days` : ''}</span></div>
       </div>
       <div class="hero-block">
         <div class="score-kicker">BANKED SINCE START · every book that has ever held a live seat, incl. benched or retired</div>
