@@ -533,7 +533,7 @@ function statusBlock(d) {
       <div><div class="k">Running</div><div class="big">${live.length} bots · ${usd0(live.reduce((a, b) => a + b.capital, 0))}</div></div>
     </div>
     <ul>${live.map(b => `<li>${line(b)}</li>`).join('')}</ul>
-    ${changes.length ? `<div class="k" style="margin-top:12px">Changed in the last two weeks</div><ul>${changes.slice(0, 6).map(c => `<li>${fmtD(c[0])}: ${c[1]}</li>`).join('')}</ul>` : ''}
+    ${changes.length ? `<div class="k" style="margin-top:12px">Changed in the last two weeks</div><ul>${changes.slice(0, 6).map(c => `<li>${fmtD(String(c[0]).slice(0, 10))}: ${c[1]}</li>`).join('')}</ul>` : ''}
     <div class="k" style="margin-top:12px">Next</div><ul><li>The CFO reviews every bot ${fmtT(nextReview.toISOString())} and benches anything negative after 20 trades.</li><li>The bar for Nov 30: carry banks at least 80% of its model, volume jump reaches 20 trades or is cut, and the number above turns positive.</li></ul>`;
 }
 
