@@ -82,6 +82,12 @@
   .card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
   .two { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
   @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+  details.how { margin: 0 0 10px; } details.how summary { cursor: pointer; color: var(--ink-3); font-size: 13px; }
+  #status h2 { margin: 0 0 6px; font-size: 20px; } #status .big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #status .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px 18px; margin: 8px 0 12px; }
+  #status .k { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+  #status ul { margin: 6px 0 0 18px; padding: 0; } #status li { margin: 4px 0; line-height: 1.45; }
+  .hero-sub { display: block; font-size: 13px; font-weight: 500; color: var(--ink-3); margin-top: 2px; }
   .heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; margin: 4px 0 8px; }
   .hero-block { min-width: 0; }
   @media (max-width: 700px) { .heroes { grid-template-columns: 1fr; gap: 12px; } }
@@ -146,9 +152,12 @@
   <span class="beat" id="beat">loading…</span>
 </header>
 <div id="fixture" hidden style="background:#b3261e;color:#fff;padding:12px 28px;font-weight:600;margin-top:10px">SAMPLE DATA — not the live record.</div>
+<details class="how"><summary>How this desk works</summary>
 <p class="intro" id="intro">Three desks trade crypto on paper against live Coinbase prices. Every bot has a written rule set, a fixed risk per trade, a daily loss budget, and a stop on every position. Nothing here is advice and no real money is involved. The record is complete: every trade, every quiet day, and every setup the rules turned down.</p>
 
 <div class="intro" id="timing" style="font-size:13.5px;padding-top:6px"></div>
+</details>
+<section class="card" id="status"></section>
 <nav class="desks" id="desknav"></nav>
 
 <main>
@@ -495,6 +504,39 @@ function brakeLine(b) {
     : `<br>Desk brake <b>off</b> — the live desk is ${pct(b.mtd_pct)} month-to-date${base}; it engages at ${pct(-Math.abs(b.threshold_pct || 3))}${checked}.`;
 }
 
+function statusBlock(d) {
+  // Plain answers to four questions: are we making money, what is running, what is each bot doing, what changed.
+  const live = d.bots.filter(b => !b.bench);
+  const week = live.reduce((a, b) => a + (b.pnl_week_usd || 0), 0), today = live.reduce((a, b) => a + (b.pnl_today_usd || 0), 0);
+  const era = (d.banked && d.banked.era) ? d.banked.era.usd : 0;
+  const line = b => {
+    const n = b.stats.trades, banked = usd(b.realized_usd);
+    if (b.desk === 'carry') {
+      const coins = Object.keys((d.carry_legs || {})[b.id] || {}).length || b.config.symbols.length;
+      return `<b>${b.label}</b> — earning funding on ${coins} coins, ${usd0(b.capital)} of paper. Collected <b class="${cls(b.realized_gross_usd)}">${usd(b.realized_gross_usd)}</b> of funding so far, paid ${usd(b.realized_fees_usd)} to put the positions on; net <b class="${cls(b.realized_usd)}">${banked}</b>. This week <b class="${cls(b.pnl_week_usd)}">${usd(b.pnl_week_usd)}</b>. It earns a little every hour and never bets on direction.`;
+    }
+    const doing = b.positions.length ? `in ${b.positions.length} trade${b.positions.length > 1 ? 's' : ''}: ${b.positions.map(p => `${p.direction === 'short' ? 'short' : 'long'} ${p.symbol.split('-')[0]}`).join(', ')}, open P&amp;L <b class="${cls(b.unrealized_usd)}">${usd(b.unrealized_usd)}</b>` : 'flat, waiting for its setup';
+    const judge = n < 20 ? `Judged at 20 trades (${20 - n} to go).` : '';
+    return `<b>${b.label}</b> — ${doing}. ${n} trade${n === 1 ? '' : 's'} since it went live, banked <b class="${cls(b.realized_usd)}">${banked}</b>. ${judge}`;
+  };
+  const changes = [];
+  const since = Date.now() - 14 * 86400000;
+  d.bots.filter(b => b.bench && b.config && b.config.bench_since && new Date(b.config.bench_since) > since).forEach(b => changes.push([b.config.bench_since, `${b.label} benched`]));
+  d.bots.forEach(b => (b.today && b.today.events || []).filter(e => e.kind === 'param_change' && e.detail && e.detail.what === 'capital').forEach(e => changes.push([e.at, `${b.label} ${e.detail.delta_usd > 0 ? 'funded' : 'reduced'} ${usd0(Math.abs(e.detail.delta_usd))} → ${usd0(e.detail.capital_now)}`])));
+  changes.sort((a, b) => new Date(b[0]) - new Date(a[0]));
+  const nextReview = (() => { const t = new Date(); const dow = t.getUTCDay(); const add = (7 - dow) % 7 || 7; const s = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + (dow === 0 && t.getUTCHours() < 13 ? 0 : add), 13)); return s; })();
+  return `<h2>What is going on</h2>
+    <div class="row">
+      <div><div class="k">Banked since rule one (Oct 12)</div><div class="big ${cls(era)}">${usd(era)}</div></div>
+      <div><div class="k">This week, closed</div><div class="big ${cls(week)}">${usd(week)}</div></div>
+      <div><div class="k">Today, closed</div><div class="big ${cls(today)}">${usd(today)}</div></div>
+      <div><div class="k">Running</div><div class="big">${live.length} bots · ${usd0(live.reduce((a, b) => a + b.capital, 0))}</div></div>
+    </div>
+    <ul>${live.map(b => `<li>${line(b)}</li>`).join('')}</ul>
+    ${changes.length ? `<div class="k" style="margin-top:12px">Changed in the last two weeks</div><ul>${changes.slice(0, 6).map(c => `<li>${fmtD(c[0])}: ${c[1]}</li>`).join('')}</ul>` : ''}
+    <div class="k" style="margin-top:12px">Next</div><ul><li>The CFO reviews every bot ${fmtT(nextReview.toISOString())} and benches anything negative after 20 trades.</li><li>The bar for Nov 30: carry banks at least 80% of its model, volume jump reaches 20 trades or is cut, and the number above turns positive.</li></ul>`;
+}
+
 function render() {
   const d = DATA;
   const qs = new URLSearchParams(location.search);
@@ -515,6 +557,7 @@ function render() {
   document.getElementById('timing').innerHTML = `<b>Rule one: don't lose money.</b> Every live bot risks 0.5% of its book per trade, moves its stop to breakeven once a trade is 1R ahead, and stops opening trades 10% below its own high-water mark. If the live desk is down 3% in a month, every bot trades at half size until the month ends. Settings are tightened freely and loosened only on evidence.<br>
 <b>How often things change:</b> the bots decide once an hour, right after each hourly candle closes (the 4-hour and daily bots on the close of their own candle), so entries, exits and realized P&amp;L move on the hour. Open positions are marked to the live Coinbase price each time this page loads; the page reloads itself every 5 minutes. Data as of <b>${fmtT(d.generated_at)}</b>.${brakeLine(d.desk_brake)}`;
   d.bots.forEach((b, i) => { b._i = i; });
+  document.getElementById('status').innerHTML = statusBlock(d);
   const desksPresent = ORDER.filter(k => d.bots.some(b => b.desk === k && !b.bench));
   const benchCount = d.bots.filter(b => b.bench).length;
   document.getElementById('sub').textContent = `Paper crypto desk · ${d.bots.length - benchCount} live bots across ${desksPresent.length} desks${benchCount ? ` + ${benchCount} on the bench` : ''} · Coinbase prices`;
@@ -542,7 +585,7 @@ function render() {
     <div class="heroes">
       <div class="hero-block">
         <div class="score-kicker">BANKED SINCE RULE ONE · ${d.banked && d.banked.era ? fmtT(d.banked.era.since) : ''} → now · the number that judges the current strategy</div>
-        <div class="score-hero ${cls((d.banked && d.banked.era) ? d.banked.era.usd : 0)}">${usd((d.banked && d.banked.era) ? d.banked.era.usd : 0)} <span style="font-size:16px;font-weight:500;color:var(--ink-2)">${(d.banked && d.banked.era) ? d.banked.era.trades : 0} closed trade${(d.banked && d.banked.era && d.banked.era.trades === 1) ? '' : 's'}${(d.banked && d.banked.era && d.banked.era.funding_days) ? ` + ${d.banked.era.funding_days} funding days` : ''}</span></div>
+        <div class="score-hero ${cls((d.banked && d.banked.era) ? d.banked.era.usd : 0)}">${usd((d.banked && d.banked.era) ? d.banked.era.usd : 0)} <span style="font-size:16px;font-weight:500;color:var(--ink-2)"><span class="hero-sub">${(d.banked && d.banked.era) ? d.banked.era.trades : 0} trades${(d.banked && d.banked.era && d.banked.era.funding_days) ? ` · ${d.banked.era.funding_days} funding days` : ''}</span></span></div>
       </div>
       <div class="hero-block">
         <div class="score-kicker">BANKED SINCE START · every book that has ever held a live seat, incl. benched or retired</div>
