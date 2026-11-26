@@ -502,8 +502,8 @@
     var h = res[0], v = res[1];
     if (!h.ok) return;
     var ceil = "$" + Number(h.ceiling_usd).toFixed(2);
-    $("livetxt").innerHTML = 'Foreman is online · ' + ceil + ' daily spend ceiling · log chain ' +
-      (v.valid ? "verified" : "FAILED") + ' · <a href="/foreman/">open it</a>';
+    $("livetxt").textContent = 'Foreman is online · ' + ceil + ' daily spend ceiling · log chain ' +
+      (v.valid ? "verified" : "FAILED");
     $("live").classList.add("on");
     $("s-status").textContent = "Online";
     $("s-ceil").textContent = ceil;
