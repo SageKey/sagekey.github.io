@@ -278,8 +278,8 @@
       <div class="kicker">Proof</div>
       <p class="shead">Don't take my word for it. Open it.</p>
       <p class="intro">
-        Anyone can describe safe AI on a slide. These are running, including one
-        that will refuse you.
+        Anyone can describe safe AI on a slide. These are running, and one of them is on a
+        real AI model with a hard spending limit.
       </p>
     </div>
 
@@ -348,6 +348,53 @@
   </div>
 </section>
 
+<!-- ==================== FIT CHECK ==================== -->
+<section class="band" id="fit">
+  <div class="shell">
+    <div class="head">
+      <div class="kicker">Is your job a fit?</div>
+      <p class="shead">Four questions. A straight answer.</p>
+      <p class="intro">
+        Not every job should go to an agent. Answer for the one on your mind and see what
+        I'd tell you on the first call, including "don't."
+      </p>
+    </div>
+    <div class="fit" id="fitbox">
+      <div class="f-qs">
+        <div class="f-q" data-q="vol" role="group" aria-labelledby="fq1">
+          <div class="f-l" id="fq1"><i>1</i>How often does it come in?</div>
+          <div class="seg"><button type="button" data-v="0">A few a week</button><button type="button" data-v="1">Dozens a day</button><button type="button" data-v="2">Hundreds a day</button></div>
+        </div>
+        <div class="f-q" data-q="rules" role="group" aria-labelledby="fq2">
+          <div class="f-l" id="fq2"><i>2</i>Are the rules for it written down?</div>
+          <div class="seg"><button type="button" data-v="0">Yes, mostly</button><button type="button" data-v="1">Partly, with judgment calls</button><button type="button" data-v="2">They're in one person's head</button></div>
+        </div>
+        <div class="f-q" data-q="risk" role="group" aria-labelledby="fq3">
+          <div class="f-l" id="fq3"><i>3</i>If one goes out wrong, what happens?</div>
+          <div class="seg"><button type="button" data-v="0">We fix it, no harm done</button><button type="button" data-v="1">It costs money or a customer call</button><button type="button" data-v="2">A legal or safety problem</button></div>
+        </div>
+        <div class="f-q" data-q="where" role="group" aria-labelledby="fq4">
+          <div class="f-l" id="fq4"><i>4</i>Where does the work live today?</div>
+          <div class="seg"><button type="button" data-v="0">In our ERP or another system</button><button type="button" data-v="1">Email, PDFs and spreadsheets</button><button type="button" data-v="2">Paper and phone calls</button></div>
+        </div>
+        <div class="f-q f-size">
+          <div class="f-l"><i>+</i>Optional: size it with your own numbers</div>
+          <div class="f-nums">
+            <label>About how many a day<input id="f-n" type="number" min="0" inputmode="numeric" placeholder="150" /></label>
+            <label>Minutes each, by hand<input id="f-m" type="number" min="0" inputmode="numeric" placeholder="4" /></label>
+          </div>
+        </div>
+      </div>
+      <aside class="f-out" id="f-out" aria-live="polite">
+        <div class="f-wait">
+          <div class="f-pips"><i></i><i></i><i></i><i></i></div>
+          <p>Answer the four questions and the verdict appears here.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
 <!-- ==================== SERVICES ==================== -->
 <section class="band gray" id="services">
   <div class="shell">
@@ -403,7 +450,7 @@
 </section>
 
 <!-- ==================== ABOUT ==================== -->
-<section class="band gray" id="about">
+<section class="band" id="about">
   <div class="shell">
     <div class="head">
       <div class="kicker">Who you'd be working with</div>
@@ -437,7 +484,7 @@
 </section>
 
 <!-- ==================== QUESTIONS ==================== -->
-<section class="band" id="questions">
+<section class="band gray" id="questions">
   <div class="shell">
     <div class="head">
       <div class="kicker">Fair questions</div>
@@ -486,7 +533,7 @@
 </section>
 
 <!-- ==================== CONTACT ==================== -->
-<section class="band gray" id="contact">
+<section class="band" id="contact">
   <div class="shell">
     <div class="head">
       <div class="kicker">Start a conversation</div>
@@ -755,9 +802,101 @@
     };
   });
 
+  // ---- fit check: four answers, one honest verdict. No scores are sent anywhere. ----
+  var FIT = { vol: null, rules: null, risk: null, where: null };
+  var FQ = {
+    vol:   ["a few a week", "dozens a day", "hundreds a day"],
+    rules: ["rules mostly written down", "rules partly written, with judgment calls", "rules in one person's head"],
+    risk:  ["a mistake is easily fixed", "a mistake costs money or a customer call", "a mistake is a legal or safety problem"],
+    where: ["lives in the ERP or another system", "lives in email, PDFs and spreadsheets", "lives on paper and phone calls"]
+  };
+  function hours() {
+    var n = parseFloat($("f-n").value), m = parseFloat($("f-m").value);
+    if (!(n > 0) || !(m > 0)) return null;
+    var h = n * m * 5 / 60;
+    return h < 10 ? Math.round(h * 10) / 10 : Math.round(h);
+  }
+  function verdict() {
+    var a = FIT, v, why = [], gates = ["Anything that reaches a customer or vendor"], start = "Draft";
+    if (a.where === 2) {
+      v = ["no", "Not a fit yet"];
+      why.push("An agent can only work on what it can read. Getting this off paper and phone calls comes first, and that alone is usually worth doing.");
+    } else if (a.vol === 0) {
+      v = ["no", "Not worth an agent yet"];
+      why.push("At a few a week, an agent costs more than it saves. A checklist or a small integration would do the job, and that's what I'd tell you.");
+    } else if (a.rules === 2) {
+      v = ["maybe", "Possible, after one piece of groundwork"]; start = "Observe";
+      why.push("The rules live in one person's head, so nobody can check an agent against them yet. Writing them down is the first job, and it's what the Readiness Review produces.");
+    } else if (a.risk === 2) {
+      v = ["maybe", "Yes, on a short leash"];
+      why.push("An agent can prepare this work, and it should never be the one to release it. It stays at Draft for good, with a named person reviewing every item.");
+    } else {
+      v = ["yes", "A good first agent"];
+      why.push(a.vol === 2
+        ? "High volume, rules you can write down, and mistakes you can catch at a gate. This is the kind of job I'd start with."
+        : "Steady volume, rules you can write down, and mistakes you can catch at a gate. A sensible first agent.");
+    }
+    if (v[0] !== "no") {
+      if (a.rules === 1) { why.push("The judgment calls stay with your people. The agent takes the part that has rules."); gates.push("Every case that falls outside the written rules"); }
+      if (a.where === 1) { why.push("Email and PDFs are normal. It reads them and tells you when it isn't sure of a value."); gates.push("Anything it couldn't read with confidence"); }
+      if (a.risk >= 1) gates.push("Anything that moves money or issues a credit");
+      if (a.risk === 2) gates.push("Every item, by a named reviewer");
+    }
+    return { v: v, why: why, gates: gates, start: start };
+  }
+  function fitText(r) {
+    var h = hours(), lines = ["From the fit check on sagekey.com:"];
+    ["vol", "rules", "risk", "where"].forEach(function (k) { lines.push("- " + FQ[k][FIT[k]]); });
+    if (h) lines.push("- about " + h + " hours a week of hand work, by my numbers");
+    lines.push("Verdict shown: " + r.v[1]);
+    return lines.join("\n");
+  }
+  function fitRender() {
+    var out = $("f-out"), n = 0;
+    ["vol", "rules", "risk", "where"].forEach(function (k) { if (FIT[k] !== null) n++; });
+    if (n < 4) {
+      var pips = ""; for (var i = 0; i < 4; i++) pips += '<i class="' + (i < n ? "on" : "") + '"></i>';
+      out.className = "f-out";
+      out.innerHTML = '<div class="f-wait"><div class="f-pips">' + pips + "</div><p>" +
+        (n ? (4 - n) + " to go." : "Answer the four questions and the verdict appears here.") + "</p></div>";
+      return;
+    }
+    var r = verdict(), h = hours();
+    out.className = "f-out done " + r.v[0];
+    out.innerHTML =
+      '<div class="f-tag">' + (r.v[0] === "yes" ? "Verdict" : r.v[0] === "maybe" ? "Verdict, with a condition" : "Honest verdict") + "</div>" +
+      '<div class="f-v">' + r.v[1] + "</div>" +
+      r.why.map(function (w) { return "<p>" + w + "</p>"; }).join("") +
+      (h ? '<div class="f-hrs"><b>' + h + '</b><span>hours a week of hand work today, by your numbers (5-day week)</span></div>' : "") +
+      (r.v[0] !== "no"
+        ? '<div class="f-sub">It would start at</div><div class="f-start">' + r.start + "</div>" +
+          '<div class="f-sub">A person would approve</div><ul>' + r.gates.map(function (g) { return "<li>" + g + "</li>"; }).join("") + "</ul>"
+        : "") +
+      '<button type="button" class="btn primary" id="f-send">' + (r.v[0] === "no" ? "Tell me I'm wrong" : "Send me these answers") + "</button>" +
+      '<div class="f-note">Fills in the note at the bottom of the page. Nothing is sent until you send it.</div>';
+    $("f-send").onclick = function () {
+      var q = $("b-q");
+      q.value = "\n\n" + fitText(r);
+      $("contact").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+      setTimeout(function () { q.focus(); q.setSelectionRange(0, 0); }, still ? 0 : 700);
+    };
+  }
+  document.querySelectorAll("#fitbox .f-q[data-q]").forEach(function (q) {
+    var btns = q.querySelectorAll(".seg button");
+    btns.forEach(function (b) {
+      b.setAttribute("aria-pressed", "false");
+      b.onclick = function () {
+        btns.forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+        FIT[q.getAttribute("data-q")] = +b.getAttribute("data-v");
+        fitRender();
+      };
+    });
+  });
+  $("f-n").oninput = $("f-m").oninput = fitRender;
+
   // ---- gentle reveal as sections scroll in ----
   if (!still && "IntersectionObserver" in window) {
-    var rv = document.querySelectorAll(".band .head, .band .card, .pull, .about, .facts.tiles li, .qa, .contact, .jobsum, .s-txt, .s-art");
+    var rv = document.querySelectorAll(".band .head, .band .card, .pull, .about, .facts.tiles li, .qa, .contact, .jobsum, .s-txt, .s-art, .fit");
     var ro = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); } });
     }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
