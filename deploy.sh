@@ -19,11 +19,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 SRC="$HOME/dev/sagekey"
 SITE="https://sagekey.com"
-PATHS=(/ /method/ /lab/ /foreman/ /agent-floor/ /agent-floor/run.json /market-arena/
+PATHS=(/ /method/ /lab/ /brief/ /foreman/ /agent-floor/ /agent-floor/run.json /market-arena/
        /codebreaker/ /ratchet/ /ratchet/data.json /site.css /og.png /img/foreman-charter.jpg /img/agent-floor-shift.jpg
        /robots.txt /sitemap.xml)
 # live path -> local file; the bytes must match, or the deploy has not landed
-SAME=("/:index.html" "/site.css:site.css" "/method/:method/index.html" "/lab/:lab/index.html"
+SAME=("/:index.html" "/site.css:site.css" "/method/:method/index.html" "/lab/:lab/index.html" "/brief/:brief/index.html"
       "/agent-floor/:agent-floor/index.html" "/market-arena/:market-arena/index.html"
       "/codebreaker/:codebreaker/index.html")
 

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SageKey in one page</title>
+<meta name="description" content="A one-page summary of SageKey to print or forward: what the agents do, how they stay under control, what it costs and how it starts." />
+<link rel="canonical" href="https://sagekey.com/brief/" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://sagekey.com/brief/" />
+<meta property="og:site_name" content="SageKey" />
+<meta property="og:title" content="SageKey in one page" />
+<meta property="og:description" content="What the agents do, how they stay under control, what it costs and how it starts. Made to print or forward." />
+<meta property="og:image" content="https://sagekey.com/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="theme-color" content="#f5f5f7" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d1d1f'/%3E%3Ccircle cx='12' cy='16' r='5' fill='none' stroke='%2354d6a0' stroke-width='2.5'/%3E%3Cpath d='M17 16h10M23 16v5M27 16v4' stroke='%2354d6a0' stroke-width='2.5' fill='none'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="/site.css" />
+<style>
+  body { background:#f5f5f7; }
+  .b-bar { max-width:816px; margin:28px auto 16px; padding:0 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .b-bar p { color:var(--dim); font-size:15px; }
+  .sheet { max-width:816px; margin:0 auto 72px; background:#fff; border-radius:6px; padding:56px 60px 44px;
+    box-shadow:0 1px 2px rgba(0,0,0,.06), 0 30px 60px -30px rgba(0,0,0,.25); font-size:14px; line-height:1.45; letter-spacing:-.005em; }
+  .s-top { display:flex; justify-content:space-between; align-items:center; gap:16px; font-size:13px; color:var(--dim);
+    padding-bottom:16px; border-bottom:1px solid #e5e5ea; }
+  .s-top .mark { font-size:16px; }
+  .sheet h1 { font-size:34px; line-height:1.08; letter-spacing:-.025em; max-width:none; margin:26px 0 0; text-align:left; text-wrap:balance; }
+  .sheet .sub { font-size:16px; color:var(--dim); margin-top:10px; max-width:38em; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:28px 40px; margin-top:28px; }
+  .sheet h2 { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+  .sheet p { color:var(--ink); }
+  .sheet ul { list-style:none; display:flex; flex-direction:column; gap:7px; }
+  .sheet li b { display:block; }
+  .sheet li span { color:var(--dim); }
+  .price-rows { display:flex; flex-direction:column; }
+  .price-rows div { display:grid; grid-template-columns:1fr auto; gap:2px 14px; padding:9px 0; border-top:1px solid #e5e5ea; }
+  .price-rows div:first-child { border-top:none; padding-top:0; }
+  .price-rows b { font-size:14.5px; }
+  .price-rows em { font-style:normal; font-weight:600; white-space:nowrap; text-align:right; }
+  .price-rows span { grid-column:1 / -1; color:var(--dim); font-size:13px; }
+  .full { grid-column:1 / -1; }
+  .s-end { margin-top:26px; padding-top:16px; border-top:1px solid #e5e5ea; display:flex; justify-content:space-between; gap:12px 24px; flex-wrap:wrap; font-size:13.5px; }
+  .s-end b { font-size:15px; }
+  @media (max-width:720px) { .sheet { padding:30px 22px; border-radius:0; } .cols { grid-template-columns:1fr; } .sheet h1 { font-size:28px; } }
+  @page { size:letter; margin:.55in; }
+  @media print {
+    body { background:#fff; }
+    nav.top, .b-bar, footer { display:none !important; }
+    .sheet { box-shadow:none; margin:0; padding:0; max-width:none; border-radius:0; }
+    a { color:inherit; }
+    html, body { overflow:visible !important; height:auto; }
+    .sheet { font-size:12.5px; }
+    .sheet h1 { font-size:27px; margin-top:18px; }
+    .sheet .sub { font-size:14px; }
+    .cols { gap:18px 34px; margin-top:20px; }
+    .s-end { margin-top:18px; padding-top:12px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top scrolled">
+  <div class="shell navrow">
+    <a class="mark" href="/">
+      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+        <path d="M17 16h10M23 16v5M27 16v4" stroke="currentColor" stroke-width="2.6" fill="none"/>
+      </svg>
+      SageKey
+    </a>
+    <div class="links">
+      <a href="/#work">What I automate</a>
+      <a href="/#control">How it stays safe</a>
+      <a href="/foreman/">Live demo</a>
+      <a href="/#services">Services</a>
+      <a href="/method/">Method</a>
+    </div>
+    <a class="btn primary sm" href="/#contact">Start a conversation</a>
+  </div>
+</nav>
+
+<div class="b-bar">
+  <p>Made to print or forward to whoever else needs to see it.</p>
+  <button class="btn primary sm" type="button" onclick="window.print()">Print or save as PDF</button>
+</div>
+
+<main class="sheet">
+  <div class="s-top">
+    <a class="mark" href="/">
+      <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+        <path d="M17 16h10M23 16v5M27 16v4" stroke="currentColor" stroke-width="2.6" fill="none"/>
+      </svg>
+      SageKey
+    </a>
+    <span>sagekey.com &nbsp;·&nbsp; bretta@sagekey.com</span>
+  </div>
+
+  <h1>AI agents for your back office. Nothing goes out without your OK.</h1>
+  <p class="sub">
+    For mid-market manufacturers and distributors. Agents take on the repetitive work in order
+    entry, quoting, returns and reconciliation. They prepare everything. Your people review it
+    and press send.
+  </p>
+
+  <div class="cols">
+    <section>
+      <h2>What an agent takes on</h2>
+      <ul>
+        <li><b>Order entry</b><span>Reads the PO, matches part numbers and prices, prepares the order.</span></li>
+        <li><b>Quotes and RFQs</b><span>Pulls items, pricing and lead times, assembles the quote.</span></li>
+        <li><b>Returns and warranty claims</b><span>Builds the case file and recommends against your written policy.</span></li>
+        <li><b>Reconciliation</b><span>Compares two systems daily and explains each difference.</span></li>
+      </ul>
+    </section>
+    <section>
+      <h2>How it stays under control</h2>
+      <ul>
+        <li><b>A written charter</b><span>One plain-language page: what the agent may read, change, and never do. You approve it first.</span></li>
+        <li><b>Earned autonomy</b><span>Every agent starts by observing and moves up on its record. Most stay at Draft.</span></li>
+        <li><b>Human gates</b><span>Anything that reaches a customer, moves money or can't be undone waits for a person.</span></li>
+        <li><b>A log nobody can edit</b><span>Every action, refusal and approval, written once.</span></li>
+      </ul>
+    </section>
+    <section>
+      <h2>What it costs</h2>
+      <div class="price-rows">
+        <div><b>Agent Readiness Review</b><em>$3,500</em><span>Fixed price, about two weeks. You keep a written plan and the first agent's charter.</span></div>
+        <div><b>First agent in production</b><em>$18,000–$25,000</em><span>About six weeks. One agent on one real job, with the controls built in.</span></div>
+        <div><b>Oversight &amp; expansion</b><em>$3,000–$6,000 a month</em><span>Optional. Adding agents and tuning their rules.</span></div>
+      </div>
+    </section>
+    <section>
+      <h2>How it starts</h2>
+      <p>
+        A 30-minute call about one job. If the honest answer is "don't," you hear it on that
+        call. The Readiness Review comes next, and it is a natural place to stop if you would
+        rather build in-house.
+      </p>
+      <h2 style="margin-top:18px">See it before you call</h2>
+      <ul>
+        <li><span><b style="display:inline">sagekey.com</b> has a demo you can press through and a four-question fit check.</span></li>
+        <li><span><b style="display:inline">sagekey.com/foreman</b> drafts a charter for your job on a real AI model.</span></li>
+        <li><span><b style="display:inline">sagekey.com/method</b> is the full method, written out.</span></li>
+      </ul>
+    </section>
+    <section class="full">
+      <h2>Who you'd be working with</h2>
+      <p>
+        Brett Anderson. SageKey is a one-person practice, on purpose: the person on the first
+        call reads your ERP schema and writes the code. Background: several years as the
+        integration layer for a mid-market remanufacturer (ERP, order flow, shipping, internal
+        tools). Systems worked in: Infor SyteLine, BigCommerce, carrier and shipping-rate APIs,
+        payment gateways, Postgres. Based in Texas, Central time.
+      </p>
+    </section>
+  </div>
+
+  <div class="s-end">
+    <span><b>Start a conversation:</b> bretta@sagekey.com</span>
+    <span>sagekey.com/#contact</span>
+  </div>
+</main>
+
+<footer class="fat">
+  <div class="shell">
+    <div class="f-cols">
+      <div class="f-brand">
+        <a class="mark" href="/">
+          <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+            <path d="M17 16h10M23 16v5M27 16v4" stroke="currentColor" stroke-width="2.6" fill="none"/>
+          </svg>
+          SageKey
+        </a>
+        <p>AI agents for the back office, built so nothing goes out without a person's OK.</p>
+      </div>
+      <div>
+        <h5>The work</h5>
+        <a href="/#work">What I automate</a>
+        <a href="/#control">How it stays safe</a>
+        <a href="/#fit">Is your job a fit?</a>
+        <a href="/#services">Services and prices</a>
+      </div>
+      <div>
+        <h5>See it run</h5>
+        <a href="/foreman/">Foreman, the live demo</a>
+        <a href="/agent-floor/">Agent Floor</a>
+        <a href="/lab/">The lab</a>
+      </div>
+      <div>
+        <h5>Read</h5>
+        <a href="/method/">The method</a>
+        <a href="/brief/">SageKey on one page</a>
+        <a href="https://github.com/SageKey">GitHub</a>
+      </div>
+      <div>
+        <h5>Talk</h5>
+        <a href="/#contact">Start a conversation</a>
+        <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>
+      </div>
+    </div>
+    <div class="f-base">Copyright © 2026 SageKey. All rights reserved. Based in Texas.</div>
+  </div>
+</footer>
+</body>
+</html>

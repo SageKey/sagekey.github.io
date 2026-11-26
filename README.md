@@ -12,6 +12,7 @@ that back it up. Plain static HTML, no build step.
 | `index.html` | Home page |
 | `method/` | The governance method, written out in full |
 | `lab/` | Index of side projects |
+| `brief/` | One-page summary, styled to print on a single letter page |
 | `foreman/` | Front end for Foreman, the live governed-agent demo (API runs separately) |
 | `agent-floor/`, `market-arena/`, `codebreaker/` | Demo pages, copied in from their own repos by `deploy.sh` |
 | `ratchet/` | Archived paper-trading dashboard |
