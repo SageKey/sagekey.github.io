@@ -6,10 +6,10 @@
   },
 
   "ladder": [
-    { "level": 0, "name": "read-only",        "blurb": "Observes and reports. Cannot change anything." },
-    { "level": 1, "name": "draft-only",       "blurb": "Prepares work for a human to review. Cannot send or commit." },
-    { "level": 2, "name": "act-with-approval","blurb": "Executes, but every action passes a human gate first." },
-    { "level": 3, "name": "autonomous",       "blurb": "Acts within charter without a gate. Reserved; nothing here yet." }
+    { "level": 0, "name": "Observe", "blurb": "Observes and reports. Cannot change anything." },
+    { "level": 1, "name": "Draft", "blurb": "Prepares work for a human to review. Cannot send or commit." },
+    { "level": 2, "name": "Act with approval","blurb": "Executes, but every action passes a human gate first." },
+    { "level": 3, "name": "Autonomous", "blurb": "Acts within charter without a gate. Reserved; nothing here yet." }
   ],
 
   "agents": [
@@ -17,7 +17,7 @@
       "id": "triage",
       "name": "Queue Triage",
       "level": 2,
-      "since": "promoted after 3 weeks at draft-only with no corrections",
+      "since": "promoted after 3 weeks at Draft with no corrections",
       "charter": [
         "Classify inbound requests by type and urgency.",
         "Route to the owning team using the published routing table.",
@@ -29,7 +29,7 @@
       "id": "approvals",
       "name": "Approvals Chaser",
       "level": 1,
-      "since": "held at draft-only — outbound copy always gets a human read",
+      "since": "held at Draft — outbound copy always gets a human read",
       "charter": [
         "Identify requests stalled awaiting an approver.",
         "Draft reminder messages for the overseer to send.",
@@ -71,9 +71,9 @@
       "text": "New starter laptop + badge → IT Services. Standard onboarding pattern, high confidence.",
       "gate": {
         "title": "Route NF-2833 to IT Services?",
-        "why": "Queue Triage sits at act-with-approval, so every routing decision passes a gate. It is right almost every time — the gate is what earns the next rung, not a sign of distrust.",
+        "why": "Queue Triage sits at Act with approval, so every routing decision passes a gate. It is right almost every time — the gate is what earns the next rung, not a sign of distrust.",
         "approve": "Routed. Logged against Triage's record.",
-        "deny": "Held. Denials are logged too — three in a week would drop Triage back to draft-only."
+        "deny": "Held. Denials are logged too — three in a week would drop Triage back to Draft."
       }
     },
     {
@@ -104,7 +104,7 @@
       },
       "gate": {
         "title": "Send this reminder?",
-        "why": "Approvals Chaser is draft-only. It cannot send — it can only put words in front of you. This is the rung where an agent is genuinely useful and still cannot embarrass you.",
+        "why": "Approvals Chaser is at Draft. It cannot send — it can only put words in front of you. This is the rung where an agent is genuinely useful and still cannot embarrass you.",
         "approve": "Sent by you, not by the agent. The log records who actually pressed send.",
         "deny": "Discarded. The agent does not retry on its own."
       }
@@ -124,7 +124,7 @@
     {
       "t": 9200, "agent": "vendor", "kind": "report", "ticket": "NF-2836",
       "text": "Kessler bar stock is 6 days past the promised date. Two other open POs with the same vendor.",
-      "detail": "Vendor Follow-up is read-only, four days into deployment. It has the information and could plausibly draft an email — but read-only means report, not act."
+      "detail": "Vendor Follow-up is at Observe, four days into deployment. It has the information and could plausibly draft an email — but Observe means report, not act."
     },
     {
       "t": 10400, "agent": "vendor", "kind": "escalate", "ticket": "NF-2814",

@@ -40,7 +40,7 @@
     <div class="links">
       <a href="#work">What I automate</a>
       <a href="#control">How it stays safe</a>
-      <a href="#proof">Proof</a>
+      <a href="/foreman/">Live demo</a>
       <a href="#services">Services</a>
       <a href="/method/">Method</a>
     </div>
@@ -65,100 +65,65 @@
   </div>
 </header>
 
-<!-- ==================== THE STAGE ==================== -->
-<section class="band tight">
+<!-- ==================== THE DESK: pick a job, watch it done ==================== -->
+<section class="band tight" id="work">
   <div class="shell">
-    <div class="stage">
-      <div>
-        <div class="eyebrow">The human gate</div>
-        <h2>Every agent stops here first.</h2>
-        <p>
-          Before anything reaches a customer, a person sees the finished work, the rule that
-          stopped it, and what the agent wasn't sure about. Go on, press one.
-        </p>
-      </div>
-      <div class="gate" id="gate" aria-label="Illustration of a human approval gate">
-        <div class="g-top">
-          <span class="g-tag" id="gtag">Gate · waiting on you</span>
-          <span class="g-agent">Order Desk agent · level: Draft</span>
-        </div>
-        <div class="g-title">Reply to customer PO 48213</div>
-        <div class="g-mail">
-          <div class="to">Drafted for: the customer's purchasing contact</div>
-          Confirming PO 48213 — 24 × HP-3320 pump assemblies at your contract price. Our team will
-          confirm the ship date today.
-        </div>
-        <div class="g-why">
-          <div><b>Why it stopped:</b> charter rule 4 — nothing reaches an outside recipient without a person's approval.</div>
-          <div><b>What it flagged:</b> the requested ship date is 3 days inside standard lead time, so it didn't promise one.</div>
-        </div>
-        <div class="g-btns">
-          <button class="yes" id="gyes">Approve &amp; send</button>
-          <button id="gno">Send back</button>
-        </div>
-        <div class="g-log" id="glog">
-          <div><span class="t">10:41:07</span>agent read PO 48213 (PDF, 2 pages)</div>
-          <div><span class="t">10:41:19</span>matched 1 line → item HP-3320 · price checked against contract</div>
-          <div><span class="t">10:41:22</span>rule 4 fired · stopped at gate</div>
-        </div>
-        <div class="g-foot">
-          <span>An illustration of the pattern.</span>
-          <button id="greset" hidden>reset</button>
+    <div class="desk" id="desk">
+      <div class="d-top">
+        <div class="d-title">Pick a job. Watch an agent do it.</div>
+        <div class="d-tabs" role="tablist" aria-label="Jobs an agent can take on">
+          <button role="tab" aria-selected="true" data-k="order">Order entry</button>
+          <button role="tab" aria-selected="false" data-k="quote">Quotes</button>
+          <button role="tab" aria-selected="false" data-k="claim">Returns</button>
+          <button role="tab" aria-selected="false" data-k="recon">Reconciliation</button>
         </div>
       </div>
+      <div class="d-grid">
+        <div class="d-col" id="c1">
+          <div class="d-lab"><i>1</i> It arrives</div>
+          <div class="doc" id="d-doc"></div>
+        </div>
+        <div class="d-col" id="c2">
+          <div class="d-lab"><i>2</i> The agent prepares</div>
+          <ol class="d-steps" id="d-steps"></ol>
+        </div>
+        <div class="d-col" id="c3">
+          <div class="d-lab"><i>3</i> You decide</div>
+          <div class="gate pending" id="gate" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="d-foot">
+        <span>An illustration with made-up data. <a href="/foreman/">Foreman</a> is the live one.</span>
+        <button id="d-replay" type="button">Replay</button>
+      </div>
+      <noscript><p class="d-noscript">This demo needs JavaScript. The four jobs are described just below.</p></noscript>
     </div>
-  </div>
-</section>
 
-<!-- ==================== WHAT ==================== -->
-<section class="band gray" id="work">
-  <div class="shell">
-    <div class="head">
-      <div class="kicker">What I automate</div>
-      <p class="shead">Your team's day goes to typing, checking and chasing.</p>
-      <p class="intro">
-        The ERP isn't the problem. It's everything people do by hand around it. An agent does
-        the preparation, and a person keeps the decision.
-      </p>
-    </div>
-
-    <div class="grid g2">
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 12h5M10 16h5"/></svg>
+    <div class="jobsum" id="jobsum">
+      <div class="js-panel" data-k="order">
         <h3>Order entry</h3>
-        <div class="rows">
-          <div class="r"><span class="k">Today</span><span>POs arrive as PDFs and emails, and someone retypes each one into the ERP.</span></div>
-          <div class="r a"><span class="k">Agent drafts</span><span>Reads the PO, matches part numbers and prices, and prepares the order.</span></div>
-          <div class="r h"><span class="k">You decide</span><span>The exceptions: the mismatch, the odd terms, the rush request.</span></div>
-        </div>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></svg>
+        <div><span class="k">Today</span><p>POs arrive as PDFs and emails, and someone retypes each one into the ERP.</p></div>
+        <div><span class="k a">The agent drafts</span><p>Reads the PO, matches part numbers and prices, and prepares the order.</p></div>
+        <div><span class="k h">You decide</span><p>The exceptions: the mismatch, the odd terms, the rush request.</p></div>
+      </div>
+      <div class="js-panel" data-k="quote">
         <h3>Quotes &amp; RFQs</h3>
-        <div class="rows">
-          <div class="r"><span class="k">Today</span><span>One RFQ turns into an afternoon of catalog lookups and price checks.</span></div>
-          <div class="r a"><span class="k">Agent drafts</span><span>Pulls the items, pricing and lead times, and assembles the quote.</span></div>
-          <div class="r h"><span class="k">You decide</span><span>The margin, and whether it goes out.</span></div>
-        </div>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h11a5 5 0 0 1 0 10H9"/><path d="M8 5 4 9l4 4"/></svg>
+        <div><span class="k">Today</span><p>One RFQ turns into an afternoon of catalog lookups and price checks.</p></div>
+        <div><span class="k a">The agent drafts</span><p>Pulls the items, pricing and lead times, and assembles the quote.</p></div>
+        <div><span class="k h">You decide</span><p>The margin, and whether it goes out.</p></div>
+      </div>
+      <div class="js-panel" data-k="claim">
         <h3>Returns &amp; warranty claims</h3>
-        <div class="rows">
-          <div class="r"><span class="k">Today</span><span>Every claim means digging through order history, policy and photos.</span></div>
-          <div class="r a"><span class="k">Agent drafts</span><span>Builds the case file and recommends a disposition against your written policy.</span></div>
-          <div class="r h"><span class="k">You decide</span><span>Anything that issues a credit.</span></div>
-        </div>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14"/><path d="m15 5 3 3-3 3"/><path d="M20 16H6"/><path d="m9 13-3 3 3 3"/></svg>
+        <div><span class="k">Today</span><p>Every claim means digging through order history, policy and photos.</p></div>
+        <div><span class="k a">The agent drafts</span><p>Builds the case file and recommends a disposition against your written policy.</p></div>
+        <div><span class="k h">You decide</span><p>Anything that issues a credit.</p></div>
+      </div>
+      <div class="js-panel" data-k="recon">
         <h3>Reconciliation</h3>
-        <div class="rows">
-          <div class="r"><span class="k">Today</span><span>Two systems that should agree, and a person with a spreadsheet finding where they don't.</span></div>
-          <div class="r a"><span class="k">Agent drafts</span><span>Compares them every day and explains each difference in plain language.</span></div>
-          <div class="r h"><span class="k">You decide</span><span>Which side is right, and what gets corrected.</span></div>
-        </div>
-      </article>
+        <div><span class="k">Today</span><p>Two systems that should agree, and a person with a spreadsheet finding where they don't.</p></div>
+        <div><span class="k a">The agent drafts</span><p>Compares them every day and explains each difference in plain language.</p></div>
+        <div><span class="k h">You decide</span><p>Which side is right, and what gets corrected.</p></div>
+      </div>
     </div>
     <p class="note">
       Not on the list? The pattern is what matters: real volume, clear rules, and people who
@@ -343,34 +308,10 @@
         <div class="keep"><b>You keep:</b> an operation that can add its next agent without me.</div>
       </article>
     </div>
-  </div>
-</section>
-
-<!-- ==================== PROCESS ==================== -->
-<section class="band" id="process">
-  <div class="shell">
-    <div class="head">
-      <div class="kicker">Working together</div>
-      <p class="shead">Four steps, and an early exit for either of us.</p>
-    </div>
-    <div class="grid g4 steps">
-      <article class="card">
-        <h3>A call about one job</h3>
-        <p>Describe the one repetitive job that annoys you most. Half an hour usually tells us whether there's anything here.</p>
-      </article>
-      <article class="card">
-        <h3>A straight answer</h3>
-        <p>Including "don't." Plenty of work is better fixed with a corrected process or a plain integration, and I'll say so.</p>
-      </article>
-      <article class="card">
-        <h3>The Readiness Review</h3>
-        <p>$3,500, about two weeks, and the result is yours. The natural place to stop if you'd rather build it in-house.</p>
-      </article>
-      <article class="card">
-        <h3>The first agent</h3>
-        <p>One job, with the agent drafting and a person approving. The rules get written before the code does.</p>
-      </article>
-    </div>
+    <p class="note">
+      It starts with a 30-minute call about one job. If the honest answer is "don't", you'll
+      hear it on that call, before you pay for anything.
+    </p>
   </div>
 </section>
 
@@ -453,15 +394,6 @@
           for me. If I vanish, you have a running system and the documents that explain it.
         </p>
       </details>
-      <details class="q">
-        <summary>What does it cost?</summary>
-        <p>
-          The Readiness Review is $3,500, fixed, and takes about two weeks. A first agent in
-          production typically runs $18,000 to $25,000 over about six weeks, quoted from the
-          review so you see the number next to the plan it pays for. Ongoing oversight is $3,000
-          to $6,000 a month. I don't bill open-ended hours against a vague goal.
-        </p>
-      </details>
     </div>
   </div>
 </section>
@@ -532,28 +464,198 @@
   var onScroll = function () { nav.classList.toggle("scrolled", window.scrollY > 8); };
   window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
 
-  // ---- gate illustration ----
-  var log = $("glog"), tag = $("gtag"), yes = $("gyes"), no = $("gno"), reset = $("greset");
-  var base = log.innerHTML;
-  function stamp() { return new Date().toTimeString().slice(0, 8); }
-  function settle(ok) {
-    yes.disabled = no.disabled = true;
-    var line = document.createElement("div");
-    line.className = "new";
-    line.innerHTML = '<span class="t">' + stamp() + "</span>" +
-      (ok ? "approved by you · sent · decision logged"
-          : "sent back by you · agent will redraft · decision logged");
-    log.appendChild(line);
-    tag.textContent = ok ? "Sent · approved by you" : "Returned to agent";
-    tag.className = "g-tag " + (ok ? "done" : "back");
-    reset.hidden = false;
-  }
-  yes.onclick = function () { settle(true); };
-  no.onclick = function () { settle(false); };
-  reset.onclick = function () {
-    log.innerHTML = base; yes.disabled = no.disabled = false;
-    tag.textContent = "Gate · waiting on you"; tag.className = "g-tag"; reset.hidden = true;
+  // ---- the desk: pick a job, watch an agent prepare it, then decide ----
+  // Everything here is an illustration with made-up data; nothing is sent anywhere.
+  var JOBS = {
+    order: {
+      agent: "Order Desk agent",
+      doc: '<div class="dh"><span class="fi">PDF</span>PO-48213.pdf · from a customer\'s purchasing desk</div>' +
+        '<div class="dt">Purchase order 48213</div>' +
+        '<div class="ln">24 × HP-3320 pump assembly<br>Unit price $412.00<br><span data-f>Ship by: Dec 4</span><br>Terms: Net 30</div>',
+      steps: [
+        ["Read the PO", "PDF, 2 pages"],
+        ["Matched HP-3320 to your item master"],
+        ["Checked the price against this customer's contract", "It matches"],
+        ["Flagged the ship date", "3 days inside your standard lead time", "flag"],
+        ["Prepared the order, then stopped", "Nothing is released without a person", "stop"]
+      ],
+      title: "Sales order for PO 48213",
+      draft: '<div class="to">Draft, not yet released</div>24 × HP-3320 at the contract price of $412.00. Ship date left blank for you to set.',
+      why: "nothing is released to the ERP or the customer without a person's approval.",
+      flag: "the requested ship date is 3 days inside standard lead time, so it didn't promise one.",
+      yes: "Approve", done: "Released"
+    },
+    quote: {
+      agent: "Quoting agent",
+      doc: '<div class="dh"><span class="fi">MAIL</span>RFQ · need pricing by Friday</div>' +
+        '<div class="dt">Request for quote</div>' +
+        '<div class="ln">40 × BR-1180 bearing kit<br>12 × SL-204 seal<br><span data-f>6 × VX-77 valve body</span><br>Needed in 3 weeks</div>',
+      steps: [
+        ["Read the RFQ email", "3 line items"],
+        ["Found all three items in the catalog"],
+        ["Pulled current pricing and lead times"],
+        ["Flagged VX-77", "6-week lead time, past the date they asked for", "flag"],
+        ["Assembled the quote, then stopped", "Pricing needs a person", "stop"]
+      ],
+      title: "Quote for 3 lines",
+      draft: '<div class="to">Drafted for: the customer\'s buyer</div>All three items priced from the current list. VX-77 is quoted at its real 6-week lead time. Margin left for you.',
+      why: "pricing, and anything sent to a customer, needs a person.",
+      flag: "VX-77 can't make the requested date. It quoted the real lead time instead of guessing.",
+      yes: "Approve", done: "Sent"
+    },
+    claim: {
+      agent: "Claims agent",
+      doc: '<div class="dh"><span class="fi">FORM</span>Warranty claim W-2291 · 2 photos</div>' +
+        '<div class="dt">Warranty claim W-2291</div>' +
+        '<div class="ln">Original order SO-77104<br>Unit failed after 7 months<br><span data-f>Serial 3320-0918</span><br>Customer asks for a replacement</div>',
+      steps: [
+        ["Pulled the original order", "SO-77104"],
+        ["Checked the claim against your warranty policy", "12 months, so it is covered"],
+        ["Built the case file", "Order, service history and both photos"],
+        ["Flagged the serial number", "Second claim on this unit in a year", "flag"],
+        ["Recommended a replacement, then stopped", "A credit needs a person", "stop"]
+      ],
+      title: "Recommendation: replace the unit",
+      draft: '<div class="to">Case file attached</div>Inside the 12-month warranty. Recommends a replacement and a credit for the original unit.',
+      why: "anything that issues a credit needs a person's approval.",
+      flag: "this is the second claim on the same serial number in 12 months. Worth a look before you approve.",
+      yes: "Approve", done: "Credit approved"
+    },
+    recon: {
+      agent: "Reconciliation agent",
+      doc: '<div class="dh"><span class="fi">DATA</span>ERP stock vs warehouse count</div>' +
+        '<div class="dt">This morning\'s comparison</div>' +
+        '<div class="ln two"><span>BR-1180</span><span>640</span><span>640</span>' +
+        '<span data-f>HP-3320</span><span data-f>118</span><span data-f>114</span>' +
+        '<span>SL-204</span><span>2,310</span><span>2,310</span></div>' +
+        '<div class="mut">Item · ERP · counted</div>',
+      steps: [
+        ["Compared both systems, item by item"],
+        ["Found the items that disagree"],
+        ["Traced HP-3320", "4 units picked for a shipment that was never posted"],
+        ["Flagged what it can't explain", "It won't guess which side is right", "flag"],
+        ["Drafted one correction, then stopped", "Your records don't change without a person", "stop"]
+      ],
+      title: "One correction proposed",
+      draft: '<div class="to">Draft adjustment, not yet posted</div>HP-3320: post the missing shipment, which brings the ERP from 118 to 114 and matches the count.',
+      why: "it never changes a system of record without a person's approval.",
+      flag: "where it couldn't tell which side was right, it listed the difference and left it for you.",
+      yes: "Approve", done: "Posted"
+    }
   };
+  var ORDER = ["order", "quote", "claim", "recon"];
+  var SK_TOP = '<div class="sk"><i style="width:44%"></i><i style="width:58%"></i><i style="width:36%"></i></div>';
+  var SK_END = '<div class="sk end"><i style="width:86%"></i><i style="width:72%"></i><i style="width:40%"></i></div>';
+  var desk = $("desk"), docEl = $("d-doc"), stepsEl = $("d-steps"), gate = $("gate");
+  var tabs = desk.querySelectorAll(".d-tabs button");
+  var panels = document.querySelectorAll("#jobsum .js-panel");
+  var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var cur = "order", run = 0, started = false;
+
+  function col(n, on) { $("c" + n).classList.toggle("active", on); }
+  function stamp() { return new Date().toTimeString().slice(0, 5); }
+
+  function gateHtml(j) {
+    return '<div class="g-top"><span class="g-tag" id="gtag">Waiting on you</span>' +
+      '<span class="g-agent">' + j.agent + " · level: Draft</span></div>" +
+      '<div class="g-title">' + j.title + "</div>" +
+      '<div class="g-mail">' + j.draft + "</div>" +
+      '<div class="g-why"><div><b>Why it stopped:</b> ' + j.why + "</div>" +
+      "<div><b>What it flagged:</b> " + j.flag + "</div></div>" +
+      '<div class="g-btns"><button class="yes" id="gyes" type="button">' + j.yes + "</button>" +
+      '<button id="gno" type="button">Send back</button></div>' +
+      '<div class="g-res" id="gres" hidden></div>';
+  }
+
+  function decide(ok) {
+    var j = JOBS[cur];
+    $("gyes").disabled = $("gno").disabled = true;
+    gate.classList.remove("ready"); gate.classList.add("settled");
+    var tag = $("gtag");
+    tag.textContent = ok ? j.done + " · approved by you" : "Returned to the agent";
+    tag.className = "g-tag " + (ok ? "done" : "back");
+    var li = document.createElement("li");
+    li.className = "you on done" + (ok ? "" : " back");
+    li.innerHTML = '<span class="ic"></span><span>' +
+      (ok ? "You approved it at " + stamp() : "You sent it back at " + stamp()) +
+      "<small>" + (ok ? "Done, and your decision is in the log" : "The agent will redraft. That is logged too") + "</small></span>";
+    stepsEl.appendChild(li);
+    var next = ORDER[(ORDER.indexOf(cur) + 1) % ORDER.length];
+    var res = $("gres");
+    res.innerHTML = "That was the whole job. <button type=\"button\" id=\"gnext\">Try " +
+      desk.querySelector('[data-k="' + next + '"]').textContent.toLowerCase() + " ›</button>";
+    res.hidden = false;
+    $("gnext").onclick = function () { play(next); };
+  }
+
+  function play(k) {
+    cur = k; var my = ++run, j = JOBS[k];
+    tabs.forEach(function (t) { t.setAttribute("aria-selected", t.getAttribute("data-k") === k ? "true" : "false"); });
+    panels.forEach(function (p) { p.hidden = p.getAttribute("data-k") !== k; });
+
+    // A few blank "lines of print" make it read as a sheet of paper, not a card.
+    docEl.classList.remove("in");
+    docEl.innerHTML = j.doc.replace('<div class="dt">', SK_TOP + '<div class="dt">') + SK_END;
+    stepsEl.innerHTML = "";
+    gate.className = "gate pending"; gate.innerHTML = gateHtml(j);
+    $("gyes").onclick = function () { decide(true); };
+    $("gno").onclick = function () { decide(false); };
+    col(1, true); col(2, false); col(3, false);
+
+    var items = j.steps.map(function (s) {
+      var li = document.createElement("li");
+      if (s[2]) li.className = s[2];
+      li.innerHTML = '<span class="ic"></span><span>' + s[0] + (s[1] ? "<small>" + s[1] + "</small>" : "") + "</span>";
+      stepsEl.appendChild(li); return li;
+    });
+    function ready() {
+      col(3, true); gate.classList.remove("pending"); gate.classList.add("ready");
+    }
+    function flagDoc() { docEl.querySelectorAll("[data-f]").forEach(function (e) { e.classList.add("hot"); }); }
+
+    if (still) {            // no motion: show the finished state at once
+      docEl.classList.add("in"); col(2, true);
+      items.forEach(function (li) { li.classList.add("on", "done"); });
+      flagDoc(); ready(); return;
+    }
+    var later = function (ms, fn) { setTimeout(function () { if (my === run) fn(); }, ms); };
+    later(60, function () { docEl.classList.add("in"); });
+    var t = 900;
+    items.forEach(function (li, i) {
+      later(t, function () {
+        col(2, true);
+        if (i) items[i - 1].classList.add("done");
+        li.classList.add("on");
+        if (li.classList.contains("flag")) flagDoc();
+      });
+      t += 950;
+    });
+    later(t, function () { items[items.length - 1].classList.add("done"); ready(); });
+  }
+
+  tabs.forEach(function (t) { t.onclick = function () { started = true; play(t.getAttribute("data-k")); }; });
+  $("d-replay").onclick = function () { started = true; play(cur); };
+  panels.forEach(function (p) { p.hidden = p.getAttribute("data-k") !== cur; });
+  // Start when the desk is actually on screen, so nobody arrives mid-way.
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      if (es[0].isIntersecting && !started) { started = true; play(cur); io.disconnect(); }
+    }, { threshold: 0.3 });
+    io.observe(desk);
+  } else { started = true; play(cur); }
+
+  // ---- gentle reveal as sections scroll in ----
+  if (!still && "IntersectionObserver" in window) {
+    var rv = document.querySelectorAll(".band .head, .band .card, .pull, .about, .facts.tiles li, .qa, .contact, .jobsum");
+    var ro = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); } });
+    }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
+    rv.forEach(function (el) {
+      var sib = el.parentNode ? Array.prototype.indexOf.call(el.parentNode.children, el) : 0;
+      if (el.classList.contains("card") || el.tagName === "LI") el.style.transitionDelay = Math.min(sib, 3) * 70 + "ms";
+      el.classList.add("rv"); ro.observe(el);
+    });
+  }
 
   // ---- live Foreman status (real, fetched now; silently absent if unreachable) ----
   var API = "https://foreman-production-2733.up.railway.app";
