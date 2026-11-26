@@ -50,11 +50,16 @@
     .sheet { box-shadow:none; margin:0; padding:0; max-width:none; border-radius:0; }
     a { color:inherit; }
     html, body { overflow:visible !important; height:auto; }
-    .sheet { font-size:12.5px; }
-    .sheet h1 { font-size:27px; margin-top:18px; }
-    .sheet .sub { font-size:14px; }
-    .cols { gap:18px 34px; margin-top:20px; }
-    .s-end { margin-top:18px; padding-top:12px; }
+    .sheet { font-size:11.5px; line-height:1.38; }
+    .sheet h1 { font-size:24px; margin-top:14px; }
+    .sheet .sub { font-size:13px; margin-top:6px; }
+    .cols { gap:13px 30px; margin-top:14px; }
+    .sheet h2 { margin-bottom:5px; }
+    .sheet ul { gap:4px; }
+    .price-rows div { padding:6px 0; }
+    .s-top { padding-bottom:10px; }
+    .s-end { margin-top:12px; padding-top:10px; }
+    footer.fat { display:none !important; }
   }
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -72,9 +77,9 @@
       SageKey
     </a>
     <div class="links">
-      <a href="/#work">What I automate</a>
-      <a href="/#control">How it stays safe</a>
-      <a href="/foreman/">Live demo</a>
+      <a href="/#work"><span class="l">What I automate</span><span class="s">Work</span></a>
+      <a href="/#control"><span class="l">How it stays safe</span><span class="s">Safety</span></a>
+      <a href="/foreman/"><span class="l">Live demo</span><span class="s">Demo</span></a>
       <a href="/#services">Services</a>
       <a href="/method/">Method</a>
     </div>
@@ -152,8 +157,10 @@
       <p>
         <b>Localogy.</b> Publishing a data file used to take 3 to 5 days and needed developers,
         operations staff and an executive sign-off. An AI pipeline now receives, cleans,
-        validates and publishes each one in minutes. Reference: Bob Zink, Chief Operating
-        Officer, Localogy (linkedin.com/in/robertzink).
+        validates and publishes each one in minutes. It was Localogy's own data going to its
+        own site, so the checks became rules inside the pipeline; work that reaches customers
+        still waits for a person. Reference: Bob Zink, Chief Operating Officer, Localogy
+        (linkedin.com/in/robertzink).
       </p>
     </section>
     <section class="full">
