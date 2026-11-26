@@ -3,496 +3,452 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Agent Floor (simulation) — supervise a team of AI agents for one shift · SageKey</title>
-<meta name="description" content="Supervise a team of AI agents for one shift. Each has written rules and a level of trust, and anything leaving the building waits for your approval. Watch where they stop themselves." />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d1d1f'/%3E%3Crect x='5' y='7' width='22' height='3' rx='1.5' fill='%2354d6a0'/%3E%3Crect x='5' y='14' width='16' height='3' rx='1.5' fill='%23f0b849'/%3E%3Crect x='5' y='21' width='10' height='3' rx='1.5' fill='%236aa3e8'/%3E%3C/svg%3E" />
-<meta property="og:title" content="Agent Floor — supervise a team of AI agents for one shift" />
+<title>Agent Floor — supervise a shift of AI agents · SageKey</title>
+<meta name="description" content="Supervise three AI agents for one shift. Each has written rules and a level of trust, and anything that needs a person stops and waits for you. A scripted simulation with a made-up company." />
 <link rel="canonical" href="https://sagekey.com/agent-floor/" />
-<meta property="og:image" content="https://sagekey.com/og.png" />
+<meta property="og:type" content="website" />
 <meta property="og:url" content="https://sagekey.com/agent-floor/" />
-<meta property="og:description" content="Charters, an autonomy ladder, approval gates, an append-only log. You are the overseer. The interesting part is where the agents stop." />
+<meta property="og:site_name" content="SageKey" />
+<meta property="og:title" content="Agent Floor — supervise a shift of AI agents" />
+<meta property="og:description" content="Three agents, three levels of trust, and you in the supervisor's chair. Watch where they stop." />
+<meta property="og:image" content="https://sagekey.com/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
 <meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d1d1f'/%3E%3Ccircle cx='12' cy='16' r='5' fill='none' stroke='%2354d6a0' stroke-width='2.5'/%3E%3Cpath d='M17 16h10M23 16v5M27 16v4' stroke='%2354d6a0' stroke-width='2.5' fill='none'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="/site.css" />
 <style>
-  :root {
-    --bg:#f5f5f7; --panel:#ffffff; --panel2:#f5f5f7; --line:#e0e0e5;
-    --ink:#1d1d1f; --dim:#6e6e73; --faint:#86868b;
-    --l0:#2f7fdf; --l1:#b86e00; --l2:#0a7d57; --l3:#b0b0b6;
-    --alarm:#d70015; --escalate:#c2410c; --blue:#0071e3;
-  }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body {
-    background:var(--bg); color:var(--ink); min-height:100vh;
-    font:400 14px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased; padding:0 0 60px;
-  }
-  .shell { max-width:1180px; margin:0 auto; padding:0 22px; }
+  /* Agent Floor: one supervisor screen. Built on the site's styles; only what is specific to this page lives here. */
+  header.hero { padding-bottom:36px; }
+  header.hero h1 { font-size:clamp(36px,5.6vw,64px); max-width:15ch; }
+  .af-tag { font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; color:var(--warn);
+    border:1px solid currentColor; border-radius:999px; padding:3px 10px; margin-left:8px; vertical-align:2px; }
+  .af-org { display:inline-block; margin-top:20px; font-size:13px; color:var(--dim); background:var(--tile); border-radius:980px; padding:7px 16px; }
+  .af-ctl { display:flex; gap:14px; justify-content:center; align-items:center; margin-top:26px; flex-wrap:wrap; }
+  .af-ctl .btn[disabled] { opacity:.45; cursor:default; }
+  .af-ctl .quiet { background:none; border:none; color:var(--link); font:400 17px var(--sans); cursor:pointer; }
+  .af-ctl .quiet[hidden] { display:none; }
 
-  /* site bar, so the demo reads as part of sagekey.com and has a way home */
-  .sitebar { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.8);
-    backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
-    border-bottom:1px solid rgba(0,0,0,.1); }
-  .sitebar .in { max-width:1180px; margin:0 auto; padding:0 22px; height:52px; display:flex; align-items:center; gap:28px; }
-  .sitebar .mark { display:flex; align-items:center; gap:8px; font-weight:600; font-size:17px; color:var(--ink);
-    letter-spacing:-.02em; text-decoration:none; }
-  .sitebar .lk { margin:0 auto; display:flex; gap:30px; font-size:13px; }
-  .sitebar .lk a { color:var(--ink); opacity:.8; text-decoration:none; }
-  .sitebar .lk a:hover { opacity:1; }
-  .sitebar .cta { font-size:13px; padding:6px 14px; border-radius:980px; background:var(--blue); color:#fff; text-decoration:none; }
-  @media (max-width:720px) { .sitebar .lk { display:none; } .sitebar .in { justify-content:space-between; } }
-
-  header { margin:44px 0 22px; }
-  .htop { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  h1 { font-size:40px; font-weight:600; letter-spacing:-.025em; line-height:1.05; }
-  .sub { color:var(--dim); font-size:19px; margin-top:10px; letter-spacing:-.012em; max-width:44em; line-height:1.4; }
-  .synthetic { display:inline-block; margin-top:9px; font-size:11px; color:var(--faint);
-    border:1px solid var(--line); border-radius:999px; padding:3px 9px; }
-
-  /* Nothing here is live. The gate moment reads as a real approval request, so the
-     label has to travel with it — header alone was not enough. */
-  .sim { font:600 10.5px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing:.13em;
-    text-transform:uppercase; color:var(--escalate); border:1px solid var(--escalate);
-    border-radius:4px; padding:4px 7px; white-space:nowrap; }
-  .sim.solid { background:var(--escalate); color:#fff; border-color:var(--escalate); }
-  .simnote { color:var(--faint); font-size:11.5px; }
-
-  .grid { display:grid; grid-template-columns:288px 1fr 250px; gap:16px; align-items:start; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:18px; }
-  .card h2 { font-size:11px; font-weight:600; color:var(--dim); letter-spacing:.07em;
-    text-transform:uppercase; padding:13px 15px 0; }
-
-  /* ladder */
-  .ladder { padding:11px 15px 14px; }
-  .rung { display:flex; gap:9px; align-items:flex-start; padding:6px 0; }
-  .rung .pip { width:8px; height:8px; border-radius:2px; margin-top:6px; flex:none; }
-  .rung .nm { font-size:12.5px; font-weight:500; }
-  .rung .bl { font-size:11.5px; color:var(--faint); line-height:1.4; }
-  .rung.unused .pip { background:none !important; outline:1.5px dashed #86868b; outline-offset:-1px; }
+  .af-floor { background:var(--tile); border-radius:28px; padding:20px; display:grid; grid-template-columns:268px 1fr 268px; gap:16px; align-items:start; }
+  .af-strip { grid-column:1 / -1; display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .af-stat { background:#fff; border-radius:18px; padding:16px 20px; display:flex; align-items:baseline; gap:12px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .af-stat b { font-size:30px; font-weight:600; letter-spacing:-.03em; line-height:1; min-width:1.2ch; }
+  .af-stat span { font-size:14px; color:var(--dim); line-height:1.3; }
+  .af-stat.hot { box-shadow:0 0 0 2px #f0b849, 0 10px 24px -14px rgba(240,184,73,.9); }
+  .af-stat.hot b { color:var(--warn); }
+  .af-panel { background:#fff; border-radius:18px; padding:18px; box-shadow:0 1px 2px rgba(0,0,0,.05); min-width:0; }
+  .af-panel > h2 { font-size:13px; font-weight:600; color:var(--faint); margin-bottom:12px; }
+  #af-ap, #af-qp { position:sticky; top:68px; }   /* the roster and backlog stay in view while the log grows */
 
   /* agents */
-  .agent { border-top:1px solid var(--line); padding:13px 15px; transition:background .25s; }
-  .agent.active { background:var(--panel2); }
-  .arow { display:flex; align-items:center; gap:8px; }
-  .dot { width:9px; height:9px; border-radius:50%; flex:none; }
-  .aname { font-size:13.5px; font-weight:600; }
-  .lvl { margin-left:auto; font-size:10.5px; padding:2px 7px; border-radius:999px; border:1px solid; }
-  .since { font-size:11.5px; color:var(--faint); margin:5px 0 8px; }
-  .charter { list-style:none; display:flex; flex-direction:column; gap:3px; }
-  .charter li { font-size:11.5px; color:var(--dim); padding-left:12px; position:relative; line-height:1.42; }
-  .charter li::before { content:"·"; position:absolute; left:3px; color:var(--faint); }
-  .charter li.deny { color:#b3261e; }
-  .charter li.deny::before { content:"×"; color:var(--alarm); font-size:10px; top:1px; }
+  .af-agent { padding:14px 0; border-top:1px solid #f0f0f3; }
+  .af-agent:first-of-type { border-top:none; padding-top:0; }
+  .af-agent:last-of-type { padding-bottom:0; }
+  .af-an { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:16px; font-weight:600; letter-spacing:-.014em; }
+  .af-lvl { font-size:11.5px; font-weight:600; color:var(--c); border:1px solid var(--c); border-radius:980px; padding:2px 9px; white-space:nowrap; letter-spacing:0; }
+  .af-st { font-size:13.5px; color:var(--dim); margin-top:6px; display:flex; align-items:center; gap:7px; }
+  .af-st i { width:7px; height:7px; border-radius:50%; background:#c7c7cc; flex:none; }
+  .af-agent.work .af-st i { background:#16a871; animation:afpulse 1.2s ease-in-out infinite; }
+  .af-agent.wait .af-st i { background:#f0b849; }
+  .af-agent.wait .af-st { color:var(--warn); font-weight:600; }
+  .af-agent.done .af-st i { background:#1d1d1f; }
+  @keyframes afpulse { 50% { opacity:.3; } }
+  .af-agent details { margin-top:8px; }
+  .af-agent summary { font-size:13.5px; color:var(--link); cursor:pointer; list-style:none; }
+  .af-agent summary::-webkit-details-marker { display:none; }
+  .af-agent summary::after { content:" ›"; }
+  .af-agent details[open] summary::after { content:" ⌄"; }
+  .af-since { font-size:13px; color:var(--faint); margin-top:8px; line-height:1.4; }
+  .af-rules { list-style:none; margin-top:8px; display:flex; flex-direction:column; gap:5px; font-size:13.5px; line-height:1.38; }
+  .af-rules li { padding-left:18px; position:relative; }
+  .af-rules li::before { content:""; position:absolute; left:4px; top:7px; width:6px; height:6px; border-radius:50%; background:#16a871; }
+  .af-rules li.no::before { content:"×"; background:none; color:#d70015; font-weight:600; left:2px; top:-2px; width:auto; height:auto; font-size:15px; }
 
-  /* floor */
-  .floor { min-height:520px; display:flex; flex-direction:column; }
-  .log { padding:12px 15px 15px; display:flex; flex-direction:column; gap:9px; flex:1; }
-  .beat { border-left:2px solid var(--line); padding:8px 0 8px 12px; animation:in .3s cubic-bezier(.2,0,0,1); }
-  @keyframes in { from { opacity:0; transform:translateY(6px); } }
-  .bhead { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
-  .who { font-size:12px; font-weight:600; }
-  .kind { font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); }
-  .tix { font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums; }
-  .btext { font-size:13px; margin-top:3px; }
-  .bdetail { font-size:12px; color:var(--dim); margin-top:5px; line-height:1.5;
-    border-left:2px solid var(--line); padding-left:9px; }
-  .policy { display:inline-block; margin-top:6px; font-size:11px; padding:3px 8px; border-radius:5px;
-    background:rgba(215,0,21,.06); color:#b3001b; border:1px solid rgba(215,0,21,.2); }
-  .beat.blocked { border-left-color:var(--alarm); }
-  .beat.escalate { border-left-color:var(--escalate); }
-  .beat.act { border-left-color:var(--l2); }
-  .beat.draft, .beat.flag { border-left-color:var(--l1); }
-  .beat.report { border-left-color:var(--l0); }
-  .beat.stop { border-left-color:var(--faint); }
+  /* log */
+  .af-log { min-height:440px; display:flex; flex-direction:column; gap:12px; }
+  .af-empty { color:var(--dim); font-size:16px; padding:36px 8px; text-align:center; }
+  .af-e { border-left:3px solid var(--c, #c7c7cc); padding:2px 0 2px 14px; animation:afin .4s cubic-bezier(.2,.8,.2,1); }
+  @keyframes afin { from { opacity:0; transform:translateY(8px); } }
+  .af-eh { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; font-size:13px; }
+  .af-eh b { color:var(--c, var(--ink)); font-size:14px; }
+  .af-kind { color:var(--faint); font-weight:600; }
+  .af-tk { font:12.5px var(--mono); color:var(--faint); }
+  .af-e p { font-size:16px; line-height:1.42; margin-top:3px; }
+  .af-e p.d { font-size:14.5px; color:var(--dim); margin-top:6px; }
+  .af-pol { display:inline-block; margin-top:8px; font-size:13px; color:#8a1f11; background:#fdecea; border-radius:8px; padding:5px 10px; }
+  .af-res { margin-top:8px; font-size:14.5px; font-weight:600; color:var(--accent); }
+  .af-res.no { color:#2f6fbd; }
+  .af-mail { margin-top:10px; background:var(--tile); border-radius:12px; padding:14px 16px; font-size:14.5px; line-height:1.5; }
+  .af-mail dl { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .af-mail dt { color:var(--faint); }
+  .af-mail dd { font-weight:600; }
+  .af-mail .body { white-space:pre-wrap; }
+  .af-mail .big { font-size:17px; font-weight:600; letter-spacing:-.014em; }
+  .af-mail .sub { font-size:13.5px; color:var(--dim); margin-top:4px; }
 
-  .mail { margin-top:8px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
-  .mail .mrow { font-size:11.5px; color:var(--dim); }
-  .mail .mrow b { color:var(--ink); font-weight:500; }
-  .mail pre { margin-top:7px; font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
-    white-space:pre-wrap; color:var(--ink); }
+  /* the gate: in the log, with everything needed to decide in plain sight */
+  .af-gate { border:2px solid #f0b849; border-radius:16px; padding:18px; background:#fffdf6; box-shadow:0 18px 40px -22px rgba(240,184,73,.9);
+    animation:afin .45s cubic-bezier(.2,.8,.2,1); }
+  .af-gt { display:inline-block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:650; color:#231803; background:#f0b849; border-radius:999px; padding:3px 10px; }
+  .af-gate h3 { font-size:21px; margin-top:10px; }
+  .af-gate .why { font-size:15px; color:var(--dim); margin-top:10px; line-height:1.45; }
+  .af-gate .why b { color:var(--ink); }
+  .af-gb { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .af-gb .btn { flex:1 1 140px; text-align:center; }
+  .af-gn { font-size:12.5px; color:var(--faint); margin-top:10px; }
 
-  /* queue */
-  .q { padding:11px 13px 14px; display:flex; flex-direction:column; gap:6px; }
-  .t { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; transition:border-color .3s; }
-  .t.touched { border-color:#86868b; }
-  .tid { font-size:10.5px; color:var(--faint); font-variant-numeric:tabular-nums; }
-  .tt { font-size:12px; margin-top:1px; line-height:1.35; }
-  .ts { font-size:10.5px; margin-top:4px; color:var(--dim); }
-  .ts.aged { color:var(--l1); }
-
-  /* controls */
-  .bar { display:flex; gap:8px; align-items:center; margin:14px 0 16px; flex-wrap:wrap; }
-  button { font:inherit; font-size:15px; font-weight:400; color:var(--ink); background:#fff;
-    border:1px solid #d2d2d7; border-radius:980px; padding:9px 20px; cursor:pointer; transition:background .15s,opacity .15s; }
-  button:hover:not(:disabled) { background:#f0f0f3; }
-  button.primary { background:var(--blue); border-color:var(--blue); color:#fff; }
-  button.primary:hover:not(:disabled) { background:#0077ed; }
-  button:disabled { opacity:.4; cursor:default; }
-  .status { color:var(--dim); font-size:12.5px; }
-
-  /* gate */
-  .scrim { position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter:blur(6px);
-    display:none; align-items:center; justify-content:center; padding:20px; z-index:20; }
-  .scrim.on { display:flex; }
-  .gate { background:var(--panel); border:1px solid var(--line); border-radius:22px;
-    box-shadow:0 30px 80px -20px rgba(0,0,0,.35); max-width:540px; width:100%; padding:28px; animation:in .22s cubic-bezier(.2,0,0,1); }
-  .gtag { font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--l1); }
-  .gate h3 { font-size:16px; font-weight:600; margin:6px 0 9px; }
-  .gate .why { font-size:13px; color:var(--dim); line-height:1.6; }
-  .gate .btns { display:flex; gap:9px; margin-top:16px; }
+  /* backlog */
+  .af-q { padding:12px 10px; margin:0 -10px; border-top:1px solid #f0f0f3; border-radius:10px; }
+  .af-q:first-of-type { border-top:none; }
+  .af-q .id { font:12px var(--mono); color:var(--faint); }
+  .af-q .ti { font-size:15px; font-weight:600; letter-spacing:-.012em; line-height:1.3; margin-top:1px; }
+  .af-q .st { display:inline-block; margin-top:6px; font-size:12.5px; line-height:1.3; color:var(--dim); background:var(--tile); border-radius:8px; padding:3px 9px; }
+  .af-q .st.ok { color:#0a6b4a; background:#e3f6ee; }
+  .af-q .st.warn { color:#8a4b00; background:#fdf0d9; }
+  .af-q .st.info { color:#1f5fa8; background:#e6f0fb; }
+  .af-q.hit { animation:afhit 1.2s ease-out; }
+  @keyframes afhit { 0% { box-shadow:inset 3px 0 0 #f0b849; background:#fffbee; } 100% { box-shadow:inset 3px 0 0 transparent; background:transparent; } }
 
   /* closing */
-  .close { margin-top:16px; padding:18px 20px; }
-  .close h3 { font-size:15px; font-weight:600; margin-bottom:9px; }
-  .close ul { list-style:none; display:flex; flex-direction:column; gap:6px; }
-  .close li { font-size:13px; color:var(--dim); padding-left:16px; position:relative; }
-  .close li::before { content:"→"; position:absolute; left:0; color:var(--l2); }
-  code { font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:.92em; }
+  .af-close { margin-top:20px; background:#1d1d1f; color:#f5f5f7; border-radius:28px; padding:44px; display:none; }
+  .af-close.on { display:block; animation:afin .5s cubic-bezier(.2,.8,.2,1); }
+  .af-close h2 { font-size:clamp(28px,3.4vw,40px); letter-spacing:-.024em; line-height:1.08; }
+  .af-close ul { list-style:none; margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:12px 36px; }
+  .af-close li { font-size:17px; line-height:1.42; color:#d1d1d6; padding-left:22px; position:relative; }
+  .af-close li::before { content:""; position:absolute; left:2px; top:9px; width:8px; height:8px; border-radius:2px; background:#54d6a0; }
+  .af-close .herocta { justify-content:flex-start; margin-top:28px; }
+  .af-close .text { color:#2997ff; }
+  .af-what { color:var(--dim); font-size:15px; max-width:44em; margin:28px auto 0; text-align:center; line-height:1.5; }
 
-  .foot { margin-top:26px; color:var(--faint); font-size:12px; line-height:1.6; max-width:760px; }
-  .foot b { color:var(--dim); font-weight:500; }
-  .sitefoot { margin-top:56px; border-top:1px solid var(--line); }
-  .sitefoot .in { max-width:1180px; margin:0 auto; padding:18px 22px 30px; display:flex; gap:10px 22px; flex-wrap:wrap; font-size:12px; color:var(--dim); }
-  .sitefoot a { color:#424245; text-decoration:none; }
-  .sitefoot a:hover { text-decoration:underline; }
-  .sitefoot .sp { margin-left:auto; }
-  @media (max-width:720px) { .sitefoot .sp { margin-left:0; } }
-
-  /* Shared links land people here directly, so every page needs a way back out. */
-  .backlink { margin-top:32px; padding-top:15px; border-top:1px solid var(--line);
-    display:flex; gap:15px; align-items:center; flex-wrap:wrap; font-size:12.5px; }
-  .backlink a { color:var(--dim); text-decoration:none; }
-  .backlink a:hover { color:var(--ink); }
-  .backlink a.home { color:#0066cc; }
-  .backlink .sep { color:var(--l3); }
-
-  @media (max-width:1000px) {
-    .grid { grid-template-columns:1fr; }
-    .floor { min-height:auto; }
+  @media (max-width:980px) {
+    .af-floor { grid-template-columns:1fr; padding:14px; border-radius:22px; }
+    .af-strip { gap:10px; }
+    .af-stat { flex-direction:column; align-items:flex-start; gap:6px; padding:14px; }
+    .af-stat b { font-size:26px; }
+    .af-stat span { font-size:12.5px; }
+    #af-logp { order:1; } #af-qp { order:2; } #af-ap { order:3; }
+    #af-ap, #af-qp { position:static; }
+    .af-log { min-height:0; }
+    .af-close { padding:28px 22px; border-radius:22px; }
+    .af-close ul { grid-template-columns:1fr; }
   }
+  @media (prefers-reduced-motion:reduce) { .af-e, .af-gate, .af-close.on { animation:none; } }
 </style>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-<div class="sitebar"><div class="in">
-  <a class="mark" href="/">
-    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
-      <circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/>
-      <path d="M17 16h10M23 16v5M27 16v4" stroke="currentColor" stroke-width="2.6" fill="none"/>
-    </svg>
-    SageKey
-  </a>
-  <div class="lk">
-    <a href="/#work">What I automate</a>
-    <a href="/#control">How it stays safe</a>
-    <a href="/foreman/">Live demo</a>
-    <a href="/#services">Services</a>
-    <a href="/method/">Method</a>
-  </div>
-  <a class="cta" href="/#contact">Start a conversation</a>
-</div></div>
-<div class="shell">
 
-<header>
-  <div class="htop">
-    <h1>Agent Floor</h1>
-    <span class="sim solid">Simulation</span>
-    <span class="simnote">Scripted replay. No live AI, no real company, no real approvals.</span>
-  </div>
-  <div class="sub">Supervise a team of AI agents for one shift. Each one has written rules and a level of trust, and anything leaving the building waits for your approval. Press start, and watch where they stop.</div>
-  <div class="synthetic" id="synthetic">loading…</div>
-</header>
-
-<div class="bar">
-  <button class="primary" id="run">Start the shift</button>
-  <button id="restart" disabled>Restart</button>
-  <span class="status" id="status">Three agents, three different autonomy levels.</span>
-</div>
-
-<div class="grid">
-  <div>
-    <section class="card">
-      <h2>Autonomy ladder</h2>
-      <div class="ladder" id="ladder"></div>
-    </section>
-    <section class="card" style="margin-top:16px">
-      <h2>On shift</h2>
-      <div id="agents"></div>
-    </section>
-  </div>
-
-  <section class="card floor">
-    <h2>Floor log</h2>
-    <div class="log" id="log">
-      <div class="beat" style="border-left-color:var(--line)">
-        <div class="btext" style="color:var(--dim)">Nothing has happened yet. Start the shift.</div>
-      </div>
+<nav class="top scrolled">
+  <div class="shell navrow">
+    <a class="mark" href="/">
+      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+        <path d="M17 16h10M23 16v5M27 16v4" stroke="currentColor" stroke-width="2.6" fill="none"/>
+      </svg>
+      SageKey
+    </a>
+    <div class="links">
+      <a href="/#work"><span class="l">What I automate</span><span class="s">Work</span></a>
+      <a href="/#control"><span class="l">How it stays safe</span><span class="s">Safety</span></a>
+      <a href="/foreman/"><span class="l">Live demo</span><span class="s">Demo</span></a>
+      <a href="/#services">Services</a>
+      <a href="/method/">Method</a>
     </div>
-  </section>
-
-  <section class="card">
-    <h2>Queue</h2>
-    <div class="q" id="queue"></div>
-  </section>
-</div>
-
-<section class="card close" id="closing" style="display:none"></section>
-
-<p class="foot">
-  <b>What this is.</b> A replay of a scripted shift, not a live model — the agent reasoning was
-  generated ahead of time and checked into <code>run.json</code>, so the page stays a single
-  static file with no key and no backend. The company, the people and every ticket are invented.
-  <br /><br />
-  <b>What it is actually showing.</b> Not that agents can do work — that part is easy now. It
-  shows the scaffolding that makes them safe to run against real work: a written charter per
-  agent, an autonomy level earned rather than assigned, a human gate on anything that leaves the
-  building, and a log that records who actually pressed send.
-</p>
-
-<nav class="backlink">
-  <a class="home" href="/">← Back to SageKey</a>
-  <span class="sep">·</span>
-  <a href="/foreman/">Foreman, the live version</a>
-  <a href="/method/">The method</a>
+    <a class="btn primary sm" href="/#contact">Start a conversation</a>
+  </div>
 </nav>
 
-</div>
+<main>
+<header class="hero">
+  <div class="shell">
+    <div class="kicker">Agent Floor <span class="af-tag">Simulation</span></div>
+    <h1>Supervise a shift. <em>Watch where they stop.</em></h1>
+    <p class="lede">
+      Three AI agents, each trusted to a different degree, work through a fabricator's backlog.
+      Anything that needs a person stops and waits for you.
+    </p>
+    <span class="af-org" id="af-org">A scripted replay with a made-up company. No live AI, nothing real is sent.</span>
+    <div class="af-ctl">
+      <button class="btn primary" id="af-start" type="button">Start the shift</button>
+      <button class="quiet" id="af-restart" type="button" hidden>Start over</button>
+    </div>
+  </div>
+</header>
 
-<footer class="sitefoot">
-  <div class="in">
-    <span>Copyright © 2026 SageKey.</span>
-    <a href="/">Home</a>
-    <a href="/#fit">Is your job a fit?</a>
-    <a href="/foreman/">Foreman</a>
-    <a href="/method/">The method</a>
-    <a href="/brief/">SageKey on one page</a>
-    <a class="sp" href="/#contact">Start a conversation</a>
+<section class="band tight">
+  <div class="shell">
+    <div class="af-floor" id="af-floor">
+      <div class="af-strip" aria-live="polite">
+        <div class="af-stat" id="af-s-wait"><b id="af-n-wait">0</b><span>waiting on you</span></div>
+        <div class="af-stat"><b id="af-n-done">0</b><span>of <span id="af-n-all">7</span> requests moved forward</span></div>
+        <div class="af-stat"><b id="af-n-stop">0</b><span>times an agent held back on its own</span></div>
+      </div>
+
+      <div class="af-panel" id="af-ap">
+        <h2>On shift</h2>
+        <div id="af-agents"></div>
+      </div>
+
+      <div class="af-panel" id="af-logp">
+        <h2>What happened, in order</h2>
+        <div class="af-log" id="af-log" aria-live="polite"><div class="af-empty">Nothing has happened yet. Start the shift.</div></div>
+      </div>
+
+      <div class="af-panel" id="af-qp">
+        <h2>The backlog</h2>
+        <div id="af-queue"></div>
+      </div>
+    </div>
+
+    <div class="af-close" id="af-close"></div>
+
+    <p class="af-what">
+      Every line of this shift was written ahead of time, so it plays the same way for everyone
+      and costs nothing to run. What it shows is real: written rules for each agent, a level of
+      trust that is earned, a person at every exit, and a record of who decided what.
+      <a href="/foreman/">Foreman</a> is the live one, and <a href="/method/">the method</a> explains the rest.
+    </p>
+  </div>
+</section>
+<div style="height:96px"></div>
+</main>
+
+<footer class="fat">
+  <div class="shell">
+    <div class="f-cols">
+      <div class="f-brand">
+        <a class="mark" href="/">
+          <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+            <path d="M17 16h10M23 16v5M27 16v4" stroke="currentColor" stroke-width="2.6" fill="none"/>
+          </svg>
+          SageKey
+        </a>
+        <p>AI agents for the back office, built so nothing goes out without a person's OK.</p>
+      </div>
+      <div>
+        <h5>The work</h5>
+        <a href="/#work">What I automate</a>
+        <a href="/#control">How it stays safe</a>
+        <a href="/#fit">Is your job a fit?</a>
+        <a href="/#services">Services and prices</a>
+      </div>
+      <div>
+        <h5>See it run</h5>
+        <a href="/foreman/">Foreman, the live demo</a>
+        <a href="/agent-floor/">Agent Floor</a>
+        <a href="/lab/">The lab</a>
+      </div>
+      <div>
+        <h5>Read</h5>
+        <a href="/method/">The method</a>
+        <a href="/brief/">SageKey on one page</a>
+        <a href="https://github.com/SageKey">GitHub</a>
+      </div>
+      <div>
+        <h5>Talk</h5>
+        <a href="/#contact">Start a conversation</a>
+        <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>
+      </div>
+    </div>
+    <div class="f-base">Copyright © 2026 SageKey. All rights reserved. Based in Texas.</div>
   </div>
 </footer>
 
-<div class="scrim" id="scrim">
-  <div class="gate">
-    <div class="gtag" style="display:flex;align-items:center;gap:9px">
-      <span>Human gate</span>
-      <span class="sim">Simulation</span>
-    </div>
-    <h3 id="gtitle"></h3>
-    <div class="why" id="gwhy"></div>
-    <div class="simnote" style="margin-top:11px">
-      Nothing is sent either way. Your choice only steers the scripted replay.
-    </div>
-    <div class="btns">
-      <button class="primary" id="gyes">Approve</button>
-      <button id="gno">Deny</button>
-    </div>
-  </div>
-</div>
-
 <script>
-// ---------------------------------------------------------------------------
-// Agent Floor — a governed agent workforce, replayed.
-//
-// The interesting part of running agents is not that they can do the work. It
-// is the scaffolding: what each one is allowed to touch, how it earns more
-// rope, what stops before it reaches a customer, and who is on the hook when
-// it does. This replays a shift where two agents stop themselves — once by
-// catching its own policy violation, once by refusing work it was capable of.
-// ---------------------------------------------------------------------------
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function track(name, data) { try { window.va && window.va("event", { name: name, data: data || {} }); } catch (e) {} }
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  var LCOL = ["var(--l0)", "var(--l1)", "var(--l2)", "var(--l3)"];
+  var KIND = { start: "Started", act: "Did it", flag: "Flagged", ask: "Asked first", stop: "Stopped", draft: "Drafted",
+               blocked: "Caught itself", report: "Reported", escalate: "Passed it up" };
+  var HELD = { flag: 1, blocked: 1, escalate: 1 };       // times an agent held back on its own
 
-const SPEED = 2.1;                    // stretch the scripted timings for reading
-let DATA = null, playing = false, cursor = 0, tick = null;
+  var DATA, S, timer = null, agentsEl = {}, queueEl = {};
 
-// The log order IS the narrative, so playback walks the script one beat at a
-// time rather than scheduling them all up front. An earlier version fired every
-// beat on its own timer and simply deferred whichever one collided with an open
-// gate — which let later beats overtake it and shuffled the story out of order.
-
-const $ = id => document.getElementById(id);
-const el = (tag, cls, text) => {
-  const n = document.createElement(tag);
-  if (cls) n.className = cls;
-  if (text !== undefined) n.textContent = text;
-  return n;
-};
-const LVLCOL = ["var(--l0)", "var(--l1)", "var(--l2)", "var(--l3)"];
-
-fetch("run.json").then(r => r.json()).then(d => { DATA = d; boot(); })
-  .catch(() => { $("status").textContent = "Could not load run.json"; });
-
-function boot() {
-  $("synthetic").textContent = DATA.org.company + " · " + DATA.org.note;
-
-  // ladder
-  const L = $("ladder");
-  DATA.ladder.forEach(r => {
-    const row = el("div", "rung" + (r.level === 3 ? " unused" : ""));
-    const pip = el("div", "pip"); pip.style.background = LVLCOL[r.level];
-    row.appendChild(pip);
-    const box = el("div");
-    box.appendChild(el("div", "nm", r.name));
-    box.appendChild(el("div", "bl", r.blurb));
-    row.appendChild(box);
-    L.appendChild(row);
-  });
-
-  // agents
-  const A = $("agents");
-  DATA.agents.forEach(a => {
-    const w = el("div", "agent"); w.id = "agent-" + a.id;
-    const row = el("div", "arow");
-    const dot = el("div", "dot"); dot.style.background = LVLCOL[a.level];
-    row.appendChild(dot);
-    row.appendChild(el("div", "aname", a.name));
-    const lv = el("div", "lvl", DATA.ladder[a.level].name);
-    lv.style.color = LVLCOL[a.level]; lv.style.borderColor = LVLCOL[a.level];
-    row.appendChild(lv);
-    w.appendChild(row);
-    w.appendChild(el("div", "since", a.since));
-    const ul = el("ul", "charter");
-    a.charter.forEach(c => ul.appendChild(el("li", /^MAY NOT/.test(c) ? "deny" : "", c)));
-    w.appendChild(ul);
-    A.appendChild(w);
-  });
-
-  renderQueue();
-}
-
-function renderQueue() {
-  const Q = $("queue"); Q.innerHTML = "";
-  DATA.queue.forEach(t => {
-    const w = el("div", "t"); w.id = "tix-" + t.id;
-    w.appendChild(el("div", "tid", t.id));
-    w.appendChild(el("div", "tt", t.title));
-    const s = el("div", "ts" + (t.age >= 10 ? " aged" : ""), t.state + " · " + t.age + "d");
-    w.appendChild(s);
-    Q.appendChild(w);
-  });
-}
-
-// --- playback -------------------------------------------------------------
-function start() {
-  clear();
-  playing = true; cursor = 0;
-  $("run").disabled = true;
-  $("restart").disabled = false;
-  $("log").innerHTML = "";
-  $("closing").style.display = "none";
-  $("status").textContent = "Shift running…";
-  renderQueue();
-  advance();
-}
-
-// Render the beat at the cursor, then queue the next one. A gate stops the
-// chain entirely; resolving it calls advance() again.
-function advance() {
-  if (!playing) return;
-  if (cursor >= DATA.script.length) { finish(); return; }
-
-  const beat = DATA.script[cursor];
-  const prev = cursor > 0 ? DATA.script[cursor - 1] : null;
-  cursor++;
-  runBeat(beat);
-
-  if (beat.gate) return;                       // the gate resumes us
-  if (cursor >= DATA.script.length) { tick = setTimeout(finish, 1200); return; }
-  const wait = (DATA.script[cursor].t - beat.t) * SPEED;
-  tick = setTimeout(advance, Math.max(320, wait));
-}
-
-function clear() { clearTimeout(tick); tick = null; }
-
-function highlight(agentId) {
-  document.querySelectorAll(".agent").forEach(n => n.classList.remove("active"));
-  const n = $("agent-" + agentId);
-  if (n) n.classList.add("active");
-}
-
-function runBeat(beat) {
-  highlight(beat.agent);
-  const agent = DATA.agents.find(a => a.id === beat.agent);
-
-  const b = el("div", "beat " + beat.kind);
-  const head = el("div", "bhead");
-  const who = el("div", "who", agent ? agent.name : beat.agent);
-  who.style.color = agent ? LVLCOL[agent.level] : "var(--ink)";
-  head.appendChild(who);
-  head.appendChild(el("div", "kind", beat.kind));
-  if (beat.ticket) head.appendChild(el("div", "tix", beat.ticket));
-  b.appendChild(head);
-  b.appendChild(el("div", "btext", beat.text));
-
-  if (beat.policy) b.appendChild(el("div", "policy", "charter: " + beat.policy));
-  if (beat.detail) b.appendChild(el("div", "bdetail", beat.detail));
-
-  if (beat.draft) {
-    const m = el("div", "mail");
-    const to = el("div", "mrow"); to.innerHTML = "To <b>" + beat.draft.to + "</b>";
-    const su = el("div", "mrow"); su.innerHTML = "Subject <b>" + beat.draft.subject + "</b>";
-    m.appendChild(to); m.appendChild(su);
-    m.appendChild(el("pre", "", beat.draft.body.replace(/\\n/g, "\n")));
-    b.appendChild(m);
-  }
-  if (beat.detail2) b.appendChild(el("div", "bdetail", beat.detail2));
-  if (beat.escalation) b.appendChild(el("div", "bdetail", beat.escalation));
-
-  $("log").appendChild(b);
-  b.scrollIntoView({ block: "nearest", behavior: "smooth" });
-
-  if (beat.ticket) {
-    const t = $("tix-" + beat.ticket);
-    if (t) t.classList.add("touched");
+  function fresh() {
+    return { i: 0, playing: false, waiting: 0, moved: {}, held: 0, decisions: {}, sent: 0, gateOpen: false };
   }
 
-  if (beat.gate) openGate(beat, b);
-}
+  // ---------- render ----------
+  function renderAgents() {
+    var box = $("af-agents"); box.innerHTML = ""; agentsEl = {};
+    DATA.agents.forEach(function (a) {
+      var w = el("div", "af-agent");
+      var top = el("div", "af-an"); top.appendChild(el("span", null, a.name));
+      var lv = el("span", "af-lvl", DATA.ladder[a.level].name); lv.style.setProperty("--c", LCOL[a.level]); top.appendChild(lv);
+      w.appendChild(top);
+      var st = el("div", "af-st"); st.appendChild(el("i")); st.appendChild(el("span", null, "Not started")); w.appendChild(st);
+      var d = el("details"); d.appendChild(el("summary", null, "Its rules"));
+      d.appendChild(el("div", "af-since", a.since + ". " + DATA.ladder[a.level].blurb));
+      var ul = el("ul", "af-rules");
+      a.may.forEach(function (t) { ul.appendChild(el("li", null, t)); });
+      a.maynot.forEach(function (t) { ul.appendChild(el("li", "no", "May not: " + t.charAt(0).toLowerCase() + t.slice(1))); });
+      d.appendChild(ul); w.appendChild(d);
+      box.appendChild(w); agentsEl[a.id] = { root: w, text: st.lastChild };
+    });
+  }
+  function agentState(id, cls, text) { var a = agentsEl[id]; if (!a) return; a.root.className = "af-agent " + cls; a.text.textContent = text; }
 
-// --- the gate -------------------------------------------------------------
-function openGate(beat, beatNode) {
-  $("gtitle").textContent = beat.gate.title;
-  $("gwhy").textContent = beat.gate.why;
-  $("scrim").classList.add("on");
+  function renderQueue() {
+    var box = $("af-queue"); box.innerHTML = ""; queueEl = {};
+    DATA.queue.forEach(function (q) {
+      var w = el("div", "af-q");
+      w.appendChild(el("div", "id", q.id + " · " + q.age + " days old"));
+      w.appendChild(el("div", "ti", q.title));
+      var st = el("span", "st", q.state); w.appendChild(st);
+      box.appendChild(w); queueEl[q.id] = { root: w, st: st };
+    });
+    $("af-n-all").textContent = DATA.queue.length;
+  }
+  function setQueue(map) {
+    if (!map) return;
+    Object.keys(map).forEach(function (id) {
+      var q = queueEl[id]; if (!q) return;
+      q.st.textContent = map[id][0]; q.st.className = "st " + (map[id][1] || "");
+      q.root.classList.remove("hit"); void q.root.offsetWidth; q.root.classList.add("hit");
+      S.moved[id] = true;
+    });
+  }
+  function strip() {
+    $("af-n-wait").textContent = S.waiting;
+    $("af-s-wait").classList.toggle("hot", S.waiting > 0);
+    $("af-n-done").textContent = Object.keys(S.moved).length;
+    $("af-n-stop").textContent = S.held;
+  }
 
-  // One decision per gate. Without this a double-click appends the outcome
-  // twice and, worse, schedules advance() twice — which skips a beat.
-  let settled = false;
-  const settle = ok => {
-    if (settled) return;
-    settled = true;
-    $("gyes").onclick = $("gno").onclick = null;
-    $("scrim").classList.remove("on");
-    const line = el("div", "bdetail", (ok ? "Approved by you. " : "Denied by you. ") +
-      (ok ? beat.gate.approve : beat.gate.deny));
-    line.style.borderLeftColor = ok ? "var(--l2)" : "var(--alarm)";
-    beatNode.appendChild(line);
-    tick = setTimeout(advance, 900);           // resume the shift
-  };
-  $("gyes").onclick = () => settle(true);
-  $("gno").onclick = () => settle(false);
-}
+  function mailBox(b) {
+    var m = el("div", "af-mail");
+    if (b.draft) {
+      var dl = el("dl");
+      dl.appendChild(el("dt", null, "To")); dl.appendChild(el("dd", null, b.draft.to));
+      dl.appendChild(el("dt", null, "Subject")); dl.appendChild(el("dd", null, b.draft.subject));
+      m.appendChild(dl); m.appendChild(el("div", "body", b.draft.body));
+    } else if (b.proposal) {
+      m.appendChild(el("div", "af-kind", b.proposal.label));
+      m.appendChild(el("div", "big", b.proposal.line));
+      m.appendChild(el("div", "sub", b.proposal.note));
+    }
+    return m;
+  }
 
-function finish() {
-  playing = false;
-  document.querySelectorAll(".agent").forEach(n => n.classList.remove("active"));
-  $("run").disabled = false;
-  $("status").textContent = "Shift complete.";
+  function entry(b) {
+    var a = DATA.agents.filter(function (x) { return x.id === b.agent; })[0];
+    var e = el("div", "af-e"); e.style.setProperty("--c", LCOL[a.level]);
+    var h = el("div", "af-eh"); h.appendChild(el("b", null, a.name)); h.appendChild(el("span", "af-kind", KIND[b.kind] || b.kind));
+    if (b.ticket) h.appendChild(el("span", "af-tk", b.ticket));
+    e.appendChild(h); e.appendChild(el("p", null, b.text));
+    if (b.detail) e.appendChild(el("p", "d", b.detail));
+    if (b.policy) e.appendChild(el("span", "af-pol", "Its charter: " + b.policy));
+    return e;
+  }
 
-  const c = $("closing");
-  c.innerHTML = "";
-  c.appendChild(el("h3", "", DATA.closing.headline));
-  const ul = el("ul");
-  DATA.closing.points.forEach(p => ul.appendChild(el("li", "", p)));
-  c.appendChild(ul);
-  c.style.display = "block";
-  c.scrollIntoView({ block: "nearest", behavior: "smooth" });
-}
+  // ---------- the gate ----------
+  function openGate(b, e) {
+    var g = b.gate, a = DATA.agents.filter(function (x) { return x.id === b.agent; })[0];
+    S.gateOpen = true; S.waiting = 1; strip(); agentState(b.agent, "wait", "Waiting on you");
+    var card = el("div", "af-gate"); card.setAttribute("role", "group"); card.setAttribute("aria-label", "Waiting on you: " + g.title);
+    card.appendChild(el("span", "af-gt", "Waiting on you"));
+    card.appendChild(el("h3", null, g.title));
+    if (b.draft || b.proposal) card.appendChild(mailBox(b));
+    var why = el("p", "why"); why.appendChild(el("b", null, "Why it stopped: ")); why.appendChild(document.createTextNode(g.why)); card.appendChild(why);
+    var row = el("div", "af-gb");
+    var yes = el("button", "btn primary", g.yes), no = el("button", "btn", g.no); yes.type = no.type = "button";
+    row.appendChild(yes); row.appendChild(no); card.appendChild(row);
+    card.appendChild(el("div", "af-gn", "Scripted replay: nothing is really sent or changed, whichever you choose."));
+    e.appendChild(card);
+    function decide(ok) {
+      if (!S.gateOpen) return;                 // one decision per gate
+      S.gateOpen = false; S.waiting = 0; S.decisions[g.id] = ok;
+      if (ok && g.outbound) S.sent++;
+      var out = ok ? g.approve : g.deny;
+      card.remove();
+      if (b.draft || b.proposal) e.appendChild(mailBox(b));
+      e.appendChild(el("div", "af-res" + (ok ? "" : " no"), out.log));
+      setQueue(out.set); strip(); agentState(b.agent, "work", "Working");
+      track("floor_decision", { gate: g.id, decision: ok ? "approved" : "declined" });
+      timer = setTimeout(step, still ? 0 : 800);
+    }
+    yes.onclick = function () { decide(true); }; no.onclick = function () { decide(false); };
+    card.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
+    try { yes.focus({ preventScroll: true }); } catch (err) {}
+  }
 
-$("run").onclick = start;
-$("restart").onclick = () => {
-  clear(); playing = false; cursor = 0; $("scrim").classList.remove("on");
-  $("log").innerHTML = ""; $("closing").style.display = "none";
-  $("run").disabled = false; $("restart").disabled = true;
-  $("status").textContent = "Three agents, three different autonomy levels.";
-  renderQueue();
-};
+  // ---------- play ----------
+  function step() {
+    if (!S.playing) return;
+    if (S.i >= DATA.script.length) return finish();
+    var b = DATA.script[S.i++], log = $("af-log");
+    if (S.i === 1) log.innerHTML = "";
+    var e = entry(b); log.appendChild(e);
+    if (b.kind === "start") agentState(b.agent, "work", "Working");
+    if (b.kind === "stop") agentState(b.agent, "done", "Stopped: nothing left in its charter");
+    if (HELD[b.kind]) S.held++;
+    setQueue(b.set); strip();
+    if (b.gate) return openGate(b, e);          // the decision resumes the shift
+    var r = e.getBoundingClientRect();
+    if (r.bottom > window.innerHeight - 40) e.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "end" });
+    timer = setTimeout(step, still ? 0 : (b.kind === "start" ? 900 : 1500));
+  }
+
+  function finish() {
+    S.playing = false;
+    var d = S.decisions, pts = [];
+    pts.push(S.sent === 2 ? "Two messages left the building. You sent both."
+           : S.sent === 1 ? "One message left the building. You sent it. The other you discarded."
+           : "Nothing left the building. You said no both times, and no agent can send without you.");
+    pts.push(d.rule ? "The routing table changed because you changed it. The agent could only propose."
+                    : "The routing table stayed as it was. The agent proposed, and you said no.");
+    pts.push("One draft was stopped by the agent's own charter before it ever reached you.");
+    pts.push("One agent passed up work it could have done, because its charter said no.");
+    pts.push(Object.keys(S.moved).length + " of " + DATA.queue.length + " requests moved forward, and every step is in the log above.");
+    var c = $("af-close"); c.innerHTML = "";
+    c.appendChild(el("h2", null, "Shift over. Here is what your decisions did."));
+    var ul = el("ul"); pts.forEach(function (t) { ul.appendChild(el("li", null, t)); }); c.appendChild(ul);
+    var cta = el("div", "herocta");
+    var a1 = el("a", "btn primary", "Start a conversation"); a1.href = "/#contact";
+    var a2 = el("a", "text chev", "See how the rules are written"); a2.href = "/method/";
+    cta.appendChild(a1); cta.appendChild(a2); c.appendChild(cta);
+    c.classList.add("on");
+    $("af-start").disabled = false; $("af-start").textContent = "Run it again";
+    c.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
+    track("floor_done", { sent: String(S.sent), rule: d.rule ? "added" : "left" });
+  }
+
+  function start() {
+    clearTimeout(timer);
+    S = fresh(); S.playing = true;
+    renderAgents(); renderQueue(); strip();
+    $("af-close").classList.remove("on");
+    $("af-log").innerHTML = "";
+    $("af-start").disabled = true; $("af-start").textContent = "Shift in progress";
+    $("af-restart").hidden = false;
+    // On a phone the log is below the fold: take the visitor to it.
+    $("af-logp").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    track("floor_start");
+    timer = setTimeout(step, still ? 0 : 500);
+  }
+  function reset() {
+    clearTimeout(timer); S = fresh();
+    renderAgents(); renderQueue(); strip();
+    $("af-close").classList.remove("on");
+    $("af-log").innerHTML = '<div class="af-empty">Nothing has happened yet. Start the shift.</div>';
+    $("af-start").disabled = false; $("af-start").textContent = "Start the shift";
+    $("af-restart").hidden = true;
+    window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" });
+  }
+
+  fetch("run.json").then(function (r) { return r.json(); }).then(function (d) {
+    DATA = d; S = fresh();
+    $("af-org").textContent = d.org.company + ". " + d.org.note + " No live AI, nothing real is sent.";
+    renderAgents(); renderQueue(); strip();
+    $("af-start").onclick = start; $("af-restart").onclick = reset;
+  }).catch(function () {
+    $("af-log").innerHTML = '<div class="af-empty">The shift could not be loaded. Reload the page to try again.</div>';
+  });
+})();
 </script>
 </body>
 </html>
