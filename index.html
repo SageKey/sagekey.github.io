@@ -1031,10 +1031,10 @@
   // The note is delivered to Brett's inbox by FormSubmit. If that fails for any
   // reason, the visitor still gets their own email app and a copy of the text.
   var FS = "https://formsubmit.co/ajax/f93c519504278d5eedab64f5f80beafa";
-  // OFF until a Gmail filter keeps FormSubmit's mail out of Spam. Tested 2026-11-26: the
-  // form delivers, but every message landed in Spam. While off, Send opens the visitor's
-  // own email app, which is known to reach the inbox. Set to true to send from the page.
-  var FORM_SERVICE = false;
+  // ON since 2026-11-26. FormSubmit's mail went to Gmail Spam until a filter was added in
+  // Brett's mailbox (from:submissions@formsubmit.co, never send to Spam). If that filter is
+  // ever removed, set this to false: Send then opens the visitor's own email app instead.
+  var FORM_SERVICE = true;
   if (!FORM_SERVICE) {
     $("b-e-wrap").hidden = true; $("b-e").required = false;
     $("b-e-wrap").parentNode.style.gridTemplateColumns = "1fr";
