@@ -589,28 +589,39 @@
     <div class="contact">
       <form class="c-right" id="brief">
         <label for="b-q">The one job or process on your mind</label>
-        <textarea id="b-q" placeholder="Customer POs arrive by email as PDFs and two people retype them into the ERP."></textarea>
+        <textarea id="b-q" required placeholder="Customer POs arrive by email as PDFs and two people retype them into the ERP."></textarea>
         <label for="b-v">Rough volume, and the systems it touches</label>
         <input id="b-v" placeholder="150 a day. Epicor and Outlook" />
         <div class="c-row">
           <div>
             <label for="b-n">Your name and company</label>
-            <input id="b-n" autocomplete="name" />
+            <input id="b-n" autocomplete="name" required />
           </div>
           <div>
-            <label for="b-t">Good times for a call (optional)</label>
-            <input id="b-t" placeholder="Tue or Thu after 2pm Central" />
+            <label for="b-e">Your email, so I can reply</label>
+            <input id="b-e" type="email" autocomplete="email" required placeholder="you@company.com" />
           </div>
         </div>
-        <button class="btn primary" type="submit">Open this as an email</button>
-        <div class="c-note">Opens your own email app with this filled in. Nothing is stored or sent from this page.</div>
+        <label for="b-t">Good times for a 30-minute call (optional)</label>
+        <input id="b-t" placeholder="Tue or Thu after 2pm Central" />
+        <input type="text" id="b-h" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" class="c-hp" />
+        <button class="btn primary" type="submit" id="b-send">Send</button>
+        <div class="c-note">
+          Goes straight to my inbox, delivered by FormSubmit, an email form service. Nothing is stored on this site.
+          <button type="button" class="c-alt" id="b-mailto">Use your own email app instead</button>
+        </div>
         <div class="fallback" id="fallback" hidden>
-          <b>Email app didn't open?</b> Copy your message and send it to
+          <b id="fbmsg">Email app didn't open?</b> Copy your message and send it to
           <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>.
           <textarea id="fbtext" readonly></textarea>
           <button class="btn sm" type="button" id="fbcopy">Copy my message</button>
         </div>
       </form>
+      <div class="c-right c-done" id="c-done" hidden>
+        <div class="c-tick" aria-hidden="true">✓</div>
+        <h3>Sent.</h3>
+        <p>Thank you. I read every note myself and will reply to <b id="c-to"></b>.</p>
+      </div>
       <div class="c-mail">
         <span>Or write to me directly:</span>
         <a href="mailto:bretta@sagekey.com?subject=SageKey%20enquiry" id="mail">bretta@sagekey.com</a>
@@ -1017,21 +1028,56 @@
       .then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy my message"; }, 1600); })
       .catch(function () { t.select(); });
   };
-  $("brief").onsubmit = function (e) {
-    e.preventDefault();
+  // The note is delivered to Brett's inbox by FormSubmit. If that fails for any
+  // reason, the visitor still gets their own email app and a copy of the text.
+  var FS = "https://formsubmit.co/ajax/bretta@sagekey.com";
+  function note() {
     var v = function (id) { return $(id).value.trim(); };
-    var body = [
-      "The job or process:", v("b-q") || "-", "",
-      "Rough volume and systems:", v("b-v") || "-", "",
-      "Good times for a 30-minute call:", v("b-t") || "-", "",
-      v("b-n")
-    ].join("\n");
+    return {
+      name: v("b-n"), email: v("b-e"),
+      subject: "SageKey enquiry" + (v("b-n") ? " — " + v("b-n") : ""),
+      body: [
+        "The job or process:", v("b-q") || "-", "",
+        "Rough volume and systems:", v("b-v") || "-", "",
+        "Good times for a 30-minute call:", v("b-t") || "-", "",
+        v("b-n"), v("b-e")
+      ].join("\n")
+    };
+  }
+  function viaEmailApp(why) {
+    var n = note();
     track("contact_open_email");
-    $("fbtext").value = body;
+    $("fbmsg").textContent = why || "Email app didn't open?";
+    $("fbtext").value = n.body;
     $("fallback").hidden = false;
     window.location.href = "mailto:bretta@sagekey.com?subject=" +
-      encodeURIComponent("SageKey enquiry" + (v("b-n") ? " — " + v("b-n") : "")) +
-      "&body=" + encodeURIComponent(body);
+      encodeURIComponent(n.subject) + "&body=" + encodeURIComponent(n.body);
+  }
+  $("b-mailto").onclick = function () { viaEmailApp(); };
+  $("brief").onsubmit = function (e) {
+    e.preventDefault();
+    if ($("b-h").value) return;                       // a bot filled the hidden field
+    var n = note(), btn = $("b-send");
+    btn.disabled = true; btn.textContent = "Sending…";
+    var failed = function () {
+      btn.disabled = false; btn.textContent = "Send";
+      track("contact_send_failed");
+      viaEmailApp("That didn't send from this page, so I've opened your email app instead.");
+    };
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
+    fetch(FS, {
+      method: "POST", signal: ctl ? ctl.signal : undefined,
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ name: n.name, email: n.email, message: n.body,
+        _subject: n.subject, _template: "box", _captcha: "false" })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      clearTimeout(timer);
+      if (String(d && d.success) !== "true") return failed();
+      track("contact_sent");
+      $("c-to").textContent = n.email;
+      $("brief").hidden = true; $("c-done").hidden = false;
+    }).catch(function () { clearTimeout(timer); failed(); });
   };
 })();
 </script>

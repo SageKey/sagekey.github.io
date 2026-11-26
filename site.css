@@ -485,6 +485,15 @@ details.q p { color:var(--dim); font-size:17px; line-height:1.5; padding:0 44px 
 .c-right input:focus, .c-right textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 4px rgba(0,113,227,.16); }
 .c-right .btn { margin-top:24px; width:100%; text-align:center; }
 .c-note { font-size:13px; color:var(--faint); margin-top:12px; text-align:center; }
+.c-hp { position:absolute !important; left:-9999px; width:1px !important; height:1px; opacity:0; }
+.c-alt { display:block; margin:6px auto 0; background:none; border:none; color:var(--link); font:inherit; cursor:pointer; }
+.c-alt:hover { text-decoration:underline; }
+.c-right .btn[disabled] { opacity:.6; cursor:default; }
+form.c-right[hidden], .c-done[hidden] { display:none; }
+.c-done { text-align:center; padding:56px 34px; }
+.c-tick { width:56px; height:56px; border-radius:50%; background:#16a871; color:#fff; font-size:28px; display:grid; place-items:center; margin:0 auto 18px; }
+.c-done h3 { font-size:28px; letter-spacing:-.022em; }
+.c-done p { color:var(--dim); font-size:17px; margin-top:8px; }
 .fallback { margin-top:20px; padding-top:20px; border-top:1px solid var(--line); font-size:15px; color:var(--dim); }
 .fallback[hidden] { display:none; }
 .fallback textarea { margin-top:12px; min-height:150px; font-size:14px; }
