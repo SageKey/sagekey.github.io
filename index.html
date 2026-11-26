@@ -144,36 +144,123 @@
       </p>
     </div>
 
-    <div class="grid g4">
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="m10 14 2 2 4-4"/></svg>
+    <!-- 1. the charter -->
+    <div class="safe">
+      <div class="s-txt">
         <div class="q">"What can it touch?"</div>
-        <h3>A written charter</h3>
-        <p>A plain-language document that says what the agent may read, may change, and may never do. Your team approves it before anything is built.</p>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4v-4h4v-4h4V8h4"/></svg>
-        <div class="q">"How far do we trust it?"</div>
-        <h3>Earned autonomy</h3>
-        <p>Every agent starts at the bottom and moves up on its record. Most never need to leave Draft.</p>
-        <div class="mini">
-          <span><i style="background:var(--l0)"></i>Observe</span>
-          <span><i style="background:var(--l1)"></i>Draft</span>
-          <span><i style="background:var(--l2)"></i>Act with approval</span>
+        <h3>A written charter.</h3>
+        <p>
+          One plain-language page that says what the agent may read, may change, and may never
+          do. Your team approves it before anything is built, and it belongs to you.
+        </p>
+        <a class="chev" href="/foreman/">Have Foreman draft one for your job</a>
+      </div>
+      <div class="s-art">
+        <div class="stack">
+          <div class="paper">
+            <div class="p-head"><span>Charter</span><span>Approved before build</span></div>
+            <div class="p-title">Order Desk agent</div>
+            <div class="p-meta"><b>Owner</b> Order Entry Supervisor &nbsp;·&nbsp; <b>Level</b> Draft</div>
+            <div class="p-sec">May</div>
+            <ul class="p-list ok">
+              <li>Read purchase orders from the orders inbox</li>
+              <li>Look up items and contract prices, read-only</li>
+              <li>Create sales orders in draft status only</li>
+              <li>Flag every mismatch it finds</li>
+            </ul>
+            <div class="p-sec">May not</div>
+            <ul class="p-list no">
+              <li>Release, confirm or acknowledge an order</li>
+              <li>Change prices, credit limits or customer records</li>
+              <li>Guess at a value it can't read</li>
+            </ul>
+            <div class="p-sign">
+              <svg viewBox="0 0 120 34" aria-hidden="true"><path d="M4 24c8-14 14-18 16-12 2 7-8 14-4 15 6 1 10-16 16-15 5 1-3 13 2 13 6 0 8-10 13-10 4 0 0 9 5 9 7 0 9-12 16-12 5 0 2 10 8 10 8 0 14-8 36-9" fill="none" stroke="#1d1d1f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Order Entry Supervisor</span>
+            </div>
+          </div>
         </div>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>
+        <span class="s-cap">Example charter</span>
+      </div>
+    </div>
+
+    <!-- 2. the ladder -->
+    <div class="safe flip">
+      <div class="s-txt">
+        <div class="q">"How far do we trust it?"</div>
+        <h3>It starts at the bottom.</h3>
+        <p>
+          Every agent begins by observing and moves up one level at a time, on its record.
+          Most never need to leave Draft. The top level is empty on purpose.
+        </p>
+      </div>
+      <div class="s-art">
+        <div class="ladwrap">
+          <div class="lad" id="lad" role="group" aria-label="Autonomy levels">
+            <button type="button" style="--i:0" data-l="0" aria-pressed="false"><i style="background:var(--l0)"></i>Observe<span>starts here</span></button>
+            <button type="button" style="--i:1" data-l="1" aria-pressed="true"><i style="background:var(--l1)"></i>Draft<span>most agents stay here</span></button>
+            <button type="button" style="--i:2" data-l="2" aria-pressed="false"><i style="background:var(--l2)"></i>Act with approval<span>earned</span></button>
+            <button type="button" style="--i:3" data-l="3" aria-pressed="false" class="empty"><i></i>Autonomous<span>empty</span></button>
+          </div>
+          <p class="lad-desc" id="lad-desc" aria-live="polite">Prepares the work: the order, the quote, the reply. A person reviews it and sends it. Most of the value is here.</p>
+        </div>
+        <span class="s-cap">Press a level</span>
+      </div>
+    </div>
+
+    <!-- 3. the gate -->
+    <div class="safe">
+      <div class="s-txt">
         <div class="q">"What if it's wrong?"</div>
-        <h3>Human gates</h3>
-        <p>Anything that reaches a customer, moves money or can't be undone stops and waits for a person.</p>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        <h3>A person at every exit.</h3>
+        <p>
+          Anything that reaches a customer, moves money or can't be undone stops and waits.
+          Each item shows the finished work and the rule that stopped it, so approving is a
+          real decision and not a rubber stamp.
+        </p>
+      </div>
+      <div class="s-art">
+        <div class="inbox">
+          <div class="in-head">Waiting on you <b>3</b></div>
+          <a class="in-row" href="#work" data-job="order">
+            <span class="in-t">Sales order for PO 48213<small>Order Desk agent · 2 min ago</small></span>
+            <span class="in-why">Reaches a customer</span>
+          </a>
+          <a class="in-row" href="#work" data-job="claim">
+            <span class="in-t">Credit for warranty claim W-2291<small>Claims agent · 14 min ago</small></span>
+            <span class="in-why">Moves money</span>
+          </a>
+          <a class="in-row" href="#work" data-job="recon">
+            <span class="in-t">Stock correction, HP-3320<small>Reconciliation agent · 1 hr ago</small></span>
+            <span class="in-why">Can't be undone</span>
+          </a>
+        </div>
+        <span class="s-cap">Example. Press one to open it in the demo above</span>
+      </div>
+    </div>
+
+    <!-- 4. the log -->
+    <div class="safe flip">
+      <div class="s-txt">
         <div class="q">"Who approved this?"</div>
-        <h3>A log nobody can edit</h3>
-        <p>Every action, refusal and human decision is written once. Weeks later, the answer is a lookup.</p>
-      </article>
+        <h3>A log nobody can edit.</h3>
+        <p>
+          Every action, every refusal and every human decision is written once. Weeks later,
+          "why did that customer get this email?" is a lookup, not an investigation.
+        </p>
+        <a class="chev" href="https://foreman-production-2733.up.railway.app/log">Read Foreman's real log</a>
+      </div>
+      <div class="s-art dark">
+        <div class="lg">
+          <div class="lg-row" style="--n:0"><span class="t">10:41:07</span><span class="w">order-desk</span><span class="m">read PO 48213</span><span class="h">a3f1c0</span></div>
+          <div class="lg-row" style="--n:1"><span class="t">10:41:19</span><span class="w">order-desk</span><span class="m">matched 1 line, price checked</span><span class="h">9c2e77</span></div>
+          <div class="lg-row stop" style="--n:2"><span class="t">10:41:22</span><span class="w">order-desk</span><span class="m">stopped at the gate, rule 4</span><span class="h">51b70d</span></div>
+          <div class="lg-row you" style="--n:3"><span class="t">10:44:03</span><span class="w">supervisor</span><span class="m">approved, order released</span><span class="h">e08d4a</span></div>
+          <div class="lg-row no" style="--n:4"><span class="t">10:52:40</span><span class="w">claims</span><span class="m">refused: credit asked for without approval</span><span class="h">77aa19</span></div>
+          <div class="lg-foot" style="--n:5">Each entry carries the fingerprint of the one before it, so a changed or missing line shows.</div>
+        </div>
+        <span class="s-cap">Example log</span>
+      </div>
     </div>
 
     <p class="pull">
@@ -644,9 +731,33 @@
     io.observe(desk);
   } else { started = true; play(cur); }
 
+  // ---- autonomy ladder: press a level to see what an agent may do there ----
+  var LAD = [
+    "Reads your systems and reports what it finds. It cannot change anything. Every new agent starts here.",
+    "Prepares the work: the order, the quote, the reply. A person reviews it and sends it. Most of the value is here.",
+    "Does routine work inside a narrow lane on its own, and still stops at a gate for anything that leaves the building.",
+    "Empty on purpose. Moving an agent here would be a visible decision somebody has to make, never something that happens quietly."
+  ];
+  var rungs = document.querySelectorAll("#lad button");
+  rungs.forEach(function (b) {
+    b.onclick = function () {
+      rungs.forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      $("lad-desc").textContent = LAD[+b.getAttribute("data-l")];
+    };
+  });
+
+  // ---- "waiting on you" rows open that job in the desk at the top ----
+  document.querySelectorAll(".in-row[data-job]").forEach(function (r) {
+    r.onclick = function (e) {
+      e.preventDefault(); started = true;
+      desk.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+      play(r.getAttribute("data-job"));
+    };
+  });
+
   // ---- gentle reveal as sections scroll in ----
   if (!still && "IntersectionObserver" in window) {
-    var rv = document.querySelectorAll(".band .head, .band .card, .pull, .about, .facts.tiles li, .qa, .contact, .jobsum");
+    var rv = document.querySelectorAll(".band .head, .band .card, .pull, .about, .facts.tiles li, .qa, .contact, .jobsum, .s-txt, .s-art");
     var ro = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); } });
     }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });

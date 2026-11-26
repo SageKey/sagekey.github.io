@@ -225,9 +225,80 @@ h3 { font-size:21px; font-weight:600; letter-spacing:-.018em; line-height:1.2; }
 .r.h .k { color:var(--warn); }
 .r:first-child span:last-child { color:var(--dim); }
 
-.mini { display:flex; gap:6px; margin-top:16px; flex-wrap:wrap; }
-.mini span { font-size:12.5px; background:var(--bg); border-radius:999px; padding:4px 11px; color:var(--ink); }
-.mini span i { display:inline-block; width:7px; height:7px; border-radius:2px; margin-right:6px; }
+/* ---------- how it stays safe: four real artifacts, one per question ---------- */
+.safe { display:grid; grid-template-columns:.82fr 1.18fr; gap:72px; align-items:center; margin-top:104px; }
+.head + .safe { margin-top:72px; }
+.safe.flip { grid-template-columns:1.18fr .82fr; }
+.safe.flip .s-txt { order:2; }
+.s-txt .q { font-size:17px; font-weight:600; color:var(--accent); letter-spacing:-.01em; }
+.s-txt h3 { font-size:clamp(30px,3.7vw,46px); line-height:1.06; letter-spacing:-.025em; margin-top:8px; text-wrap:balance; }
+.s-txt p { color:var(--dim); font-size:19px; line-height:1.42; letter-spacing:-.012em; margin-top:16px; max-width:23em; }
+.s-txt a { display:inline-block; margin-top:18px; font-size:19px; }
+.s-art { background:var(--tile); border-radius:28px; padding:52px 44px 56px; min-height:440px; display:grid;
+  place-items:center; position:relative; overflow:hidden; }
+.s-art.dark { background:#000; }
+.s-cap { position:absolute; left:22px; bottom:16px; font-size:12px; color:var(--faint); }
+
+/* 1. charter: a sheet of paper with a second sheet under it */
+.stack { position:relative; width:min(100%,410px); }
+.stack::before { content:""; position:absolute; inset:0; background:#fff; border-radius:6px; transform:rotate(2.4deg) translate(8px,5px);
+  box-shadow:0 14px 30px -18px rgba(0,0,0,.28); }
+.paper { position:relative; background:#fff; border-radius:6px; padding:28px 30px 22px; transform:rotate(-1.1deg);
+  box-shadow:0 1px 1px rgba(0,0,0,.05), 0 26px 50px -20px rgba(0,0,0,.28); font-size:14.5px; line-height:1.4; letter-spacing:-.005em; }
+.p-head { display:flex; justify-content:space-between; gap:10px; font-size:11px; font-weight:600; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--faint); padding-bottom:12px; border-bottom:1px solid #e5e5ea; }
+.p-head span:last-child { color:var(--accent); }
+.p-title { font-size:22px; font-weight:600; letter-spacing:-.02em; margin-top:16px; }
+.p-meta { font-size:13px; color:var(--dim); margin-top:4px; }
+.p-sec { font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--faint); margin:18px 0 8px; }
+.p-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+.p-list li { padding-left:22px; position:relative; }
+.p-list.ok li::before { content:""; position:absolute; left:5px; top:7px; width:6px; height:6px; border-radius:50%; background:#16a871; }
+.p-list.no li::before { content:"×"; position:absolute; left:3px; top:-2px; color:#d70015; font-weight:600; font-size:16px; }
+.p-sign { margin-top:18px; padding-top:6px; border-top:1px solid #e5e5ea; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+  font-size:11.5px; color:var(--faint); }
+.p-sign svg { width:112px; height:32px; margin-bottom:-2px; }
+
+/* 2. ladder: four steps going up; press one */
+.ladwrap { width:min(100%,470px); }
+.lad { display:flex; flex-direction:column-reverse; gap:10px; }
+.lad button { margin-left:calc(var(--i) * 9%); display:flex; align-items:center; gap:12px; text-align:left; background:#fff;
+  border:1.5px solid transparent; border-radius:14px; padding:15px 18px; font:600 17px/1.2 var(--sans); letter-spacing:-.014em;
+  color:var(--ink); cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.06); transition:border-color .2s, box-shadow .2s, transform .2s; }
+.lad button:hover { transform:translateX(3px); }
+.lad button i { width:10px; height:10px; border-radius:3px; flex:none; }
+.lad button span { margin-left:auto; font-size:12.5px; font-weight:400; color:var(--faint); letter-spacing:0; white-space:nowrap; }
+.lad button[aria-pressed="true"] { border-color:var(--ink); box-shadow:0 14px 28px -16px rgba(0,0,0,.4); }
+.lad button.empty { background:none; border:1.5px dashed var(--line); box-shadow:none; color:var(--dim); }
+.lad button.empty i { outline:1.5px dashed var(--faint); outline-offset:-1px; }
+.lad button.empty[aria-pressed="true"] { border-color:var(--ink); border-style:dashed; }
+.lad-desc { margin-top:24px; font-size:16px; line-height:1.45; color:var(--dim); min-height:4.4em; }
+
+/* 3. gate: the list of what is waiting on a person */
+.inbox { width:min(100%,470px); background:#fff; border-radius:18px; box-shadow:0 1px 1px rgba(0,0,0,.05), 0 26px 50px -22px rgba(0,0,0,.28); overflow:hidden; }
+.in-head { padding:16px 20px; font-size:15px; font-weight:600; display:flex; align-items:center; gap:10px; border-bottom:1px solid #e5e5ea; }
+.in-head b { font-size:12px; color:#231803; background:#f0b849; border-radius:980px; min-width:22px; height:22px; display:grid; place-items:center; padding:0 6px; }
+.in-row { display:flex; align-items:center; gap:14px; padding:15px 20px; color:var(--ink); border-top:1px solid #f0f0f3; transition:background .16s; }
+.in-row:first-of-type { border-top:none; }
+.in-row:hover { background:#f5f5f7; text-decoration:none; }
+.in-row::after { content:"›"; color:var(--faint); font-size:20px; line-height:1; }
+.in-t { font-size:15.5px; font-weight:600; letter-spacing:-.012em; line-height:1.3; flex:1; min-width:0; }
+.in-t small { display:block; font-size:12.5px; font-weight:400; color:var(--faint); letter-spacing:0; margin-top:2px; }
+.in-why { font-size:12px; font-weight:600; color:#8a4b00; background:#fdf0d9; border-radius:980px; padding:4px 10px; white-space:nowrap; }
+
+/* 4. log: written once, read later */
+.lg { width:100%; max-width:560px; font:13px/1.5 var(--mono); letter-spacing:0; color:#a1a1a6; }
+.lg-row { display:grid; grid-template-columns:auto 92px 1fr auto; gap:14px; padding:9px 0; border-bottom:1px solid #1c1c1e; }
+.lg-row .t { color:#636366; }
+.lg-row .w { color:#d1d1d6; }
+.lg-row .m { color:#f5f5f7; }
+.lg-row .h { color:#48484a; }
+.lg-row.stop .m { color:#f0b849; }
+.lg-row.you .w, .lg-row.you .m { color:#54d6a0; }
+.lg-row.no .m { color:#ff9f6b; }
+.lg-foot { font:13px/1.45 var(--sans); color:#86868b; margin-top:18px; }
+.s-art.rv .lg-row, .s-art.rv .lg-foot { opacity:0; transform:translateY(6px); transition:opacity .45s, transform .45s; }
+.s-art.rv.in .lg-row, .s-art.rv.in .lg-foot { opacity:1; transform:none; transition-delay:calc(var(--n) * 240ms + 350ms); }
 
 .pull { text-align:center; margin:88px auto 0; color:var(--ink); font-size:clamp(24px,3.4vw,40px);
   line-height:1.16; max-width:21em; font-weight:600; letter-spacing:-.022em; text-wrap:balance; }
@@ -355,6 +426,10 @@ footer { background:#f5f5f7; }
 
 /* ---------- responsive ---------- */
 @media (max-width:980px) {
+  .safe, .safe.flip { grid-template-columns:1fr; gap:28px; margin-top:76px; }
+  .safe.flip .s-txt { order:0; }
+  .s-txt p { max-width:none; }
+  .s-art { min-height:0; }
   .d-grid { grid-template-columns:1fr; gap:30px; min-height:0; }
   .gate.pending { min-height:120px; }
   .gate.pending > * { display:none; }
@@ -375,6 +450,16 @@ footer { background:#f5f5f7; }
   .links { display:none; }
   .navrow { justify-content:space-between; }
   header.hero { padding:56px 0 48px; }
+  .s-art { padding:36px 18px 48px; border-radius:22px; }
+  .head + .safe { margin-top:52px; }
+  .paper { padding:22px 20px 18px; }
+  .lad button { margin-left:calc(var(--i) * 5%); padding:13px 14px; font-size:16px; }
+  .lad button span { display:none; }
+  .in-row { display:grid; grid-template-columns:1fr auto; gap:8px 12px; }
+  .in-why { grid-column:1; grid-row:2; justify-self:start; }
+  .lg-row { grid-template-columns:auto 1fr; gap:4px 12px; }
+  .lg-row .w { display:none; }
+  .lg-row .h { display:none; }
   .desk { padding:26px 18px 20px; border-radius:22px; }
   .d-top { flex-direction:column; align-items:flex-start; }
   .jobsum { margin-top:40px; }
