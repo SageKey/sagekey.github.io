@@ -146,6 +146,12 @@
 
   .foot { margin-top:26px; color:var(--faint); font-size:12px; line-height:1.6; max-width:760px; }
   .foot b { color:var(--dim); font-weight:500; }
+  .sitefoot { margin-top:56px; border-top:1px solid var(--line); }
+  .sitefoot .in { max-width:1180px; margin:0 auto; padding:18px 22px 30px; display:flex; gap:10px 22px; flex-wrap:wrap; font-size:12px; color:var(--dim); }
+  .sitefoot a { color:#424245; text-decoration:none; }
+  .sitefoot a:hover { text-decoration:underline; }
+  .sitefoot .sp { margin-left:auto; }
+  @media (max-width:720px) { .sitefoot .sp { margin-left:0; } }
 
   /* Shared links land people here directly, so every page needs a way back out. */
   .backlink { margin-top:32px; padding-top:15px; border-top:1px solid var(--line);
@@ -245,6 +251,18 @@
 </nav>
 
 </div>
+
+<footer class="sitefoot">
+  <div class="in">
+    <span>Copyright © 2026 SageKey.</span>
+    <a href="/">Home</a>
+    <a href="/#fit">Is your job a fit?</a>
+    <a href="/foreman/">Foreman</a>
+    <a href="/method/">The method</a>
+    <a href="/brief/">SageKey on one page</a>
+    <a class="sp" href="/#contact">Start a conversation</a>
+  </div>
+</footer>
 
 <div class="scrim" id="scrim">
   <div class="gate">
