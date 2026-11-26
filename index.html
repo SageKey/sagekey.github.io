@@ -23,7 +23,7 @@
 {"@context":"https://schema.org","@type":"ProfessionalService","name":"SageKey","url":"https://sagekey.com/",
  "description":"Governed AI agents for operational work at mid-market manufacturers and distributors.",
  "founder":{"@type":"Person","name":"Brett Anderson"},"email":"bretta@sagekey.com",
- "sameAs":["https://github.com/SageKey"]}
+ "sameAs":["https://github.com/SageKey","https://www.linkedin.com/in/aibrett/"]}
 </script>
 </head>
 <body>
@@ -61,6 +61,7 @@
       <a class="btn primary" href="#contact">Start a conversation</a>
       <a class="text chev" href="/foreman/">Try the live demo</a>
     </div>
+    <a class="hproof" href="#localogy">For Localogy, publishing data went from 3 to 5 days to minutes<span class="chev"></span></a>
     <a class="live" id="live" href="/foreman/"><span class="dot"></span><span id="livetxt"></span></a>
   </div>
 </header>
@@ -276,12 +277,36 @@
   <div class="shell">
     <div class="head">
       <div class="kicker">Proof</div>
-      <p class="shead">Don't take my word for it. Open it.</p>
+      <p class="shead">Don't take my word for it.</p>
       <p class="intro">
-        Anyone can describe safe AI on a slide. These are running, and one of them is on a
-        real AI model with a hard spending limit.
+        A client result with a name you can check, then three things you can open and press
+        yourself.
       </p>
     </div>
+
+    <article class="card case" id="localogy">
+      <div class="c-main">
+        <div class="c-k">Client result · Localogy</div>
+        <div class="c-big"><span>3 to 5 days</span><i aria-hidden="true">→</i><span class="hi">minutes</span></div>
+        <div class="c-cap">From data received to live on the site</div>
+      </div>
+      <div class="c-body">
+        <p>
+          Every data file Localogy published used to need developers, operations staff and an
+          executive sign-off. An AI pipeline now receives, cleans, validates and publishes each
+          one on its own.
+        </p>
+        <p>
+          I led it as their fractional Head of AI: built the system, set up the security and data
+          guardrails, handed ownership to their team, and trained them to run and extend it.
+        </p>
+        <div class="c-ref">
+          <span class="c-av" aria-hidden="true">BZ</span>
+          <span class="c-who"><b>Bob Zink</b>Chief Operating Officer, Localogy</span>
+          <a class="chev" href="https://www.linkedin.com/in/robertzink/" rel="noopener">Reference on LinkedIn</a>
+        </div>
+      </div>
+    </article>
 
     <article class="card feature">
       <div class="ftxt">
@@ -474,7 +499,8 @@
       <p>
         I'm Brett Anderson, and SageKey is my practice. For the last several years I've been
         the integration layer for a mid-market remanufacturer: ERP, order flow, shipping, and
-        the internal tools nobody demos but everybody depends on.
+        the internal tools nobody demos but everybody depends on. Since early 2026 I've also
+        been fractional Head of AI at Localogy.
       </p>
       <p>
         That's where the agent work came from. I started putting AI on real operational
@@ -485,6 +511,7 @@
         I run my own agents on the same method. One has worked a written charter every morning
         since August 2026 without a missed day, and <a href="#proof">its record is on this page</a>.
       </p>
+      <p class="a-links"><a class="chev" href="https://www.linkedin.com/in/aibrett/" rel="noopener">Brett Anderson on LinkedIn</a></p>
     </div>
     <ul class="facts tiles">
       <li><b>No handoffs</b>The person on the first call reads your ERP schema and writes the code.</li>
@@ -941,7 +968,7 @@
 
   // ---- gentle reveal as sections scroll in ----
   if (!still && "IntersectionObserver" in window) {
-    var rv = document.querySelectorAll(".band .head, .band .card, .pull, .about, .facts.tiles li, .qa, .contact, .jobsum, .s-txt, .s-art, .fit");
+    var rv = document.querySelectorAll(".band .head, .band .card, .pull, .about, .facts.tiles li, .qa, .contact, .jobsum, .s-txt, .s-art, .fit, .case");
     var ro = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); } });
     }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
