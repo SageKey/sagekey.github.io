@@ -16,8 +16,9 @@
 <meta name="theme-color" content="#ffffff" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d1d1f'/%3E%3Ccircle cx='12' cy='16' r='5' fill='none' stroke='%2354d6a0' stroke-width='2.5'/%3E%3Cpath d='M17 16h10M23 16v5M27 16v4' stroke='%2354d6a0' stroke-width='2.5' fill='none'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="/site.css" />
+<style>html { scroll-padding-top:116px; }</style>
 </head>
-<body>
+<body class="method">
 
 <nav class="top scrolled">
   <div class="shell navrow">
@@ -39,158 +40,285 @@
   </div>
 </nav>
 
+<div class="subnav" id="subnav">
+  <div class="shell sn-row">
+    <span class="sn-t">The method</span>
+    <div class="sn-l">
+      <a href="#charter">Charter</a>
+      <a href="#levels">Levels</a>
+      <a href="#gates">Gates</a>
+      <a href="#log">Log</a>
+      <a href="#oversight">Oversight</a>
+      <a href="#start">Where to start</a>
+    </div>
+  </div>
+</div>
+
+<header class="hero m-hero">
+  <div class="shell">
+    <div class="kicker">The method</div>
+    <h1>How to run AI agents <em>you can trust.</em></h1>
+    <p class="lede">
+      Treat agents like staff, not scripts. Staff have a written job description, a level of
+      trust they've earned, a manager who signs off on the risky things, and a paper trail.
+      All four have direct equivalents in software.
+    </p>
+  </div>
+</header>
+
 <div class="shell narrow">
 <article class="essay">
-  <div class="kicker">The method</div>
-  <h1>How to run AI agents you can trust</h1>
-  <p class="lede">
-    This is the part I actually get hired for, so it's worth writing down properly rather than
-    hinting at it. Everything here is described at the level of the pattern; the specifics belong
-    to the clients I built them for.
-  </p>
 
-  <ul class="facts brief">
-    <li><b>In brief</b>Treat AI agents like staff, not scripts. Four things make that real:</li>
-    <li><b>A written charter</b>What each agent may read, may change, and may never do.</li>
-    <li><b>Earned autonomy</b>Every agent starts by observing and moves up on its record.</li>
-    <li><b>Human gates</b>Anything irreversible stops and waits for a person.</li>
-    <li><b>A permanent log</b>Every action, refusal and approval, written once.</li>
-  </ul>
-
-  <h2>The hard part isn't the task</h2>
+  <h2 class="first">The hard part isn't the task</h2>
   <p>
     Getting a language model to do a piece of operational work stopped being the hard part some
-    time ago. Ask it to triage a ticket, reconcile two systems, draft the customer reply — it
+    time ago. Ask it to triage a ticket, reconcile two systems, draft the customer reply, and it
     will do a decent job. The hard part is everything around that: knowing what it's allowed to
     touch, catching the confident mistake before it reaches a customer, and being able to answer
     "who approved this?" three weeks later when someone asks.
   </p>
   <div class="pull">
-    A capable agent with no rules isn't an employee. It's an unsupervised contractor with
-    your credentials and no memory of what it did.
+    A capable agent with no rules isn't an employee.
+    <span>It's an unsupervised contractor with your credentials and no memory of what it did.</span>
   </div>
   <p>
-    So the model I use treats agents like staff rather than like scripts. Staff have a written
-    job description, a level of trust they've earned, a manager who signs off on the risky
-    things, and a paper trail. All four of those turn out to have direct technical analogues.
+    Everything below is described at the level of the pattern. The specifics belong to the
+    clients I built them for.
   </p>
 
-  <h2>1. Every agent has a charter</h2>
-  <p>
-    A charter is a short written document, kept in version control next to the code, that says
-    what one agent is for: the systems it may read, the systems it may write, the things it must
-    never do, and who owns it. It is written in plain language because its real audience is the
-    human who has to approve it, not the model.
-  </p>
-  <p>
-    The <b>MAY NOT</b> lines are the ones that earn their keep. They're usually specific and
-    slightly odd — the kind of rule that exists because of one bad afternoon. "Never link an
-    internal document to an external recipient; attach it instead." Those lines are the
-    institutional memory that would otherwise live in one person's head.
-  </p>
+  <!-- ============ 1 ============ -->
+  <section class="chap" id="charter">
+    <div class="chap-n">01</div>
+    <h2>Every agent has a charter</h2>
+    <p>
+      A charter is one written page, kept next to the code, that says what one agent is for:
+      the systems it may read, the systems it may change, the things it must never do, and who
+      owns it. It is written in plain language because its real audience is the person who has
+      to approve it, not the model.
+    </p>
+    <div class="s-art wide">
+      <div class="stack">
+        <div class="paper">
+          <div class="p-head"><span>Charter</span><span>Approved before build</span></div>
+          <div class="p-title">Order Desk agent</div>
+          <div class="p-meta"><b>Owner</b> Order Entry Supervisor &nbsp;·&nbsp; <b>Level</b> Draft</div>
+          <div class="p-sec">May</div>
+          <ul class="p-list ok">
+            <li>Read purchase orders from the orders inbox</li>
+            <li>Look up items and contract prices, read-only</li>
+            <li>Create sales orders in draft status only</li>
+            <li>Flag every mismatch it finds</li>
+          </ul>
+          <div class="p-sec">May not</div>
+          <ul class="p-list no">
+            <li>Release, confirm or acknowledge an order</li>
+            <li>Change prices, credit limits or customer records</li>
+            <li>Link an internal document to an outside recipient</li>
+          </ul>
+          <div class="p-sign">
+            <svg viewBox="0 0 120 34" aria-hidden="true"><path d="M4 24c8-14 14-18 16-12 2 7-8 14-4 15 6 1 10-16 16-15 5 1-3 13 2 13 6 0 8-10 13-10 4 0 0 9 5 9 7 0 9-12 16-12 5 0 2 10 8 10 8 0 14-8 36-9" fill="none" stroke="#1d1d1f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Order Entry Supervisor</span>
+          </div>
+        </div>
+      </div>
+      <span class="s-cap">Example charter</span>
+    </div>
+    <p>
+      The <b>may not</b> lines are the ones that earn their keep. They're usually specific and
+      slightly odd, the kind of rule that exists because of one bad afternoon. "Never link an
+      internal document to an outside recipient; attach it instead." Those lines are the
+      institutional memory that would otherwise live in one person's head.
+    </p>
+    <p><a class="chev" href="/foreman/">Have Foreman draft a charter for your job</a></p>
+  </section>
 
-  <h2>2. Autonomy is a ladder, and it's earned</h2>
-  <p>
-    A single "is this agent allowed to act" switch is too blunt. Four rungs cover nearly
-    everything, and an agent starts at the bottom and moves up on demonstrated track record —
-    not on how impressive its demo was.
-  </p>
-  <div class="ladder">
-    <div class="rung">
-      <div class="pip" style="background:var(--l0)"></div>
-      <div>
-        <div class="rname">Observe</div>
-        <div class="rbody">Reads systems, reports findings. Cannot change anything anywhere. Every new agent starts here.</div>
+  <!-- ============ 2 ============ -->
+  <section class="chap" id="levels">
+    <div class="chap-n">02</div>
+    <h2>Autonomy is a ladder, and it's earned</h2>
+    <p>
+      A single "is this agent allowed to act" switch is too blunt. Four levels cover nearly
+      everything. An agent starts at the bottom and moves up on its record, not on how
+      impressive its demo was.
+    </p>
+    <div class="ladder">
+      <div class="rung">
+        <div class="pip" style="background:var(--l0)"></div>
+        <div>
+          <div class="rname">Observe</div>
+          <div class="rbody">Reads systems, reports findings. Cannot change anything anywhere. Every new agent starts here.</div>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="pip" style="background:var(--l1)"></div>
+        <div>
+          <div class="rname">Draft</div>
+          <div class="rbody">Prepares the work (the reply, the order, the reconciliation) but a person sends it. Most of the value shows up at this level, and a lot of agents never need to leave it.</div>
+        </div>
+      </div>
+      <div class="rung">
+        <div class="pip" style="background:var(--l2)"></div>
+        <div>
+          <div class="rname">Act with approval</div>
+          <div class="rbody">Does routine work inside a defined lane on its own, and stops at a gate for anything that leaves the building or crosses a limit.</div>
+        </div>
+      </div>
+      <div class="rung unused">
+        <div class="pip" style="background:var(--l3)"></div>
+        <div>
+          <div class="rname">Autonomous</div>
+          <div class="rbody"><em>Deliberately empty.</em> The level exists so the ladder is honest about where it ends, and so that promoting something into it is a visible decision somebody has to make on purpose.</div>
+        </div>
       </div>
     </div>
-    <div class="rung">
-      <div class="pip" style="background:var(--l1)"></div>
-      <div>
-        <div class="rname">Draft</div>
-        <div class="rbody">Prepares the work — the reply, the ticket update, the reconciliation — but a human sends it. Most of the value shows up on this rung, and a lot of agents never need to leave it.</div>
+    <p class="caption">The ladder from <a href="/agent-floor/">Agent Floor</a>. The empty top level is the point.</p>
+    <p>
+      Demotion matters as much as promotion. A charter violation drops an agent a level, the
+      same way you'd pull back responsibility from someone who made a serious mistake. It goes
+      back up by working correctly at the lower level for a while.
+    </p>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="chap" id="gates">
+    <div class="chap-n">03</div>
+    <h2>Human gates on anything irreversible</h2>
+    <p>
+      A gate is a hard stop in front of a specific class of action: anything that reaches a
+      customer or vendor, anything that moves money, anything that can't be undone. The agent
+      does all the work up to that line, then presents the finished work and waits.
+    </p>
+    <p>
+      The detail that makes gates survive contact with reality is that <b>the gate has to show
+      its work</b>. Compare the two below.
+    </p>
+    <div class="s-art wide cmp">
+      <div class="cmp-col">
+        <div class="cmp-l bad">Gets rubber-stamped within a week</div>
+        <div class="dlg">
+          <div class="dlg-t">Approve this action?</div>
+          <div class="dlg-s">send_email · customer 4471</div>
+          <div class="dlg-b"><span>Deny</span><span class="p">Approve</span></div>
+        </div>
       </div>
-    </div>
-    <div class="rung">
-      <div class="pip" style="background:var(--l2)"></div>
-      <div>
-        <div class="rname">Act with approval</div>
-        <div class="rbody">Executes inside a defined lane on its own, and stops at a gate for anything that leaves the building or crosses a threshold.</div>
+      <div class="cmp-col">
+        <div class="cmp-l good">Gets read</div>
+        <div class="gate">
+          <div class="g-top"><span class="g-tag">Waiting on you</span><span class="g-agent">Order Desk agent · level: Draft</span></div>
+          <div class="g-title">Reply to customer PO 48213</div>
+          <div class="g-mail"><div class="to">Drafted for: the customer's purchasing contact</div>Confirming PO 48213: 24 × HP-3320 pump assemblies at your contract price. Our team will confirm the ship date today.</div>
+          <div class="g-why">
+            <div><b>Why it stopped:</b> charter rule 4, nothing reaches an outside recipient without a person.</div>
+            <div><b>What it flagged:</b> the requested ship date is inside standard lead time, so it didn't promise one.</div>
+          </div>
+          <div class="g-btns"><span class="fake yes">Approve &amp; send</span><span class="fake">Send back</span></div>
+        </div>
       </div>
+      <span class="s-cap">Examples. The live version is the demo on the <a href="/#work">home page</a></span>
     </div>
-    <div class="rung unused">
-      <div class="pip" style="background:var(--l3)"></div>
-      <div>
-        <div class="rname">Autonomous</div>
-        <div class="rbody"><em>Deliberately unoccupied.</em> The rung exists so the ladder is honest about where it ends — and so that promoting something into it is a visible decision somebody has to make on purpose.</div>
+    <p>
+      A gate that shows the actual email, names the rule that triggered the stop, and states
+      what the agent wasn't sure about gets read. If your reviewers are clicking approve
+      without reading, you don't have a gate. You have a speed bump and a false sense of safety.
+    </p>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="chap" id="log">
+    <div class="chap-n">04</div>
+    <h2>A log nobody can edit, because someone will ask</h2>
+    <p>
+      Every action, every refusal and every human decision lands in a log that is written once
+      and never edited. Not for compliance theater. For the ordinary Tuesday when a customer
+      asks why they got a particular email, and the honest answer needs to include which agent
+      drafted it, which rule let it through, and which person pressed send.
+    </p>
+    <div class="s-art wide dark">
+      <div class="lg">
+        <div class="lg-row" style="--n:0"><span class="t">10:41:07</span><span class="w">order-desk</span><span class="m">read PO 48213</span><span class="h">a3f1c0</span></div>
+        <div class="lg-row" style="--n:1"><span class="t">10:41:19</span><span class="w">order-desk</span><span class="m">matched 1 line, price checked</span><span class="h">9c2e77</span></div>
+        <div class="lg-row stop" style="--n:2"><span class="t">10:41:22</span><span class="w">order-desk</span><span class="m">stopped at the gate, rule 4</span><span class="h">51b70d</span></div>
+        <div class="lg-row you" style="--n:3"><span class="t">10:44:03</span><span class="w">supervisor</span><span class="m">approved, reply sent</span><span class="h">e08d4a</span></div>
+        <div class="lg-row no" style="--n:4"><span class="t">10:52:40</span><span class="w">claims</span><span class="m">refused: credit asked for without approval</span><span class="h">77aa19</span></div>
+        <div class="lg-foot" style="--n:5">Each entry carries the fingerprint of the one before it, so a changed or missing line shows.</div>
       </div>
+      <span class="s-cap">Example log</span>
     </div>
-  </div>
-  <p class="caption">The ladder from <a href="/agent-floor/">Agent Floor</a>. The empty top rung is the point.</p>
-  <p>
-    Demotion matters as much as promotion. A charter violation drops an agent a rung, the same
-    way you'd pull back responsibility from someone who made a serious mistake, and it goes back
-    up by working correctly at the lower level for a while.
-  </p>
+    <p>
+      Refusals go in the log too, and they're the most useful entries in it. An agent that
+      declined work is telling you either that a charter is too tight or that a real hazard
+      exists. Both are worth knowing, and neither shows up if you only log successes.
+    </p>
+    <p><a class="chev" href="https://foreman-production-2733.up.railway.app/log">Read Foreman's real log</a></p>
+  </section>
 
-  <h2>3. Human gates on anything irreversible</h2>
-  <p>
-    A gate is a hard stop in front of a specific class of action: anything that reaches a
-    customer or vendor, anything that moves money, anything that can't be undone. The agent does
-    all the work up to that line, then presents the finished artifact and waits.
-  </p>
-  <p>
-    The design detail that makes gates survive contact with reality is that <b>the gate has to
-    show its work</b>. A prompt that says "approve this action?" gets rubber-stamped within a
-    week. A gate that shows the actual email, names the rule that triggered the stop, and states
-    what happens on approve versus deny gets read. If your reviewers are clicking approve
-    without reading, you don't have a gate — you have a speed bump and a false sense of safety.
-  </p>
+  <!-- ============ 5 ============ -->
+  <section class="chap" id="oversight">
+    <div class="chap-n">05</div>
+    <h2>One screen for the person in charge</h2>
+    <p>
+      Once more than two or three agents are running, the bottleneck moves to the human. The
+      question becomes what one person needs on one screen to stay in control. In practice it's
+      four things.
+    </p>
+    <div class="s-art wide">
+      <div class="dash">
+        <div class="dp">
+          <h4>On shift</h4>
+          <div class="dr"><span>Order Desk</span><em style="--c:var(--l1)">Draft</em></div>
+          <div class="dr"><span>Claims</span><em style="--c:var(--l1)">Draft</em></div>
+          <div class="dr"><span>Reconciliation</span><em style="--c:var(--l0)">Observe</em></div>
+        </div>
+        <div class="dp">
+          <h4>Waiting on me <b>3</b></h4>
+          <div class="dr"><span>Stock correction, HP-3320</span><small>1 hr</small></div>
+          <div class="dr"><span>Credit, claim W-2291</span><small>14 min</small></div>
+          <div class="dr"><span>Sales order, PO 48213</span><small>2 min</small></div>
+        </div>
+        <div class="dp">
+          <h4>What stopped, and why</h4>
+          <div class="dr col"><span>Claims refused to issue a credit</span><small>Rule 2: credits need a person</small></div>
+          <div class="dr col"><span>Order Desk left a ship date blank</span><small>Rule 6: never promise inside lead time</small></div>
+        </div>
+        <div class="dp ink">
+          <h4>Running log</h4>
+          <div class="dl">10:52 claims · refused a credit</div>
+          <div class="dl">10:44 supervisor · approved</div>
+          <div class="dl">10:41 order-desk · stopped at gate</div>
+          <div class="dl">10:41 order-desk · read PO 48213</div>
+        </div>
+      </div>
+      <span class="s-cap">Example. <a href="/agent-floor/">Agent Floor</a> is a working one</span>
+    </div>
+    <ul class="pts">
+      <li><b>Who's on shift and at what level</b>, so a promotion is something you see, not something you find out about later.</li>
+      <li><b>What's waiting on me</b>, oldest first. If this list is never empty, autonomy is set too low. If it's always empty, it's set too high.</li>
+      <li><b>What stopped, and why</b>, quoted against the rule that fired. This is the panel that tells you whether the rules are working or just decorative.</li>
+      <li><b>The running log</b>, one stream across all agents, because most real problems show up in the order of events rather than inside any single one.</li>
+    </ul>
+    <p>
+      The measure of the whole arrangement is simple: a supervisor should be able to walk away
+      for an afternoon and, on returning, reconstruct exactly what happened and why, without
+      asking anyone.
+    </p>
+  </section>
 
-  <h2>4. An append-only log, because someone will ask</h2>
-  <p>
-    Every action, every refusal and every human decision lands in a log that is written once and
-    never edited. Not for compliance theater — for the ordinary Tuesday when a customer asks why
-    they got a particular email and the honest answer needs to include which agent drafted it,
-    which rule let it through, and which human pressed send.
-  </p>
-  <p>
-    Refusals go in the log too, and they're the most useful entries in it. An agent that declined
-    work is telling you either that a charter is too tight or that a real hazard exists. Both are
-    worth knowing; neither shows up if you only log successes.
-  </p>
-
-  <h2>5. The oversight dashboard</h2>
-  <p>
-    Once more than two or three agents are running, the bottleneck moves to the human, and the
-    question becomes what one overseer needs on one screen to stay genuinely in control. In
-    practice it's four things:
-  </p>
-  <ul class="pts">
-    <li><b>Who's on shift and at what rung</b> — the current roster with each agent's autonomy level visible, so an escalation is noticeable rather than something you find out about later.</li>
-    <li><b>What's waiting on me</b> — the gate queue, oldest first. If this list is never empty, autonomy is set too low; if it's always empty, it's set too high.</li>
-    <li><b>What stopped, and why</b> — refusals and charter blocks, quoted against the specific rule that fired. This is the panel that tells you whether the governance is working or just decorative.</li>
-    <li><b>The running log</b> — one chronological stream across all agents, because most real problems are visible in the ordering of events rather than inside any single one.</li>
-  </ul>
-  <p>
-    The measure of the whole arrangement is simple: an overseer should be able to walk away for
-    an afternoon and, on returning, reconstruct exactly what happened and why — without asking
-    anyone.
-  </p>
-
-  <h2>Where I'd start</h2>
-  <p>
-    Pick one queue with real volume and low blast radius. Put a single agent on it at
-    <b>Draft</b> and leave it there longer than feels necessary. Write the charter before writing
-    any code. The first two weeks should produce more edits to the charter than to the
-    implementation — if they don't, the charter isn't specific enough to be doing any work.
-  </p>
-
-  <div class="endcta">
-    <h3 style="font-size:21px">See it running, or put it to work.</h3>
-    <p><a href="/foreman/">Foreman</a> is this method as a live system: describe a piece of work and it drafts the charter, the rung and the gates — and refuses you when its policy engine says no.</p>
-    <a class="btn primary" href="/#contact">Start a conversation</a>
-    <a class="chev" href="/foreman/" style="margin-left:18px;font-size:19px">Open Foreman</a>
-  </div>
+  <section class="chap" id="start">
+    <div class="chap-n">→</div>
+    <h2>Where I'd start</h2>
+    <p>
+      Pick one job with real volume and a small cost when it goes wrong. Put a single agent on
+      it at <b>Draft</b> and leave it there longer than feels necessary. Write the charter
+      before writing any code. The first two weeks should produce more edits to the charter
+      than to the code. If they don't, the charter isn't specific enough to be doing any work.
+    </p>
+    <div class="endcta">
+      <h3 style="font-size:21px">See it running, or check your own job.</h3>
+      <p>The home page has a demo you can press through and a four-question check that tells you whether your job is a fit. <a href="/foreman/">Foreman</a> drafts a charter for it on a real AI model.</p>
+      <a class="btn primary" href="/#fit">Check your job</a>
+      <a class="chev" href="/foreman/" style="margin-left:18px;font-size:19px">Open Foreman</a>
+    </div>
+  </section>
 </article>
 </div>
 <div style="height:112px"></div>
@@ -206,5 +334,28 @@
     <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>
   </div>
 </footer>
+<script>
+(function () {
+  // highlight the chapter being read in the sticky bar
+  var links = document.querySelectorAll("#subnav .sn-l a"), map = {};
+  links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
+  if (!("IntersectionObserver" in window)) return;
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      links.forEach(function (a) { a.classList.remove("on"); });
+      var a = map[e.target.id]; if (a) { a.classList.add("on"); if (a.scrollIntoView && window.innerWidth < 720) a.scrollIntoView({ block: "nearest", inline: "center" }); }
+    });
+  }, { rootMargin: "-30% 0px -60% 0px" });
+  document.querySelectorAll(".chap").forEach(function (c) { io.observe(c); });
+
+  var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (still) return;
+  var ro = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".s-art").forEach(function (el) { el.classList.add("rv"); ro.observe(el); });
+})();
+</script>
 </body>
 </html>
