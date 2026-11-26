@@ -3,31 +3,44 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Agent Floor (simulation) — running an agent workforce, with the governance showing</title>
-<meta name="description" content="A watchable agent workforce with charters, an autonomy ladder, approval gates and an append-only log. You are the overseer. Two agents stop themselves." />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0c10'/%3E%3Crect x='5' y='7' width='22' height='3' rx='1.5' fill='%2354d6a0'/%3E%3Crect x='5' y='14' width='16' height='3' rx='1.5' fill='%23f0b849'/%3E%3Crect x='5' y='21' width='10' height='3' rx='1.5' fill='%236aa3e8'/%3E%3C/svg%3E" />
-<meta property="og:title" content="Agent Floor — an agent workforce with the governance showing" />
+<title>Agent Floor (simulation) — supervise a team of AI agents for one shift · SageKey</title>
+<meta name="description" content="Supervise a team of AI agents for one shift. Each has written rules and a level of trust, and anything leaving the building waits for your approval. Watch where they stop themselves." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d1d1f'/%3E%3Crect x='5' y='7' width='22' height='3' rx='1.5' fill='%2354d6a0'/%3E%3Crect x='5' y='14' width='16' height='3' rx='1.5' fill='%23f0b849'/%3E%3Crect x='5' y='21' width='10' height='3' rx='1.5' fill='%236aa3e8'/%3E%3C/svg%3E" />
+<meta property="og:title" content="Agent Floor — supervise a team of AI agents for one shift" />
 <meta property="og:description" content="Charters, an autonomy ladder, approval gates, an append-only log. You are the overseer. The interesting part is where the agents stop." />
-<meta name="theme-color" content="#0a0c10" />
+<meta name="theme-color" content="#ffffff" />
 <style>
   :root {
-    --bg:#0a0c10; --panel:#12151d; --panel2:#171b25; --line:#222836;
-    --ink:#eaeef5; --dim:#8a94a6; --faint:#5b6474;
-    --l0:#6aa3e8; --l1:#f0b849; --l2:#54d6a0; --l3:#3e4657;
-    --alarm:#ff6b6b; --escalate:#ff9f45;
+    --bg:#f5f5f7; --panel:#ffffff; --panel2:#f5f5f7; --line:#e0e0e5;
+    --ink:#1d1d1f; --dim:#6e6e73; --faint:#86868b;
+    --l0:#2f7fdf; --l1:#b86e00; --l2:#0a7d57; --l3:#b0b0b6;
+    --alarm:#d70015; --escalate:#c2410c; --blue:#0071e3;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
     background:var(--bg); color:var(--ink); min-height:100vh;
-    font:400 14px/1.55 ui-sans-serif,-apple-system,"SF Pro Text",Inter,system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased; padding:22px 18px 60px;
+    font:400 14px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; padding:0 0 60px;
   }
-  .shell { max-width:1180px; margin:0 auto; }
+  .shell { max-width:1180px; margin:0 auto; padding:0 22px; }
 
-  header { margin-bottom:18px; }
-  .htop { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  h1 { font-size:18px; font-weight:600; letter-spacing:-.015em; }
-  .sub { color:var(--dim); font-size:13px; margin-top:3px; }
+  /* site bar, so the demo reads as part of sagekey.com and has a way home */
+  .sitebar { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.8);
+    backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid rgba(0,0,0,.1); }
+  .sitebar .in { max-width:1180px; margin:0 auto; padding:0 22px; height:52px; display:flex; align-items:center; gap:28px; }
+  .sitebar .mark { display:flex; align-items:center; gap:8px; font-weight:600; font-size:17px; color:var(--ink);
+    letter-spacing:-.02em; text-decoration:none; }
+  .sitebar .lk { margin:0 auto; display:flex; gap:30px; font-size:13px; }
+  .sitebar .lk a { color:var(--ink); opacity:.8; text-decoration:none; }
+  .sitebar .lk a:hover { opacity:1; }
+  .sitebar .cta { font-size:13px; padding:6px 14px; border-radius:980px; background:var(--blue); color:#fff; text-decoration:none; }
+  @media (max-width:720px) { .sitebar .lk { display:none; } .sitebar .in { justify-content:space-between; } }
+
+  header { margin:44px 0 22px; }
+  .htop { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  h1 { font-size:40px; font-weight:600; letter-spacing:-.025em; line-height:1.05; }
+  .sub { color:var(--dim); font-size:19px; margin-top:10px; letter-spacing:-.012em; max-width:44em; line-height:1.4; }
   .synthetic { display:inline-block; margin-top:9px; font-size:11px; color:var(--faint);
     border:1px solid var(--line); border-radius:999px; padding:3px 9px; }
 
@@ -36,11 +49,11 @@
   .sim { font:600 10.5px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing:.13em;
     text-transform:uppercase; color:var(--escalate); border:1px solid var(--escalate);
     border-radius:4px; padding:4px 7px; white-space:nowrap; }
-  .sim.solid { background:var(--escalate); color:#231103; border-color:var(--escalate); }
+  .sim.solid { background:var(--escalate); color:#fff; border-color:var(--escalate); }
   .simnote { color:var(--faint); font-size:11.5px; }
 
   .grid { display:grid; grid-template-columns:288px 1fr 250px; gap:16px; align-items:start; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:18px; }
   .card h2 { font-size:11px; font-weight:600; color:var(--dim); letter-spacing:.07em;
     text-transform:uppercase; padding:13px 15px 0; }
 
@@ -63,7 +76,7 @@
   .charter { list-style:none; display:flex; flex-direction:column; gap:3px; }
   .charter li { font-size:11.5px; color:var(--dim); padding-left:12px; position:relative; line-height:1.42; }
   .charter li::before { content:"·"; position:absolute; left:3px; color:var(--faint); }
-  .charter li.deny { color:#c98a8a; }
+  .charter li.deny { color:#b3261e; }
   .charter li.deny::before { content:"×"; color:var(--alarm); font-size:10px; top:1px; }
 
   /* floor */
@@ -79,7 +92,7 @@
   .bdetail { font-size:12px; color:var(--dim); margin-top:5px; line-height:1.5;
     border-left:2px solid var(--line); padding-left:9px; }
   .policy { display:inline-block; margin-top:6px; font-size:11px; padding:3px 8px; border-radius:5px;
-    background:rgba(255,107,107,.1); color:#ff9b9b; border:1px solid rgba(255,107,107,.25); }
+    background:rgba(215,0,21,.06); color:#b3001b; border:1px solid rgba(215,0,21,.2); }
   .beat.blocked { border-left-color:var(--alarm); }
   .beat.escalate { border-left-color:var(--escalate); }
   .beat.act { border-left-color:var(--l2); }
@@ -96,7 +109,7 @@
   /* queue */
   .q { padding:11px 13px 14px; display:flex; flex-direction:column; gap:6px; }
   .t { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; transition:border-color .3s; }
-  .t.touched { border-color:#33405a; }
+  .t.touched { border-color:#86868b; }
   .tid { font-size:10.5px; color:var(--faint); font-variant-numeric:tabular-nums; }
   .tt { font-size:12px; margin-top:1px; line-height:1.35; }
   .ts { font-size:10.5px; margin-top:4px; color:var(--dim); }
@@ -104,20 +117,20 @@
 
   /* controls */
   .bar { display:flex; gap:8px; align-items:center; margin:14px 0 16px; flex-wrap:wrap; }
-  button { font:inherit; font-size:13px; font-weight:500; color:var(--ink); background:#1b2130;
-    border:1px solid var(--line); border-radius:8px; padding:8px 14px; cursor:pointer; transition:background .15s,opacity .15s; }
-  button:hover:not(:disabled) { background:#252d40; }
-  button.primary { background:var(--l2); border-color:var(--l2); color:#06231a; }
-  button.primary:hover:not(:disabled) { background:#48c491; }
+  button { font:inherit; font-size:15px; font-weight:400; color:var(--ink); background:#fff;
+    border:1px solid #d2d2d7; border-radius:980px; padding:9px 20px; cursor:pointer; transition:background .15s,opacity .15s; }
+  button:hover:not(:disabled) { background:#f0f0f3; }
+  button.primary { background:var(--blue); border-color:var(--blue); color:#fff; }
+  button.primary:hover:not(:disabled) { background:#0077ed; }
   button:disabled { opacity:.4; cursor:default; }
   .status { color:var(--dim); font-size:12.5px; }
 
   /* gate */
-  .scrim { position:fixed; inset:0; background:rgba(6,8,12,.72); backdrop-filter:blur(3px);
+  .scrim { position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter:blur(6px);
     display:none; align-items:center; justify-content:center; padding:20px; z-index:20; }
   .scrim.on { display:flex; }
-  .gate { background:var(--panel); border:1px solid var(--line); border-radius:14px;
-    max-width:520px; width:100%; padding:20px; animation:in .22s cubic-bezier(.2,0,0,1); }
+  .gate { background:var(--panel); border:1px solid var(--line); border-radius:22px;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.35); max-width:540px; width:100%; padding:28px; animation:in .22s cubic-bezier(.2,0,0,1); }
   .gtag { font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--l1); }
   .gate h3 { font-size:16px; font-weight:600; margin:6px 0 9px; }
   .gate .why { font-size:13px; color:var(--dim); line-height:1.6; }
@@ -129,6 +142,7 @@
   .close ul { list-style:none; display:flex; flex-direction:column; gap:6px; }
   .close li { font-size:13px; color:var(--dim); padding-left:16px; position:relative; }
   .close li::before { content:"→"; position:absolute; left:0; color:var(--l2); }
+  code { font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:.92em; }
 
   .foot { margin-top:26px; color:var(--faint); font-size:12px; line-height:1.6; max-width:760px; }
   .foot b { color:var(--dim); font-weight:500; }
@@ -138,7 +152,7 @@
     display:flex; gap:15px; align-items:center; flex-wrap:wrap; font-size:12.5px; }
   .backlink a { color:var(--dim); text-decoration:none; }
   .backlink a:hover { color:var(--ink); }
-  .backlink a.home { color:var(--l2); }
+  .backlink a.home { color:#0066cc; }
   .backlink .sep { color:var(--l3); }
 
   @media (max-width:1000px) {
@@ -148,15 +162,31 @@
 </style>
 </head>
 <body>
+<div class="sitebar"><div class="in">
+  <a class="mark" href="/">
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="12" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+      <path d="M17 16h10M23 16v5M27 16v4" stroke="currentColor" stroke-width="2.6" fill="none"/>
+    </svg>
+    SageKey
+  </a>
+  <div class="lk">
+    <a href="/#work">What I automate</a>
+    <a href="/#proof">Proof</a>
+    <a href="/#services">Services</a>
+    <a href="/method/">Method</a>
+  </div>
+  <a class="cta" href="/#contact">Start a conversation</a>
+</div></div>
 <div class="shell">
 
 <header>
   <div class="htop">
     <h1>Agent Floor</h1>
     <span class="sim solid">Simulation</span>
-    <span class="simnote">Scripted replay. No live model, no real company, no real approvals.</span>
+    <span class="simnote">Scripted replay. No live AI, no real company, no real approvals.</span>
   </div>
-  <div class="sub">An agent workforce with the governance showing. You are the overseer.</div>
+  <div class="sub">Supervise a team of AI agents for one shift. Each one has written rules and a level of trust, and anything leaving the building waits for your approval. Press start, and watch where they stop.</div>
   <div class="synthetic" id="synthetic">loading…</div>
 </header>
 
@@ -207,10 +237,10 @@
 </p>
 
 <nav class="backlink">
-  <a class="home" href="/">← SageKey · Brett Anderson</a>
+  <a class="home" href="/">← Back to SageKey</a>
   <span class="sep">·</span>
-  <a href="/codebreaker/">Codebreaker</a>
-  <a href="/market-arena/">Market Arena</a>
+  <a href="/foreman/">Foreman, the live version</a>
+  <a href="/method/">The method</a>
 </nav>
 
 </div>

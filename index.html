@@ -61,7 +61,7 @@
       <a class="btn primary" href="#contact">Start a conversation</a>
       <a class="text chev" href="/foreman/">Try the live demo</a>
     </div>
-    <div class="live" id="live"><span class="dot"></span><span id="livetxt"></span></div>
+    <a class="live" id="live" href="/foreman/"><span class="dot"></span><span id="livetxt"></span></a>
   </div>
 </header>
 
@@ -124,6 +124,7 @@
 
     <div class="grid g2">
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 12h5M10 16h5"/></svg>
         <h3>Order entry</h3>
         <div class="rows">
           <div class="r"><span class="k">Today</span><span>POs arrive as PDFs and emails, and someone retypes each one into the ERP.</span></div>
@@ -132,6 +133,7 @@
         </div>
       </article>
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></svg>
         <h3>Quotes &amp; RFQs</h3>
         <div class="rows">
           <div class="r"><span class="k">Today</span><span>One RFQ turns into an afternoon of catalog lookups and price checks.</span></div>
@@ -140,6 +142,7 @@
         </div>
       </article>
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h11a5 5 0 0 1 0 10H9"/><path d="M8 5 4 9l4 4"/></svg>
         <h3>Returns &amp; warranty claims</h3>
         <div class="rows">
           <div class="r"><span class="k">Today</span><span>Every claim means digging through order history, policy and photos.</span></div>
@@ -148,6 +151,7 @@
         </div>
       </article>
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14"/><path d="m15 5 3 3-3 3"/><path d="M20 16H6"/><path d="m9 13-3 3 3 3"/></svg>
         <h3>Reconciliation</h3>
         <div class="rows">
           <div class="r"><span class="k">Today</span><span>Two systems that should agree, and a person with a spreadsheet finding where they don't.</span></div>
@@ -177,11 +181,13 @@
 
     <div class="grid g4">
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="m10 14 2 2 4-4"/></svg>
         <div class="q">"What can it touch?"</div>
         <h3>A written charter</h3>
         <p>A plain-language document that says what the agent may read, may change, and may never do. Your team approves it before anything is built.</p>
       </article>
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4v-4h4v-4h4V8h4"/></svg>
         <div class="q">"How far do we trust it?"</div>
         <h3>Earned autonomy</h3>
         <p>Every agent starts at the bottom and moves up on its record. Most never need to leave Draft.</p>
@@ -192,11 +198,13 @@
         </div>
       </article>
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>
         <div class="q">"What if it's wrong?"</div>
         <h3>Human gates</h3>
         <p>Anything that reaches a customer, moves money or can't be undone stops and waits for a person.</p>
       </article>
       <article class="card">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
         <div class="q">"Who approved this?"</div>
         <h3>A log nobody can edit</h3>
         <p>Every action, refusal and human decision is written once. Weeks later, the answer is a lookup.</p>
@@ -233,12 +241,11 @@
         </p>
         <p>
           It runs on a real AI model, with a separate rules layer that can overrule the AI, a
-          hard daily spend limit, and a tamper-evident log you can check yourself.
+          hard daily spend limit, and a public log of every outcome, refusals included.
         </p>
         <div class="stats" id="fstats" hidden>
           <div class="stat"><div class="v" id="s-status">—</div><div class="l">status, checked just now</div></div>
           <div class="stat"><div class="v" id="s-ceil">—</div><div class="l">daily spend limit</div></div>
-          <div class="stat"><div class="v" id="s-chain">—</div><div class="l">log chain integrity</div></div>
         </div>
         <div class="clinks">
           <a class="chev" href="/foreman/">Open Foreman</a>
@@ -253,16 +260,16 @@
       <div class="kicker">The longest-running proof is my own</div>
       <p class="shead">105 days alone with its rules.</p>
       <p class="intro">
-        Since August 14, 2026, one of my agents has worked a written charter every morning with
-        nobody watching. It's a paper-only research desk: simulated positions, my own data, no
-        real money, no advice. What it trades isn't the point. The point is what an agent does
-        when its rules say "not today" for weeks on end. This one wrote down why, and waited.
+        Since August 14, 2026, one of my agents has run every morning with nobody watching. Its
+        job is market research on a practice portfolio: no real money, no advice. The subject
+        doesn't matter. What matters is what an agent does when its rules say "not today" for
+        weeks on end. This one wrote down why, and waited.
       </p>
       <div class="rnums">
-        <div class="stat"><div class="v">105</div><div class="l">consecutive daily runs, none missed</div></div>
+        <div class="stat"><div class="v">105</div><div class="l">mornings in a row, none missed</div></div>
         <div class="stat"><div class="v">15</div><div class="l">weekly reviews of its own decisions</div></div>
-        <div class="stat"><div class="v">4</div><div class="l">mornings it acted</div></div>
-        <div class="stat"><div class="v">101</div><div class="l">mornings it declined and logged why, the last 51 in a row</div></div>
+        <div class="stat"><div class="v">4</div><div class="l">times its rules let it make a move</div></div>
+        <div class="stat"><div class="v">101</div><div class="l">mornings it held back and logged why, the last 51 in a row</div></div>
       </div>
       <div class="rfoot">Snapshot on November 26, 2026, counted from the run history and append-only log of a private repository.</div>
     </div>
@@ -283,9 +290,8 @@
       <article class="card">
         <h3>The lab</h3>
         <p>
-          Side projects, built to learn something: a live market-data pipeline dressed as a pixel
-          battle, a Mastermind solver that shows its deduction, and a paper-trading desk that
-          kept its whole record, losses included.
+          Side projects, built to learn something: a live data feed dressed up as a pixel
+          battle, and a code-breaking game that shows its reasoning as it plays.
         </p>
         <div class="clinks">
           <a class="chev" href="/lab/">Visit the lab</a>
@@ -402,6 +408,7 @@
         <li><b>Rules you own</b>Every agent's rules are written in plain language and belong to you.</li>
         <li><b>Scope before build</b>Nothing gets built until the plan is written and agreed.</li>
         <li><b>An honest "no"</b>If an agent is the wrong tool, I'll tell you before you pay for one.</li>
+        <li><b>Based in Texas</b>Central time, working with companies across the U.S.</li>
       </ul>
     </div>
   </div>
@@ -499,6 +506,12 @@
         <input id="b-n" autocomplete="name" />
         <button class="btn primary" type="submit">Open this as an email</button>
         <div class="c-note">Opens your own email app with this filled in. Nothing is stored or sent from this page.</div>
+        <div class="fallback" id="fallback" hidden>
+          <b>Email app didn't open?</b> Copy your message and send it to
+          <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>.
+          <textarea id="fbtext" readonly></textarea>
+          <button class="btn sm" type="button" id="fbcopy">Copy my message</button>
+        </div>
       </form>
     </div>
   </div>
@@ -559,12 +572,10 @@
     var h = res[0], v = res[1];
     if (!h.ok) return;
     var ceil = "$" + Number(h.ceiling_usd).toFixed(2);
-    $("livetxt").textContent = "Foreman is online · " + ceil + " daily spend limit · log " +
-      (v.valid ? "verified" : "FAILED");
+    $("livetxt").textContent = "The live demo is online right now";
     $("live").classList.add("on");
     $("s-status").textContent = "Online";
     $("s-ceil").textContent = ceil;
-    $("s-chain").textContent = v.valid ? "Valid" : "Broken";
     $("fstats").hidden = false;
   }).catch(function () {});
 
@@ -574,6 +585,12 @@
     (navigator.clipboard ? navigator.clipboard.writeText("bretta@sagekey.com") : Promise.reject())
       .then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1600); })
       .catch(function () { window.location.href = $("mail").href; });
+  };
+  $("fbcopy").onclick = function () {
+    var b = this, t = $("fbtext");
+    (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject())
+      .then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy my message"; }, 1600); })
+      .catch(function () { t.select(); });
   };
   $("brief").onsubmit = function (e) {
     e.preventDefault();
@@ -585,6 +602,8 @@
       "Good times for a 30-minute call:", v("b-t") || "-", "",
       v("b-n")
     ].join("\n");
+    $("fbtext").value = body;
+    $("fallback").hidden = false;
     window.location.href = "mailto:bretta@sagekey.com?subject=" +
       encodeURIComponent("SageKey enquiry" + (v("b-n") ? " — " + v("b-n") : "")) +
       "&body=" + encodeURIComponent(body);
