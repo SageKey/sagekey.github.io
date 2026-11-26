@@ -335,10 +335,26 @@ h3 { font-size:21px; font-weight:600; letter-spacing:-.018em; line-height:1.2; }
 .recordbar { margin-top:20px; padding:44px; display:grid; grid-template-columns:1fr 1.15fr; gap:28px 56px; align-items:center; }
 .recordbar h3 { font-size:28px; letter-spacing:-.022em; margin-top:0; }
 .recordbar p { font-size:17px; }
-.recordbar .rnums { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-.recordbar .stat .v { font-size:clamp(40px,5vw,64px); line-height:1; font-weight:600; letter-spacing:-.04em;
+.recordbar .rnums { display:flex; gap:36px; margin-top:26px; }
+.recordbar .rnums .stat { max-width:11em; }
+.recordbar .stat .v { font-size:clamp(36px,4.2vw,52px); line-height:1; font-weight:600; letter-spacing:-.04em;
   background:linear-gradient(180deg,#8ff0c8,#2fbf8a); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .recordbar .stat .l { font-size:14px; color:var(--dim); margin-top:10px; line-height:1.35; }
+/* one square per morning it ran; the bright ones are the mornings its rules let it act */
+.rcal { justify-self:center; }
+.cal { --c:22px; --g:5px; }
+.cal-m { display:grid; grid-template-columns:repeat(var(--cols), var(--c)); gap:var(--g); font-size:12px; color:var(--faint); margin-bottom:8px; }
+.cal-m span { white-space:nowrap; }
+.cal-g { display:grid; grid-template-columns:repeat(var(--cols), var(--c)); grid-template-rows:repeat(7, var(--c)); gap:var(--g); }
+.cal-g i, .cal-k i { border-radius:5px; background:#1f4a3a; }
+.cal-g i { transition:transform .15s; }
+.cal-g i:hover { transform:scale(1.25); }
+.cal-g i.a, .cal-k i.a { background:#54d6a0; box-shadow:0 0 0 3px rgba(84,214,160,.22); }
+.cal-k { display:flex; gap:10px 22px; flex-wrap:wrap; margin-top:18px; font-size:13px; color:var(--dim); }
+.cal-k span { display:flex; align-items:center; gap:8px; }
+.cal-k i { width:12px; height:12px; border-radius:3px; flex:none; }
+.recordbar.rv .cal-g i { opacity:0; transition:opacity .5s; }
+.recordbar.rv.in .cal-g i { opacity:1; transition-delay:calc((var(--k, 0)) * 1ms + 300ms); }
 .recordbar .rfoot { grid-column:1 / -1; font-size:13px; color:var(--faint); border-top:1px solid var(--line); padding-top:18px; }
 
 /* ---------- fit check ---------- */
@@ -517,6 +533,8 @@ footer { background:#f5f5f7; }
   .feature:not(.flip) .fimg img { width:175%; max-width:none; }
   .steps .card { padding:0; }
   .recordbar { padding:26px 22px; }
+  .cal { --c:14px; --g:4px; }
+  .rcal { justify-self:start; }
   .facts.tiles, .c-row { grid-template-columns:1fr; }
   .c-row { gap:0; }
   .foot .sp { margin-left:0; }
