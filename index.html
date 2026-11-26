@@ -233,7 +233,7 @@
 
     <article class="card feature">
       <div class="ftxt">
-        <h3>Foreman <span class="tag live">Live</span></h3>
+        <h3>Foreman <span class="tag on">Live</span></h3>
         <p>
           Describe a piece of operational work you'd consider handing to an agent. Foreman drafts
           the rulebook for it: what the agent may do, how much freedom it starts with, where a
@@ -256,48 +256,43 @@
       </a>
     </article>
 
-    <div class="record">
-      <div class="kicker">The longest-running proof is my own</div>
-      <p class="shead">105 days alone with its rules.</p>
-      <p class="intro">
-        Since August 14, 2026, one of my agents has run every morning with nobody watching. Its
-        job is market research on a practice portfolio: no real money, no advice. The subject
-        doesn't matter. What matters is what an agent does when its rules say "not today" for
-        weeks on end. This one wrote down why, and waited.
-      </p>
-      <div class="rnums">
-        <div class="stat"><div class="v">105</div><div class="l">mornings in a row, none missed</div></div>
-        <div class="stat"><div class="v">15</div><div class="l">weekly reviews of its own decisions</div></div>
-        <div class="stat"><div class="v">4</div><div class="l">times its rules let it make a move</div></div>
-        <div class="stat"><div class="v">101</div><div class="l">mornings it held back and logged why, the last 51 in a row</div></div>
-      </div>
-      <div class="rfoot">Snapshot on November 26, 2026, counted from the run history and append-only log of a private repository.</div>
-    </div>
-
-    <div class="grid g2" style="margin-top:112px">
-      <article class="card">
+    <article class="card feature flip">
+      <a class="fimg" href="/agent-floor/" aria-label="Open Agent Floor">
+        <img src="/img/agent-floor-shift.jpg" alt="Agent Floor mid-shift: three agents with their rules on the left, and a running log of what each one did, flagged, and stopped on" loading="lazy" width="1200" height="1400" />
+      </a>
+      <div class="ftxt">
         <h3>Agent Floor <span class="tag sim">Simulation</span></h3>
         <p>
-          Sit in the overseer's chair for one shift. Three agents at three autonomy levels work through
-          a support inbox, and anything leaving the building stops at a gate you have to click.
-          Watch for the moments where an agent <em>stops</em>.
+          Sit in the supervisor's chair for one shift. Three agents, each trusted to a
+          different degree, work through a metal fabricator's backlog of requests. Anything
+          leaving the building stops and waits for your click.
+        </p>
+        <p>
+          Watch for the moments where an agent stops on its own. Those are the point.
         </p>
         <div class="clinks">
           <a class="chev" href="/agent-floor/">Run the shift</a>
           <a class="quiet" href="https://github.com/SageKey/agent-floor">Source</a>
         </div>
-      </article>
-      <article class="card">
-        <h3>The lab</h3>
+      </div>
+    </article>
+
+    <article class="card recordbar">
+      <div class="rtxt">
+        <h3>I run my own agents the same way.</h3>
         <p>
-          Side projects, built to learn something: a live data feed dressed up as a pixel
-          battle, and a code-breaking game that shows its reasoning as it plays.
+          Since August 14, 2026, one of them has run every morning with nobody watching. It
+          researches markets for a practice portfolio: no real money, no advice. On most
+          mornings its rules said "not today." It wrote down why, and waited.
         </p>
-        <div class="clinks">
-          <a class="chev" href="/lab/">Visit the lab</a>
-        </div>
-      </article>
-    </div>
+      </div>
+      <div class="rnums">
+        <div class="stat"><div class="v">105</div><div class="l">mornings in a row, none missed</div></div>
+        <div class="stat"><div class="v">101</div><div class="l">mornings it held back and logged why</div></div>
+        <div class="stat"><div class="v">15</div><div class="l">weekly reviews of its own decisions</div></div>
+      </div>
+      <div class="rfoot">Snapshot on November 26, 2026, counted from the run history and append-only log of a private repository.</div>
+    </article>
   </div>
 </section>
 
@@ -387,31 +382,29 @@
       <p class="shead">One person, on purpose.</p>
     </div>
     <div class="about">
-      <div>
-        <p>
-          I'm Brett Anderson, and SageKey is my practice. For the last several years I've been
-          the integration layer for a mid-market remanufacturer: ERP, order flow, shipping, and
-          the internal tools nobody demos but everybody depends on.
-        </p>
-        <p>
-          That's where the agent work came from. I started putting AI on real operational
-          work and found the AI was never the hard part. The charter, the gate
-          and the log were. So I built those properly, and they became the method on this site.
-        </p>
-        <p>
-          I run my own agents on the same method. One has worked a written charter every morning
-          since August 2026 without a missed day, and <a href="#proof">its record is on this page</a>.
-        </p>
-      </div>
-      <ul class="facts">
-        <li><b>No handoffs</b>The person on the first call reads your ERP schema and writes the code.</li>
-        <li><b>Rules you own</b>Every agent's rules are written in plain language and belong to you.</li>
-        <li><b>Scope before build</b>Nothing gets built until the plan is written and agreed.</li>
-        <li><b>An honest "no"</b>If an agent is the wrong tool, I'll tell you before you pay for one.</li>
-        <li><b>Systems I've worked in</b>Infor SyteLine, BigCommerce, carrier and shipping-rate APIs, payment gateways, Postgres.</li>
-        <li><b>Based in Texas</b>Central time, working with companies across the U.S.</li>
-      </ul>
+      <p>
+        I'm Brett Anderson, and SageKey is my practice. For the last several years I've been
+        the integration layer for a mid-market remanufacturer: ERP, order flow, shipping, and
+        the internal tools nobody demos but everybody depends on.
+      </p>
+      <p>
+        That's where the agent work came from. I started putting AI on real operational
+        work and found the AI was never the hard part. The charter, the gate
+        and the log were. So I built those properly, and they became the method on this site.
+      </p>
+      <p>
+        I run my own agents on the same method. One has worked a written charter every morning
+        since August 2026 without a missed day, and <a href="#proof">its record is on this page</a>.
+      </p>
     </div>
+    <ul class="facts tiles">
+      <li><b>No handoffs</b>The person on the first call reads your ERP schema and writes the code.</li>
+      <li><b>Rules you own</b>Every agent's rules are written in plain language and belong to you.</li>
+      <li><b>Scope before build</b>Nothing gets built until the plan is written and agreed.</li>
+      <li><b>An honest "no"</b>If an agent is the wrong tool, I'll tell you before you pay for one.</li>
+      <li><b>Systems I've worked in</b>Infor SyteLine, BigCommerce, carrier and shipping-rate APIs, payment gateways, Postgres.</li>
+      <li><b>Based in Texas</b>Central time, working with companies across the U.S.</li>
+    </ul>
   </div>
 </section>
 
@@ -479,32 +472,27 @@
     <div class="head">
       <div class="kicker">Start a conversation</div>
       <p class="shead">Tell me about one job.</p>
+      <p class="intro">
+        Send a note, or ask for a 30-minute call. I read everything myself. The more concrete
+        the problem, the faster I can tell you whether I'm the right person for it.
+      </p>
     </div>
     <div class="contact">
-      <div class="c-left">
-        <div class="big">Send a note, or ask for a 30-minute call.</div>
-        <p>
-          I read everything myself and reply to anything that isn't a template. I'm taking a
-          small number of engagements, so the more concrete the problem, the faster I can tell
-          you whether I'm the right person for it.
-        </p>
-        <p>If you'd rather talk, add a few times that suit you and I'll confirm one by email.</p>
-        <div class="c-mail">
-          <a href="mailto:bretta@sagekey.com?subject=SageKey%20enquiry" id="mail">bretta@sagekey.com</a>
-          <button id="copy" type="button">Copy</button>
-        </div>
-      </div>
       <form class="c-right" id="brief">
         <label for="b-q">The one job or process on your mind</label>
         <textarea id="b-q" placeholder="Customer POs arrive by email as PDFs and two people retype them into the ERP."></textarea>
-        <label for="b-v">Rough volume, and who handles it today</label>
-        <input id="b-v" placeholder="About 150 a day, two order-entry staff" />
-        <label for="b-s">ERP and other systems it touches</label>
-        <input id="b-s" placeholder="Epicor, Outlook, a shared spreadsheet" />
-        <label for="b-t">Want a call? A few times that suit you (optional)</label>
-        <input id="b-t" placeholder="Tue or Thu after 2pm Central" />
-        <label for="b-n">Your name and company</label>
-        <input id="b-n" autocomplete="name" />
+        <label for="b-v">Rough volume, and the systems it touches</label>
+        <input id="b-v" placeholder="150 a day. Epicor and Outlook" />
+        <div class="c-row">
+          <div>
+            <label for="b-n">Your name and company</label>
+            <input id="b-n" autocomplete="name" />
+          </div>
+          <div>
+            <label for="b-t">Good times for a call (optional)</label>
+            <input id="b-t" placeholder="Tue or Thu after 2pm Central" />
+          </div>
+        </div>
         <button class="btn primary" type="submit">Open this as an email</button>
         <div class="c-note">Opens your own email app with this filled in. Nothing is stored or sent from this page.</div>
         <div class="fallback" id="fallback" hidden>
@@ -514,6 +502,11 @@
           <button class="btn sm" type="button" id="fbcopy">Copy my message</button>
         </div>
       </form>
+      <div class="c-mail">
+        <span>Or write to me directly:</span>
+        <a href="mailto:bretta@sagekey.com?subject=SageKey%20enquiry" id="mail">bretta@sagekey.com</a>
+        <button id="copy" type="button">Copy</button>
+      </div>
     </div>
   </div>
 </section>
@@ -598,8 +591,7 @@
     var v = function (id) { return $(id).value.trim(); };
     var body = [
       "The job or process:", v("b-q") || "-", "",
-      "Volume / who handles it today:", v("b-v") || "-", "",
-      "Systems it touches:", v("b-s") || "-", "",
+      "Rough volume and systems:", v("b-v") || "-", "",
       "Good times for a 30-minute call:", v("b-t") || "-", "",
       v("b-n")
     ].join("\n");
