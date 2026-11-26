@@ -597,7 +597,7 @@
             <label for="b-n">Your name and company</label>
             <input id="b-n" autocomplete="name" required />
           </div>
-          <div>
+          <div id="b-e-wrap">
             <label for="b-e">Your email, so I can reply</label>
             <input id="b-e" type="email" autocomplete="email" required placeholder="you@company.com" />
           </div>
@@ -607,7 +607,7 @@
         <input type="text" id="b-h" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" class="c-hp" />
         <button class="btn primary" type="submit" id="b-send">Send</button>
         <div class="c-note">
-          Goes straight to my inbox, delivered by FormSubmit, an email form service. Nothing is stored on this site.
+          <span id="b-how">Goes straight to my inbox, delivered by FormSubmit, an email form service. Nothing is stored on this site.</span>
           <button type="button" class="c-alt" id="b-mailto">Use your own email app instead</button>
         </div>
         <div class="fallback" id="fallback" hidden>
@@ -1031,6 +1031,17 @@
   // The note is delivered to Brett's inbox by FormSubmit. If that fails for any
   // reason, the visitor still gets their own email app and a copy of the text.
   var FS = "https://formsubmit.co/ajax/f93c519504278d5eedab64f5f80beafa";
+  // OFF until a Gmail filter keeps FormSubmit's mail out of Spam. Tested 2026-11-26: the
+  // form delivers, but every message landed in Spam. While off, Send opens the visitor's
+  // own email app, which is known to reach the inbox. Set to true to send from the page.
+  var FORM_SERVICE = false;
+  if (!FORM_SERVICE) {
+    $("b-e-wrap").hidden = true; $("b-e").required = false;
+    $("b-e-wrap").parentNode.style.gridTemplateColumns = "1fr";
+    $("b-send").textContent = "Open this as an email";
+    $("b-how").textContent = "Opens your own email app with this filled in. Nothing is stored or sent from this page.";
+    $("b-mailto").hidden = true;
+  }
   function note() {
     var v = function (id) { return $(id).value.trim(); };
     return {
@@ -1057,6 +1068,7 @@
   $("brief").onsubmit = function (e) {
     e.preventDefault();
     if ($("b-h").value) return;                       // a bot filled the hidden field
+    if (!FORM_SERVICE) return viaEmailApp();
     var n = note(), btn = $("b-send");
     btn.disabled = true; btn.textContent = "Sending…";
     var failed = function () {

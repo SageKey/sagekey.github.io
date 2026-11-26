@@ -488,6 +488,7 @@ details.q p { color:var(--dim); font-size:17px; line-height:1.5; padding:0 44px 
 .c-hp { position:absolute !important; left:-9999px; width:1px !important; height:1px; opacity:0; }
 .c-alt { display:block; margin:6px auto 0; background:none; border:none; color:var(--link); font:inherit; cursor:pointer; }
 .c-alt:hover { text-decoration:underline; }
+.c-alt[hidden], #b-e-wrap[hidden] { display:none; }
 .c-right .btn[disabled] { opacity:.6; cursor:default; }
 form.c-right[hidden], .c-done[hidden] { display:none; }
 .c-done { text-align:center; padding:56px 34px; }
