@@ -80,6 +80,8 @@
     .budget { margin-left:0; width:100%; }
   }
 </style>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -433,6 +435,7 @@ $("form").addEventListener("submit", async e => {
     if (res.status === 503) return show("fault", "Foreman is down", body.detail);
     if (!res.ok) return show("fault", "Something went wrong", "HTTP " + res.status + ".");
 
+    try { window.va && window.va("event", { name: "foreman_draft", data: { outcome: body.outcome === "refused" ? "refused_" + body.kind : "drafted" } }); } catch (e) {}
     if (body.outcome === "refused") {
       const title = {
         charter: "Refused: outside its charter",

@@ -25,6 +25,8 @@
  "founder":{"@type":"Person","name":"Brett Anderson"},"email":"bretta@sagekey.com",
  "sameAs":["https://github.com/SageKey","https://www.linkedin.com/in/aibrett/"]}
 </script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -664,6 +666,8 @@
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
+  // Anonymous counts of what visitors do (no cookies, no personal data, never the text they type).
+  function track(name, data) { try { window.va && window.va("event", { name: name, data: data || {} }); } catch (e) {} }
 
   // nav hairline once scrolled
   var nav = $("nav");
@@ -775,6 +779,7 @@
 
   function decide(ok) {
     var j = JOBS[cur];
+    track("desk_decision", { job: cur, decision: ok ? "approved" : "sent_back" });
     $("gyes").disabled = $("gno").disabled = true;
     gate.classList.remove("ready"); gate.classList.add("settled");
     var tag = $("gtag");
@@ -935,6 +940,7 @@
     }
     var r = verdict(), h = hours();
     out.className = "f-out done " + r.v[0];
+    if (fitRender.last !== r.v[1]) { fitRender.last = r.v[1]; track("fit_verdict", { verdict: r.v[1] }); }
     out.innerHTML =
       '<div class="f-tag">' + (r.v[0] === "yes" ? "Verdict" : r.v[0] === "maybe" ? "Verdict, with a condition" : "Honest verdict") + "</div>" +
       '<div class="f-v">' + r.v[1] + "</div>" +
@@ -948,6 +954,7 @@
       '<div class="f-note">Fills in the note at the bottom of the page. Nothing is sent until you send it.</div>';
     $("f-send").onclick = function () {
       var q = $("b-q");
+      track("fit_send", { verdict: r.v[1] });
       q.value = "\n\n" + fitText(r);
       $("contact").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
       setTimeout(function () { q.focus(); q.setSelectionRange(0, 0); }, still ? 0 : 700);
@@ -1019,6 +1026,7 @@
       "Good times for a 30-minute call:", v("b-t") || "-", "",
       v("b-n")
     ].join("\n");
+    track("contact_open_email");
     $("fbtext").value = body;
     $("fallback").hidden = false;
     window.location.href = "mailto:bretta@sagekey.com?subject=" +
