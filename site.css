@@ -12,7 +12,7 @@
 * { box-sizing:border-box; margin:0; padding:0; }
 html { scroll-behavior:smooth; scroll-padding-top:72px; overflow-x:clip; }
 body { background:var(--bg); color:var(--ink); font:400 17px/1.47 var(--sans);
-  letter-spacing:-.011em; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  letter-spacing:-.011em; -webkit-font-smoothing:antialiased; }
 .shell { max-width:1068px; margin:0 auto; padding:0 22px; position:relative; }
 .narrow { max-width:720px; }
 a { color:var(--link); text-decoration:none; }
@@ -41,6 +41,25 @@ nav.top.scrolled { border-bottom-color:rgba(0,0,0,.1); }
 .links { margin:0 auto; display:flex; gap:30px; font-size:13px; letter-spacing:-.005em; }
 .links a { color:var(--ink); opacity:.8; }
 .links a:hover, .links a.on { opacity:1; text-decoration:none; }
+
+/* ---------- job bar: the page follows the job the visitor picked ---------- */
+.jobbar { position:fixed; left:0; right:0; top:52px; z-index:18; background:rgba(245,245,247,.86);
+  backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid rgba(0,0,0,.08); transform:translateY(-110%); opacity:0; visibility:hidden;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s, visibility 0s .35s; }
+.jobbar.show { transform:none; opacity:1; visibility:visible; transition:transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s; }
+.jb-row { display:flex; align-items:center; gap:14px; height:46px; }
+.jb-t { font-size:13px; color:var(--dim); white-space:nowrap; }
+.jb-opts { display:flex; gap:2px; background:rgba(0,0,0,.06); border-radius:980px; padding:3px; overflow-x:auto; scrollbar-width:none; }
+.jb-opts::-webkit-scrollbar { display:none; }
+.jb-opts button { font:500 13px/1 var(--sans); color:var(--dim); background:none; border:none; padding:8px 14px; border-radius:980px;
+  cursor:pointer; white-space:nowrap; transition:background .2s, color .2s; }
+.jb-opts button:hover { color:var(--ink); }
+.jb-opts button[aria-pressed="true"] { background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.14); }
+/* a piece of the page that just changed to match the job */
+.swap { animation:swapin .6s cubic-bezier(.2,.8,.2,1); }
+@keyframes swapin { 0% { opacity:.25; filter:blur(3px); } 100% { opacity:1; filter:none; } }
+.in-row.cur { background:#fff8e6; box-shadow:inset 3px 0 0 #f0b849; }
 
 /* ---------- buttons ---------- */
 .btn { font:400 17px/1.2 var(--sans); letter-spacing:-.011em; padding:12px 22px; border-radius:980px;
@@ -643,6 +662,8 @@ footer.fat { background:#f5f5f7; }
   .chap { margin-top:76px; }
   .chap-n { font-size:48px; }
   .dash { grid-template-columns:1fr; }
+  .jb-t { display:none; }
+  .jb-row { height:44px; }
   .seg, .f-nums { margin-left:0; }
   .f-out { padding:28px 22px; border-radius:22px; }
   .f-nums input { width:100%; }

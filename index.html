@@ -50,6 +50,18 @@
   </div>
 </nav>
 
+<div class="jobbar" id="jobbar" aria-hidden="true">
+  <div class="shell jb-row">
+    <span class="jb-t">This page is showing</span>
+    <div class="jb-opts" role="group" aria-label="Choose the job this page describes">
+      <button type="button" data-k="order" aria-pressed="true">Order entry</button>
+      <button type="button" data-k="quote" aria-pressed="false">Quotes</button>
+      <button type="button" data-k="claim" aria-pressed="false">Returns</button>
+      <button type="button" data-k="recon" aria-pressed="false">Reconciliation</button>
+    </div>
+  </div>
+</div>
+
 <header class="hero">
   <div class="shell">
     <span class="avail"><span class="dot"></span> Taking a small number of engagements</span>
@@ -96,7 +108,7 @@
         </div>
       </div>
       <div class="d-foot">
-        <span>An illustration with made-up data. <a href="/foreman/">Foreman</a> is the live one.</span>
+        <span>An illustration with made-up data. Pick a job and the rest of this page follows it.</span>
         <button id="d-replay" type="button">Replay</button>
       </div>
       <noscript><p class="d-noscript">This demo needs JavaScript. The four jobs are described just below.</p></noscript>
@@ -156,30 +168,30 @@
           One plain-language page that says what the agent may read, may change, and may never
           do. Your team approves it before anything is built, and it belongs to you.
         </p>
-        <a class="chev" href="/foreman/">Have Foreman draft one for your job</a>
+        <a class="chev" id="fm-link" href="/foreman/?job=order">Have Foreman draft one for <span id="fm-job">order entry</span></a>
       </div>
       <div class="s-art">
         <div class="stack">
           <div class="paper">
             <div class="p-head"><span>Charter</span><span>Approved before build</span></div>
-            <div class="p-title">Order Desk agent</div>
-            <div class="p-meta"><b>Owner</b> Order Entry Supervisor &nbsp;·&nbsp; <b>Level</b> Draft</div>
+            <div class="p-title" id="ch-title">Order Desk agent</div>
+            <div class="p-meta"><b>Owner</b> <span id="ch-owner">Order Entry Supervisor</span> &nbsp;·&nbsp; <b>Level</b> Draft</div>
             <div class="p-sec">May</div>
-            <ul class="p-list ok">
+            <ul class="p-list ok" id="ch-may">
               <li>Read purchase orders from the orders inbox</li>
               <li>Look up items and contract prices, read-only</li>
               <li>Create sales orders in draft status only</li>
               <li>Flag every mismatch it finds</li>
             </ul>
             <div class="p-sec">May not</div>
-            <ul class="p-list no">
+            <ul class="p-list no" id="ch-no">
               <li>Release, confirm or acknowledge an order</li>
               <li>Change prices, credit limits or customer records</li>
               <li>Guess at a value it can't read</li>
             </ul>
             <div class="p-sign">
               <svg viewBox="0 0 120 34" aria-hidden="true"><path d="M4 24c8-14 14-18 16-12 2 7-8 14-4 15 6 1 10-16 16-15 5 1-3 13 2 13 6 0 8-10 13-10 4 0 0 9 5 9 7 0 9-12 16-12 5 0 2 10 8 10 8 0 14-8 36-9" fill="none" stroke="#1d1d1f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span>Order Entry Supervisor</span>
+              <span id="ch-sign">Order Entry Supervisor</span>
             </div>
           </div>
         </div>
@@ -224,9 +236,13 @@
       </div>
       <div class="s-art">
         <div class="inbox">
-          <div class="in-head">Waiting on you <b>3</b></div>
-          <a class="in-row" href="#work" data-job="order">
+          <div class="in-head">Waiting on you <b>4</b></div>
+          <a class="in-row cur" href="#work" data-job="order">
             <span class="in-t">Sales order for PO 48213<small>Order Desk agent · 2 min ago</small></span>
+            <span class="in-why">Reaches a customer</span>
+          </a>
+          <a class="in-row" href="#work" data-job="quote">
+            <span class="in-t">Quote for 3 lines<small>Quoting agent · 6 min ago</small></span>
             <span class="in-why">Reaches a customer</span>
           </a>
           <a class="in-row" href="#work" data-job="claim">
@@ -254,7 +270,7 @@
         <a class="chev" href="https://foreman-production-2733.up.railway.app/log">Read Foreman's real log</a>
       </div>
       <div class="s-art dark">
-        <div class="lg">
+        <div class="lg" id="lg">
           <div class="lg-row" style="--n:0"><span class="t">10:41:07</span><span class="w">order-desk</span><span class="m">read PO 48213</span><span class="h">a3f1c0</span></div>
           <div class="lg-row" style="--n:1"><span class="t">10:41:19</span><span class="w">order-desk</span><span class="m">matched 1 line, price checked</span><span class="h">9c2e77</span></div>
           <div class="lg-row stop" style="--n:2"><span class="t">10:41:22</span><span class="w">order-desk</span><span class="m">stopped at the gate, rule 4</span><span class="h">51b70d</span></div>
@@ -815,7 +831,9 @@
   }
 
   function play(k) {
+    var changed = k !== cur;
     cur = k; var my = ++run, j = JOBS[k];
+    applyJob(k, !changed);
     tabs.forEach(function (t) { t.setAttribute("aria-selected", t.getAttribute("data-k") === k ? "true" : "false"); });
     panels.forEach(function (p) { p.hidden = p.getAttribute("data-k") !== k; });
 
@@ -861,6 +879,8 @@
 
   tabs.forEach(function (t) { t.onclick = function () { started = true; play(t.getAttribute("data-k")); }; });
   $("d-replay").onclick = function () { started = true; play(cur); };
+  try { var saved = sessionStorage.getItem("sk-job"); if (JOBS[saved]) cur = saved; } catch (e) {}
+  tabs.forEach(function (t) { t.setAttribute("aria-selected", t.getAttribute("data-k") === cur ? "true" : "false"); });
   panels.forEach(function (p) { p.hidden = p.getAttribute("data-k") !== cur; });
   // Start when the desk is actually on screen, so nobody arrives mid-way.
   if ("IntersectionObserver" in window) {
@@ -869,6 +889,61 @@
     }, { threshold: 0.3 });
     io.observe(desk);
   } else { started = true; play(cur); }
+
+  // ---- the page follows the job: charter, waiting list, log, contact form ----
+  var JOBX = {
+    order: { label: "order entry", agent: "Order Desk agent", owner: "Order Entry Supervisor", who: "order-desk", boss: "supervisor",
+      may: ["Read purchase orders from the orders inbox", "Look up items and contract prices, read-only", "Create sales orders in draft status only", "Flag every mismatch it finds"],
+      no: ["Release, confirm or acknowledge an order", "Change prices, credit limits or customer records", "Guess at a value it can't read"],
+      log: ["read PO 48213", "matched 1 line, price checked", "stopped at the gate, rule 4", "approved, order released", "refused: asked to release an order without approval"],
+      ph: ["Customer POs arrive by email as PDFs and two people retype them into the ERP.", "150 a day. Epicor and Outlook"] },
+    quote: { label: "quotes", agent: "Quoting agent", owner: "Inside Sales Manager", who: "quoting", boss: "sales manager",
+      may: ["Read RFQ emails in the sales inbox", "Look up items, list prices and lead times, read-only", "Assemble a draft quote with the real lead times", "Flag anything it couldn't find"],
+      no: ["Send a quote or reply to a customer", "Set or change a margin or a discount", "Promise a date the system doesn't show"],
+      log: ["read RFQ, 3 line items", "priced 3 items, lead times pulled", "stopped at the gate, rule 2", "approved, quote sent", "refused: asked to apply a discount on its own"],
+      ph: ["RFQs come in by email and each one takes a salesperson an afternoon of lookups.", "30 a day. Our ERP and a price spreadsheet"] },
+    claim: { label: "returns and claims", agent: "Claims agent", owner: "Customer Service Manager", who: "claims", boss: "manager",
+      may: ["Read warranty claims and their attachments", "Pull the original order and service history", "Check each claim against the written policy", "Recommend approve, deny or escalate, with reasons"],
+      no: ["Issue a credit, refund or replacement", "Tell a customer the outcome", "Decide a case the policy doesn't cover"],
+      log: ["read claim W-2291, 2 photos", "checked against the warranty policy", "stopped at the gate, rule 2", "approved, credit issued", "refused: asked to tell the customer before approval"],
+      ph: ["Every warranty claim means digging through order history, policy and photos.", "40 a week. The ERP and a claims inbox"] },
+    recon: { label: "reconciliation", agent: "Reconciliation agent", owner: "Controller", who: "recon", boss: "controller",
+      may: ["Read stock and transaction records in both systems", "Compare them every morning", "Explain each difference in plain language", "Draft a correction for a person to post"],
+      no: ["Post or change a record in either system", "Net differences against each other to hide them", "Guess which side is right"],
+      log: ["compared ERP stock with the count", "traced HP-3320, 4 units short", "stopped at the gate, rule 1", "approved, correction posted", "refused: asked to post without approval"],
+      ph: ["Our ERP stock and the warehouse count never agree, and someone reconciles them by hand.", "Every morning. The ERP and the warehouse system"] }
+  };
+  var LOGT = ["10:41:07", "10:41:19", "10:41:22", "10:44:03", "10:52:40"], LOGH = ["a3f1c0", "9c2e77", "51b70d", "e08d4a", "77aa19"];
+  var jbar = $("jobbar"), jbtns = jbar.querySelectorAll("button");
+  function swap(el) { if (!el || still) return; el.classList.remove("swap"); void el.offsetWidth; el.classList.add("swap"); }
+  function applyJob(k, quiet) {
+    var x = JOBX[k]; if (!x) return;
+    jbtns.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-k") === k ? "true" : "false"); });
+    $("ch-title").textContent = x.agent; $("ch-owner").textContent = x.owner; $("ch-sign").textContent = x.owner;
+    $("ch-may").innerHTML = x.may.map(function (t) { return "<li>" + t + "</li>"; }).join("");
+    $("ch-no").innerHTML = x.no.map(function (t) { return "<li>" + t + "</li>"; }).join("");
+    var cls = ["", "", " stop", " you", " no"];
+    $("lg").innerHTML = x.log.map(function (m, i) {
+      return '<div class="lg-row' + cls[i] + '" style="--n:' + i + '"><span class="t">' + LOGT[i] + '</span><span class="w">' +
+        (i === 3 ? x.boss : x.who) + '</span><span class="m">' + m + '</span><span class="h">' + LOGH[i] + "</span></div>";
+    }).join("") + '<div class="lg-foot" style="--n:5">Each entry carries the fingerprint of the one before it, so a changed or missing line shows.</div>';
+    document.querySelectorAll(".in-row[data-job]").forEach(function (r) { r.classList.toggle("cur", r.getAttribute("data-job") === k); });
+    $("fm-job").textContent = x.label; $("fm-link").href = "/foreman/?job=" + k;
+    $("b-q").placeholder = x.ph[0]; $("b-v").placeholder = x.ph[1];
+    try { sessionStorage.setItem("sk-job", k); } catch (e) {}
+    if (!quiet) { swap(document.querySelector(".paper")); swap(document.querySelector(".inbox")); swap($("lg")); track("job_picked", { job: k }); }
+  }
+  jbtns.forEach(function (b) { b.onclick = function () { started = true; play(b.getAttribute("data-k")); }; });
+  // the bar appears once the visitor is past the demo, and stays
+  var navH = function () { return nav.offsetHeight; };
+  function barPlace() {
+    jbar.style.top = navH() + "px";
+    var on = desk.getBoundingClientRect().bottom < navH() + 40 && $("contact").getBoundingClientRect().top > window.innerHeight * 0.6;
+    jbar.classList.toggle("show", on); jbar.setAttribute("aria-hidden", on ? "false" : "true");
+    document.documentElement.style.scrollPaddingTop = (navH() + (on ? 62 : 20)) + "px";
+  }
+  window.addEventListener("scroll", barPlace, { passive: true }); window.addEventListener("resize", barPlace);
+  applyJob(cur, true); barPlace();
 
   // ---- autonomy ladder: press a level to see what an agent may do there ----
   var LAD = [

@@ -485,7 +485,10 @@ function showExample(k) {
     '<div class="md">' + renderMarkdown($(id).textContent.trim()) + "</div></div>";
   $("out").querySelectorAll("[data-eg]").forEach(b => { b.onclick = () => showExample(b.dataset.eg); });
 }
-showExample("order");
+// Arriving from the home page with a job picked: start from that job.
+const JOBQ = { order: 0, quote: 1, claim: 2, recon: 3 }[new URLSearchParams(location.search).get("job")];
+if (JOBQ !== undefined) { $("text").value = EXAMPLES[JOBQ][1]; updateCount(); }
+showExample(JOBQ === 1 ? "quote" : "order");
 </script>
 </body>
 </html>
