@@ -234,6 +234,29 @@
     </a>
   </article>
 
+  <article class="card record">
+    <div class="rtxt">
+      <h3 style="font-size:22px">105 days alone with its rules</h3>
+      <p>
+        The longest-running proof is my own. Since August 14, 2026, one of my agents has worked
+        a written charter every morning with nobody watching: gather evidence, decide, log the
+        reasoning, and review its own calls each week.
+      </p>
+      <p>
+        It's a paper-only research desk — simulated positions, my own data, no real money, no
+        advice. What it trades isn't the point. The point is what an agent does when its rules
+        say "not today" for weeks on end: this one wrote down why, and waited.
+      </p>
+    </div>
+    <div class="rnums">
+      <div class="stat"><div class="v">105</div><div class="l">consecutive daily runs, none missed</div></div>
+      <div class="stat"><div class="v">15</div><div class="l">weekly reviews of its own decisions</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">mornings it acted</div></div>
+      <div class="stat"><div class="v">101</div><div class="l">mornings it declined and logged why, the last 51 in a row</div></div>
+    </div>
+    <div class="rfoot">Snapshot on November 26, 2026, counted from the run history and append-only log of a private repository.</div>
+  </article>
+
   <div class="grid g2" style="margin-top:16px">
     <article class="card">
       <h3>Agent Floor <span class="tag sim">Simulation</span></h3>
@@ -275,6 +298,7 @@
     <article class="card">
       <div class="num">01 · Start here</div>
       <h3>Agent Readiness Review</h3>
+      <div class="price">$3,500 fixed <span>· about two weeks</span></div>
       <p>
         Short and fixed-scope. I look at your real queues, systems and volumes, and tell you which
         work is a genuine candidate, which isn't and why, and what running it would involve —
@@ -285,6 +309,7 @@
     <article class="card">
       <div class="num">02 · The build</div>
       <h3>First agent in production</h3>
+      <div class="price">$18,000–$25,000 <span>· about six weeks</span></div>
       <p>
         One agent on one real queue, with the controls built in rather than bolted on: charter,
         gates, log, and the oversight screen your team watches it through. It starts at Draft and
@@ -295,6 +320,7 @@
     <article class="card">
       <div class="num">03 · Ongoing</div>
       <h3>Oversight &amp; expansion</h3>
+      <div class="price">$3,000–$6,000 <span>a month</span></div>
       <p>
         Past two or three agents, the bottleneck becomes the person supervising them. This is the
         retained work: adding agents, tightening charters that proved too loose, loosening the
@@ -321,7 +347,7 @@
     </article>
     <article class="card">
       <h3>The Readiness Review</h3>
-      <p>Fixed scope, fixed price, and the result is yours. The natural place to stop if you'd rather build it in-house.</p>
+      <p>$3,500, about two weeks, and the result is yours. The natural place to stop if you'd rather build it in-house.</p>
     </article>
     <article class="card">
       <h3>The first agent</h3>
@@ -345,6 +371,10 @@
         That's where the agent work came from. I started putting language models on real
         operational queues, and found that the model was never the hard part. The charter, the
         gate and the log were. So I built those properly, and they became the method on this site.
+      </p>
+      <p>
+        I run my own agents on the same method. One has worked a written charter every morning
+        since August 2026 without a missed day, and <a href="#proof">its record is on this page</a>.
       </p>
       <p>
         There's no account manager and no junior team behind me. The person on the first call is
@@ -404,9 +434,10 @@
     <details class="q">
       <summary>What does it cost?</summary>
       <p>
-        The Readiness Review is a fixed price, agreed before it starts. A build is scoped from the
-        review, so you see the number alongside the plan it pays for. I don't bill open-ended
-        hours against a vague goal.
+        The Readiness Review is $3,500, fixed, and takes about two weeks. A first agent in
+        production typically runs $18,000 to $25,000 over about six weeks, quoted from the review
+        so you see the number next to the plan it pays for. Ongoing oversight is $3,000 to $6,000
+        a month. I don't bill open-ended hours against a vague goal.
       </p>
     </details>
   </div>
@@ -419,11 +450,12 @@
 
   <div class="contact">
     <div class="c-left">
-      <div class="big">A short, specific note beats a long, vague one.</div>
+      <div class="big">Send a note, or ask for a 30-minute call.</div>
       <p>
         I read everything myself and reply to anything that isn't a template. I'm taking a small
         number of engagements, so the more concrete the problem, the faster I can tell you whether
-        I'm the right person for it.
+        I'm the right person for it. If you'd rather talk, add a few times that suit you and I'll
+        confirm one by email.
       </p>
       <div class="c-mail">
         <a href="mailto:bretta@sagekey.com?subject=SageKey%20enquiry" id="mail">bretta@sagekey.com</a>
@@ -437,6 +469,8 @@
       <input id="b-v" placeholder="e.g. About 150 a day, two order-entry staff" />
       <label for="b-s">ERP and other systems it touches</label>
       <input id="b-s" placeholder="e.g. Epicor, Outlook, a shared spreadsheet" />
+      <label for="b-t">Want a call? A few times that suit you (optional)</label>
+      <input id="b-t" placeholder="e.g. Tue or Thu after 2pm Central" />
       <label for="b-n">Your name and company</label>
       <input id="b-n" autocomplete="name" />
       <button class="btn primary" type="submit">Open this as an email →</button>
@@ -525,6 +559,7 @@
       "The queue or process:", v("b-q") || "-", "",
       "Volume / who handles it today:", v("b-v") || "-", "",
       "Systems it touches:", v("b-s") || "-", "",
+      "Good times for a 30-minute call:", v("b-t") || "-", "",
       v("b-n")
     ].join("\n");
     window.location.href = "mailto:bretta@sagekey.com?subject=" +
