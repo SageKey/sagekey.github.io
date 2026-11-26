@@ -20,7 +20,7 @@ cd "$(dirname "$0")"
 SRC="$HOME/dev/sagekey"
 SITE="https://sagekey.com"
 PATHS=(/ /method/ /lab/ /brief/ /foreman/ /agent-floor/ /agent-floor/run.json /market-arena/
-       /codebreaker/ /ratchet/ /ratchet/data.json /site.css /og.png /img/foreman-charter.jpg /img/agent-floor-shift.jpg
+       /codebreaker/ /ratchet/ /ratchet/data.json /site.css /og.png /img/foreman-charter.jpg /img/agent-floor-shift.jpg /img/brett-anderson.jpg
        /robots.txt /sitemap.xml)
 # live path -> local file; the bytes must match, or the deploy has not landed
 SAME=("/:index.html" "/site.css:site.css" "/method/:method/index.html" "/lab/:lab/index.html" "/brief/:brief/index.html"

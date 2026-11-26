@@ -347,6 +347,10 @@ h3 { font-size:21px; font-weight:600; letter-spacing:-.018em; line-height:1.2; }
 .hproof:hover { text-decoration:none; color:var(--ink); }
 .hproof .chev { color:var(--link); margin-left:2px; }
 .live { margin-top:16px !important; }
+.a-who { display:flex; align-items:center; gap:22px; margin-bottom:30px; }
+.a-who img { width:132px; height:132px; border-radius:50%; object-fit:cover; flex:none; box-shadow:0 10px 30px -14px rgba(0,0,0,.35); }
+.a-who b { display:block; font-size:24px; letter-spacing:-.02em; }
+.a-who span { display:block; font-size:16px; color:var(--dim); line-height:1.4; margin-top:4px; }
 .a-links { margin-top:4px; }
 .about p.a-links a { font-size:19px; }
 .feature + .feature { margin-top:20px; }
@@ -665,6 +669,8 @@ footer.fat { background:#f5f5f7; }
   .steps .card { padding:0; }
   .recordbar { padding:26px 22px; }
   .card.case { padding:30px 22px; margin-top:40px; }
+  .a-who img { width:96px; height:96px; }
+  .a-who b { font-size:21px; }
   .hproof { border-radius:16px; }
   .cal { --c:14px; --g:4px; }
   .rcal { justify-self:start; }
