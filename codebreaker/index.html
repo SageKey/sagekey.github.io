@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Codebreaker — watch 1,296 possibilities collapse</title>
+<meta name="description" content="Play Mastermind and watch the entire space of 1,296 possible codes collapse in real time as your deductions eliminate them." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0d12'/%3E%3Ccircle cx='10' cy='10' r='4' fill='%23f4665f'/%3E%3Ccircle cx='22' cy='10' r='4' fill='%234ea8ff'/%3E%3Ccircle cx='10' cy='22' r='4' fill='%23ffc63d'/%3E%3Ccircle cx='22' cy='22' r='4' fill='%2334d99a'/%3E%3C/svg%3E" />
+<meta property="og:title" content="Codebreaker — watch 1,296 possibilities collapse" />
+<meta property="og:description" content="Mastermind with the whole search space made visible. Every guess kills possibilities, and you watch them go dark." />
+<meta name="theme-color" content="#0b0d12" />
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #141821;
+    --line: #232937;
+    --ink: #eef1f6;
+    --dim: #8d97a8;
+    --live: #7c6cf0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink); min-height: 100vh;
+    font: 400 14px/1.5 ui-sans-serif, -apple-system, "SF Pro Text", Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 22px 16px 40px;
+  }
+
+  header { text-align: center; margin-bottom: 18px; }
+  h1 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  .sub { color: var(--dim); font-size: 12.5px; margin-top: 3px; }
+
+  .wrap { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+
+  /* possibility space */
+  .space { width: 468px; }
+  .space h2, .play h2 { font-size: 12px; font-weight: 600; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+  #grid { display: block; width: 436px; height: 436px; image-rendering: pixelated; border-radius: 6px; }
+  .count { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; }
+  .count b { font-size: 26px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .count span { color: var(--dim); font-size: 12.5px; }
+  .bar { height: 3px; background: var(--line); border-radius: 2px; margin-top: 9px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--live); width: 100%; transition: width .5s cubic-bezier(.4,0,.2,1); }
+
+  /* play panel */
+  .play { width: 330px; }
+  .rows { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; min-height: 40px; }
+  .row { display: flex; align-items: center; gap: 10px; animation: pop .25s cubic-bezier(.2,0,0,1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(-5px); } }
+  .row .n { width: 14px; color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .pegs { display: flex; gap: 5px; }
+  .peg { width: 24px; height: 24px; border-radius: 50%; }
+  .fb { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-left: 4px; }
+  .fb i { width: 8px; height: 8px; border-radius: 50%; background: #2c3444; }
+  .fb i.exact { background: var(--ink); }
+  .fb i.near { background: var(--dim); }
+  .cut { margin-left: auto; color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  .current { display: flex; gap: 5px; margin-bottom: 12px; }
+  .slot {
+    width: 40px; height: 40px; border-radius: 50%; border: 2px dashed var(--line);
+    cursor: pointer; transition: transform .12s;
+  }
+  .slot:hover { transform: scale(1.06); }
+  .slot.set { border-style: solid; border-color: transparent; }
+
+  .palette { display: flex; gap: 7px; margin-bottom: 14px; }
+  .swatch { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform .12s; }
+  .swatch:hover { transform: scale(1.1); }
+  .swatch.on { border-color: var(--ink); }
+
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--ink);
+    background: #1d2331; border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 13px; cursor: pointer; transition: background .15s, opacity .15s;
+  }
+  button:hover:not(:disabled) { background: #262e40; }
+  button.primary { background: var(--live); border-color: var(--live); }
+  button.primary:hover:not(:disabled) { background: #6d5ce8; }
+  button:disabled { opacity: .38; cursor: default; }
+
+  .msg { margin-top: 13px; font-size: 13px; min-height: 20px; }
+  .msg.win { color: #34d99a; }
+  .msg.tip { color: var(--dim); }
+
+  .note { max-width: 820px; margin-top: 26px; color: var(--dim); font-size: 12.5px; line-height: 1.65; text-align: center; }
+  .note b { color: var(--ink); font-weight: 500; }
+
+  /* Shared links land people here directly, so every page needs a way back out. */
+  .backlink { max-width: 820px; width: 100%; margin-top: 30px; padding-top: 15px;
+    border-top: 1px solid var(--line); display: flex; gap: 15px; align-items: center;
+    justify-content: center; flex-wrap: wrap; font-size: 12.5px; }
+  .backlink a { color: var(--dim); text-decoration: none; }
+  .backlink a:hover { color: var(--ink); }
+  .backlink a.home { color: var(--live); }
+  .backlink .sep { color: var(--line); }
+
+  @media (max-width: 840px) {
+    .space { width: 100%; max-width: 468px; }
+    #grid { width: 100%; height: auto; aspect-ratio: 1; }
+    .play { width: 100%; max-width: 468px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Codebreaker</h1>
+  <div class="sub">Break the four-colour code. Watch every possibility you kill.</div>
+</header>
+
+<div class="wrap">
+  <section class="card space">
+    <h2>Possibility space</h2>
+    <canvas id="grid" width="436" height="436"></canvas>
+    <div class="count">
+      <b id="remaining">1,296</b><span id="remainingLabel">codes still possible</span>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </section>
+
+  <section class="card play">
+    <h2>Your guesses</h2>
+    <div class="rows" id="rows"></div>
+
+    <div class="current" id="current"></div>
+    <div class="palette" id="palette"></div>
+
+    <div class="btns">
+      <button class="primary" id="submit" disabled>Guess</button>
+      <button id="hint">Best move</button>
+      <button id="auto">Solve it for me</button>
+      <button id="reset">New code</button>
+    </div>
+
+    <div class="msg tip" id="msg">Pick four colours. Repeats are allowed.</div>
+  </section>
+</div>
+
+<p class="note">
+  Every cell in that grid is one of the <b>1,296</b> possible codes. Each guess eliminates
+  the ones that could not have produced the feedback you got, and they go dark. Perfect play
+  needs <b>five guesses at worst</b> — the solver here is Knuth's 1977 minimax, which picks
+  whichever guess leaves the smallest worst-case set of survivors.
+</p>
+
+<nav class="backlink">
+  <a class="home" href="/">← SageKey · Brett Anderson</a>
+  <span class="sep">·</span>
+  <a href="/agent-floor/">Agent Floor</a>
+  <a href="/market-arena/">Market Arena</a>
+</nav>
+
+<script>
+// ---------------------------------------------------------------------------
+// Mastermind with the search space made visible.
+//
+// Six colours, four slots, repeats allowed — 6^4 = 1296 codes. The interesting
+// part is not the game, it is that the entire hypothesis space fits on screen,
+// so deduction becomes something you watch happen rather than something you
+// take on faith.
+// ---------------------------------------------------------------------------
+
+const COLORS = ["#f4665f", "#ffc63d", "#34d99a", "#4ea8ff", "#b47cf0", "#ff8f4d"];
+const SLOTS = 4, N = COLORS.length;
+
+// every code, in a fixed order — the grid is just this list laid out 36x36
+const ALL = [];
+for (let a = 0; a < N; a++) for (let b = 0; b < N; b++)
+  for (let c = 0; c < N; c++) for (let d = 0; d < N; d++) ALL.push([a, b, c, d]);
+
+const SIDE = 36, CELL = 436 / SIDE;
+
+// --- scoring --------------------------------------------------------------
+// Returns exact*5 + colourOnly, packed so it can key a bucket cheaply.
+function score(g, c) {
+  let exact = 0;
+  const gc = [0, 0, 0, 0, 0, 0], cc = [0, 0, 0, 0, 0, 0];
+  for (let i = 0; i < SLOTS; i++) {
+    if (g[i] === c[i]) exact++;
+    else { gc[g[i]]++; cc[c[i]]++; }
+  }
+  let near = 0;
+  for (let i = 0; i < N; i++) near += Math.min(gc[i], cc[i]);
+  return exact * 5 + near;
+}
+
+// --- state ----------------------------------------------------------------
+let secret, alive, history, draft, solving;
+
+function reset() {
+  secret = ALL[(Math.random() * ALL.length) | 0];
+  alive = new Uint8Array(ALL.length).fill(1);
+  history = [];
+  draft = [];
+  solving = false;
+  render();
+  say("Pick four colours. Repeats are allowed.", "tip");
+}
+
+const aliveCodes = () => {
+  const out = [];
+  for (let i = 0; i < ALL.length; i++) if (alive[i]) out.push(i);
+  return out;
+};
+
+// --- the grid -------------------------------------------------------------
+const cv = document.getElementById("grid");
+const ctx = cv.getContext("2d");
+
+function drawGrid() {
+  ctx.fillStyle = "#0e111a";
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  for (let i = 0; i < ALL.length; i++) {
+    const x = (i % SIDE) * CELL, y = ((i / SIDE) | 0) * CELL;
+    if (!alive[i]) {
+      ctx.fillStyle = "#161b26";                 // eliminated
+      ctx.fillRect(x + 0.6, y + 0.6, CELL - 1.2, CELL - 1.2);
+      continue;
+    }
+    // a live cell shows its own code as four quadrants
+    const code = ALL[i], h = CELL / 2;
+    for (let q = 0; q < 4; q++) {
+      ctx.fillStyle = COLORS[code[q]];
+      ctx.fillRect(x + (q % 2) * h + 0.4, y + ((q / 2) | 0) * h + 0.4, h - 0.8, h - 0.8);
+    }
+  }
+}
+
+// --- rendering ------------------------------------------------------------
+const $ = id => document.getElementById(id);
+
+function peg(colorIdx, cls) {
+  const d = document.createElement("div");
+  d.className = "peg " + (cls || "");
+  d.style.background = colorIdx === null ? "transparent" : COLORS[colorIdx];
+  return d;
+}
+
+function render() {
+  drawGrid();
+
+  const left = aliveCodes().length;
+  $("remaining").textContent = left.toLocaleString();
+  $("remainingLabel").textContent = left === 1 ? "code — that's it" : "codes still possible";
+  $("bar").style.width = (100 * left / ALL.length).toFixed(2) + "%";
+
+  // history
+  const rows = $("rows");
+  rows.innerHTML = "";
+  history.forEach((h, i) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const n = document.createElement("span");
+    n.className = "n"; n.textContent = i + 1;
+    row.appendChild(n);
+
+    const pegs = document.createElement("div");
+    pegs.className = "pegs";
+    h.guess.forEach(c => pegs.appendChild(peg(c)));
+    row.appendChild(pegs);
+
+    const fb = document.createElement("div");
+    fb.className = "fb";
+    const exact = (h.score / 5) | 0, near = h.score % 5;
+    for (let k = 0; k < 4; k++) {
+      const i2 = document.createElement("i");
+      if (k < exact) i2.className = "exact";
+      else if (k < exact + near) i2.className = "near";
+      fb.appendChild(i2);
+    }
+    row.appendChild(fb);
+
+    const cut = document.createElement("span");
+    cut.className = "cut";
+    cut.textContent = "−" + h.killed.toLocaleString();
+    row.appendChild(cut);
+    rows.appendChild(row);
+  });
+
+  // draft slots
+  const cur = $("current");
+  cur.innerHTML = "";
+  for (let i = 0; i < SLOTS; i++) {
+    const s = document.createElement("div");
+    s.className = "slot" + (draft[i] !== undefined ? " set" : "");
+    if (draft[i] !== undefined) s.style.background = COLORS[draft[i]];
+    s.onclick = () => { draft.splice(i, 1); render(); };
+    cur.appendChild(s);
+  }
+  $("submit").disabled = draft.length !== SLOTS || solving;
+  $("hint").disabled = solving;
+  $("auto").disabled = solving;
+}
+
+function say(text, cls) {
+  const m = $("msg");
+  m.textContent = text;
+  m.className = "msg " + (cls || "");
+}
+
+// --- palette --------------------------------------------------------------
+const pal = $("palette");
+COLORS.forEach((c, i) => {
+  const b = document.createElement("div");
+  b.className = "swatch";
+  b.style.background = c;
+  b.onclick = () => {
+    if (draft.length < SLOTS && !solving) { draft.push(i); render(); }
+  };
+  pal.appendChild(b);
+});
+
+// --- playing a guess ------------------------------------------------------
+function play(guess) {
+  const sc = score(guess, secret);
+  const before = aliveCodes().length;
+  for (let i = 0; i < ALL.length; i++) {
+    if (alive[i] && score(guess, ALL[i]) !== sc) alive[i] = 0;
+  }
+  const after = aliveCodes().length;
+  history.push({ guess: guess.slice(), score: sc, killed: before - after });
+  draft = [];
+  render();
+
+  if (sc === SLOTS * 5) {
+    say("Broken in " + history.length + (history.length === 1 ? " guess." : " guesses."), "win");
+    return true;
+  }
+  say(before - after > 0
+    ? "Eliminated " + (before - after).toLocaleString() + " codes."
+    : "No new information from that one.", "tip");
+  return false;
+}
+
+// --- the solver -----------------------------------------------------------
+// Knuth minimax: choose the guess whose worst-case surviving bucket is
+// smallest. Searching all 1,296 guesses against a large candidate set is
+// wasteful early on, so the opening is fixed and the full search only runs
+// once the field is small enough to matter.
+function bestGuess() {
+  const cands = aliveCodes();
+  if (cands.length === ALL.length) return [0, 0, 1, 1];   // Knuth's opening
+  if (cands.length <= 2) return ALL[cands[0]];
+
+  const pool = cands.length > 260 ? cands : ALL.map((_, i) => i);
+  let best = cands[0], bestWorst = Infinity, bestIsCand = false;
+
+  for (const gi of pool) {
+    const g = ALL[gi];
+    const buckets = new Uint16Array(26);
+    let worst = 0;
+    for (const ci of cands) {
+      const s = score(g, ALL[ci]);
+      if (++buckets[s] > worst) worst = buckets[s];
+    }
+    const isCand = alive[gi] === 1;
+    if (worst < bestWorst || (worst === bestWorst && isCand && !bestIsCand)) {
+      best = gi; bestWorst = worst; bestIsCand = isCand;
+    }
+  }
+  return ALL[best];
+}
+
+// --- controls -------------------------------------------------------------
+$("submit").onclick = () => { if (draft.length === SLOTS) play(draft.slice()); };
+
+$("hint").onclick = () => {
+  const g = bestGuess();
+  draft = g.slice();
+  render();
+  say("Minimax says this one — worst case it leaves the fewest survivors.", "tip");
+};
+
+$("auto").onclick = () => {
+  if (solving) return;
+  solving = true; render();
+  const step = () => {
+    const g = bestGuess();
+    const done = play(g);
+    if (done || history.length > 8) { solving = false; render(); return; }
+    solving = true; render();
+    setTimeout(step, 620);
+  };
+  setTimeout(step, 180);
+};
+
+$("reset").onclick = reset;
+
+document.addEventListener("keydown", e => {
+  if (solving) return;
+  if (e.key >= "1" && e.key <= "6" && draft.length < SLOTS) { draft.push(+e.key - 1); render(); }
+  else if (e.key === "Backspace") { draft.pop(); render(); }
+  else if (e.key === "Enter" && draft.length === SLOTS) play(draft.slice());
+});
+
+reset();
+</script>
+</body>
+</html>

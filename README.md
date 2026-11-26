@@ -1,80 +1,61 @@
-# sagekey.github.io
+# sagekey.com
 
-The SageKey front door — who I am, what I build, and the three public demos, plus a written
-case study of the agent-workforce method.
+The SageKey website: a client-facing front door for governed AI agent work, plus the demos
+that back it up. Plain static HTML, no build step.
 
-Single self-contained `index.html`. No backend, no build step, no dependencies.
+**Live:** <https://sagekey.com>
 
-## Why this repo is named `sagekey.github.io`
+## What's here
 
-GitHub serves a repo named `<org>.github.io` at the **org root** — `https://sagekey.github.io/` —
-rather than under a project subpath. That makes the three demo repos siblings of this page:
+| Path | What it is |
+|---|---|
+| `index.html` | Home page |
+| `method/` | The governance method, written out in full |
+| `lab/` | Index of side projects |
+| `foreman/` | Front end for Foreman, the live governed-agent demo (API runs separately) |
+| `agent-floor/`, `market-arena/`, `codebreaker/` | Demo pages, copied in from their own repos by `deploy.sh` |
+| `ratchet/` | Archived paper-trading dashboard |
+| `site.css` | Shared styles for the home, method, lab and 404 pages |
+| `og.png`, `img/` | Social card and screenshots |
 
-```
-sagekey.github.io/                 ← this repo
-sagekey.github.io/market-arena/    ← SageKey/market-arena
-sagekey.github.io/codebreaker/     ← SageKey/codebreaker
-sagekey.github.io/agent-floor/     ← SageKey/agent-floor
-```
+## Hosting
 
-Every internal link on the page is **root-relative** (`/agent-floor/`, not a full URL) on purpose.
-See "Pointing sagekey.com at it" below.
+Served by **Vercel**. The Vercel project is connected to this repository and rebuilds
+production from `main` on every push, so **this repo is the site**: anything not committed
+here is not live.
 
-## sagekey.com
+The three demos are developed in their own repositories
+([agent-floor](https://github.com/SageKey/agent-floor),
+[market-arena](https://github.com/SageKey/market-arena),
+[codebreaker](https://github.com/SageKey/codebreaker)). Their built pages are copied into this
+repo at deploy time. Editing a demo's own repo does not change the live site until
+`deploy.sh` runs here.
 
-`CNAME` claims the apex domain. Domain registrar and DNS: **GoDaddy**. Mail: **Google
-Workspace** — the `MX` and Google `TXT` records are what carry `bretta@sagekey.com` and must be
-left alone; only the `A` and `www` records below change.
-
-The repo side is done. The registrar side is these records (values confirmed against GitHub's
-custom-domain docs on 2026-08-16):
-
-| Type | Name | Value |
-|---|---|---|
-| A | `@` | `185.199.108.153` |
-| A | `@` | `185.199.109.153` |
-| A | `@` | `185.199.110.153` |
-| A | `@` | `185.199.111.153` |
-| CNAME | `www` | `sagekey.github.io` |
-
-The two pre-existing apex `A` records (`3.33.130.190`, `15.197.148.33`) are GoDaddy's parking
-lander and get deleted. Optional IPv6 — `AAAA` on `@`: `2606:50c0:8000::153` through
-`2606:50c0:8003::153`.
-
-Order matters: the domain is claimed on the Pages site *before* the DNS records point at GitHub,
-so nobody else can host on it in the gap. The tradeoff is that `sagekey.github.io` redirects to
-`sagekey.com` from the moment `CNAME` lands — so until the records are switched, the live site
-is the parking page. Don't leave that half-finished.
-
-After DNS propagates, turn on **Enforce HTTPS** in Settings → Pages (the certificate provisions
-automatically first; the checkbox is greyed out until it does).
-
-Because every internal link is root-relative, none of this touches the HTML — and the three demo
-project pages inherit the domain on their own, so `sagekey.com/agent-floor/` starts working
-without any change to those repos.
-
-## Local development
-
-The page links to `/market-arena/` etc., which do not exist inside this repo — so serving this
-folder directly gives you a working page with four dead links.
-
-`.staging/` (gitignored) solves that: it symlinks this `index.html` alongside the three demo
-working copies, reproducing the deployed layout exactly.
-
-```bash
-python3 -m http.server 8790 --directory .staging
-```
-
-Then open <http://localhost:8790/>. In Claude Code: `preview_start` with name `portfolio`.
-
-To rebuild the staging mirror from scratch:
-
-```bash
-mkdir -p .staging && cd .staging && ln -sf ../index.html index.html && ln -sfn ~/dev/liquidation-arena market-arena && ln -sfn ~/dev/codebreaker codebreaker && ln -sfn ~/dev/agent-floor agent-floor
-```
-
-Note `market-arena` points at `~/dev/liquidation-arena` — that folder name predates the rename.
+All internal links are root-relative (`/agent-floor/`, `/method/`) on purpose.
 
 ## Deploy
 
-GitHub Pages off `main`. Push and it is live.
+```bash
+./deploy.sh "what changed"
+```
+
+Copies the current demo pages in, commits, pushes, waits for Vercel, then checks every path
+returns 200 and that the live bytes match this checkout.
+
+```bash
+./deploy.sh --check
+```
+
+Verifies the live site without deploying.
+
+## Local development
+
+```bash
+python3 -m http.server 8790
+```
+
+Then open <http://localhost:8790/>. Serve from the repo root; pages use root-relative paths,
+so opening `index.html` directly from disk will not find the stylesheet.
+
+The live Foreman status on the home page only appears on sagekey.com (the API allows that
+origin only). Locally it stays hidden.

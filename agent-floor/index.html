@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agent Floor (simulation) — running an agent workforce, with the governance showing</title>
+<meta name="description" content="A watchable agent workforce with charters, an autonomy ladder, approval gates and an append-only log. You are the overseer. Two agents stop themselves." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0c10'/%3E%3Crect x='5' y='7' width='22' height='3' rx='1.5' fill='%2354d6a0'/%3E%3Crect x='5' y='14' width='16' height='3' rx='1.5' fill='%23f0b849'/%3E%3Crect x='5' y='21' width='10' height='3' rx='1.5' fill='%236aa3e8'/%3E%3C/svg%3E" />
+<meta property="og:title" content="Agent Floor — an agent workforce with the governance showing" />
+<meta property="og:description" content="Charters, an autonomy ladder, approval gates, an append-only log. You are the overseer. The interesting part is where the agents stop." />
+<meta name="theme-color" content="#0a0c10" />
+<style>
+  :root {
+    --bg:#0a0c10; --panel:#12151d; --panel2:#171b25; --line:#222836;
+    --ink:#eaeef5; --dim:#8a94a6; --faint:#5b6474;
+    --l0:#6aa3e8; --l1:#f0b849; --l2:#54d6a0; --l3:#3e4657;
+    --alarm:#ff6b6b; --escalate:#ff9f45;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg); color:var(--ink); min-height:100vh;
+    font:400 14px/1.55 ui-sans-serif,-apple-system,"SF Pro Text",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; padding:22px 18px 60px;
+  }
+  .shell { max-width:1180px; margin:0 auto; }
+
+  header { margin-bottom:18px; }
+  .htop { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  h1 { font-size:18px; font-weight:600; letter-spacing:-.015em; }
+  .sub { color:var(--dim); font-size:13px; margin-top:3px; }
+  .synthetic { display:inline-block; margin-top:9px; font-size:11px; color:var(--faint);
+    border:1px solid var(--line); border-radius:999px; padding:3px 9px; }
+
+  /* Nothing here is live. The gate moment reads as a real approval request, so the
+     label has to travel with it — header alone was not enough. */
+  .sim { font:600 10.5px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--escalate); border:1px solid var(--escalate);
+    border-radius:4px; padding:4px 7px; white-space:nowrap; }
+  .sim.solid { background:var(--escalate); color:#231103; border-color:var(--escalate); }
+  .simnote { color:var(--faint); font-size:11.5px; }
+
+  .grid { display:grid; grid-template-columns:288px 1fr 250px; gap:16px; align-items:start; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+  .card h2 { font-size:11px; font-weight:600; color:var(--dim); letter-spacing:.07em;
+    text-transform:uppercase; padding:13px 15px 0; }
+
+  /* ladder */
+  .ladder { padding:11px 15px 14px; }
+  .rung { display:flex; gap:9px; align-items:flex-start; padding:6px 0; }
+  .rung .pip { width:8px; height:8px; border-radius:2px; margin-top:6px; flex:none; }
+  .rung .nm { font-size:12.5px; font-weight:500; }
+  .rung .bl { font-size:11.5px; color:var(--faint); line-height:1.4; }
+  .rung.unused { opacity:.42; }
+
+  /* agents */
+  .agent { border-top:1px solid var(--line); padding:13px 15px; transition:background .25s; }
+  .agent.active { background:var(--panel2); }
+  .arow { display:flex; align-items:center; gap:8px; }
+  .dot { width:9px; height:9px; border-radius:50%; flex:none; }
+  .aname { font-size:13.5px; font-weight:600; }
+  .lvl { margin-left:auto; font-size:10.5px; padding:2px 7px; border-radius:999px; border:1px solid; }
+  .since { font-size:11.5px; color:var(--faint); margin:5px 0 8px; }
+  .charter { list-style:none; display:flex; flex-direction:column; gap:3px; }
+  .charter li { font-size:11.5px; color:var(--dim); padding-left:12px; position:relative; line-height:1.42; }
+  .charter li::before { content:"·"; position:absolute; left:3px; color:var(--faint); }
+  .charter li.deny { color:#c98a8a; }
+  .charter li.deny::before { content:"×"; color:var(--alarm); font-size:10px; top:1px; }
+
+  /* floor */
+  .floor { min-height:520px; display:flex; flex-direction:column; }
+  .log { padding:12px 15px 15px; display:flex; flex-direction:column; gap:9px; flex:1; }
+  .beat { border-left:2px solid var(--line); padding:8px 0 8px 12px; animation:in .3s cubic-bezier(.2,0,0,1); }
+  @keyframes in { from { opacity:0; transform:translateY(6px); } }
+  .bhead { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .who { font-size:12px; font-weight:600; }
+  .kind { font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); }
+  .tix { font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums; }
+  .btext { font-size:13px; margin-top:3px; }
+  .bdetail { font-size:12px; color:var(--dim); margin-top:5px; line-height:1.5;
+    border-left:2px solid var(--line); padding-left:9px; }
+  .policy { display:inline-block; margin-top:6px; font-size:11px; padding:3px 8px; border-radius:5px;
+    background:rgba(255,107,107,.1); color:#ff9b9b; border:1px solid rgba(255,107,107,.25); }
+  .beat.blocked { border-left-color:var(--alarm); }
+  .beat.escalate { border-left-color:var(--escalate); }
+  .beat.act { border-left-color:var(--l2); }
+  .beat.draft, .beat.flag { border-left-color:var(--l1); }
+  .beat.report { border-left-color:var(--l0); }
+  .beat.stop { border-left-color:var(--faint); }
+
+  .mail { margin-top:8px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .mail .mrow { font-size:11.5px; color:var(--dim); }
+  .mail .mrow b { color:var(--ink); font-weight:500; }
+  .mail pre { margin-top:7px; font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+    white-space:pre-wrap; color:var(--ink); }
+
+  /* queue */
+  .q { padding:11px 13px 14px; display:flex; flex-direction:column; gap:6px; }
+  .t { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; transition:border-color .3s; }
+  .t.touched { border-color:#33405a; }
+  .tid { font-size:10.5px; color:var(--faint); font-variant-numeric:tabular-nums; }
+  .tt { font-size:12px; margin-top:1px; line-height:1.35; }
+  .ts { font-size:10.5px; margin-top:4px; color:var(--dim); }
+  .ts.aged { color:var(--l1); }
+
+  /* controls */
+  .bar { display:flex; gap:8px; align-items:center; margin:14px 0 16px; flex-wrap:wrap; }
+  button { font:inherit; font-size:13px; font-weight:500; color:var(--ink); background:#1b2130;
+    border:1px solid var(--line); border-radius:8px; padding:8px 14px; cursor:pointer; transition:background .15s,opacity .15s; }
+  button:hover:not(:disabled) { background:#252d40; }
+  button.primary { background:var(--l2); border-color:var(--l2); color:#06231a; }
+  button.primary:hover:not(:disabled) { background:#48c491; }
+  button:disabled { opacity:.4; cursor:default; }
+  .status { color:var(--dim); font-size:12.5px; }
+
+  /* gate */
+  .scrim { position:fixed; inset:0; background:rgba(6,8,12,.72); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; padding:20px; z-index:20; }
+  .scrim.on { display:flex; }
+  .gate { background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    max-width:520px; width:100%; padding:20px; animation:in .22s cubic-bezier(.2,0,0,1); }
+  .gtag { font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--l1); }
+  .gate h3 { font-size:16px; font-weight:600; margin:6px 0 9px; }
+  .gate .why { font-size:13px; color:var(--dim); line-height:1.6; }
+  .gate .btns { display:flex; gap:9px; margin-top:16px; }
+
+  /* closing */
+  .close { margin-top:16px; padding:18px 20px; }
+  .close h3 { font-size:15px; font-weight:600; margin-bottom:9px; }
+  .close ul { list-style:none; display:flex; flex-direction:column; gap:6px; }
+  .close li { font-size:13px; color:var(--dim); padding-left:16px; position:relative; }
+  .close li::before { content:"→"; position:absolute; left:0; color:var(--l2); }
+
+  .foot { margin-top:26px; color:var(--faint); font-size:12px; line-height:1.6; max-width:760px; }
+  .foot b { color:var(--dim); font-weight:500; }
+
+  /* Shared links land people here directly, so every page needs a way back out. */
+  .backlink { margin-top:32px; padding-top:15px; border-top:1px solid var(--line);
+    display:flex; gap:15px; align-items:center; flex-wrap:wrap; font-size:12.5px; }
+  .backlink a { color:var(--dim); text-decoration:none; }
+  .backlink a:hover { color:var(--ink); }
+  .backlink a.home { color:var(--l2); }
+  .backlink .sep { color:var(--l3); }
+
+  @media (max-width:1000px) {
+    .grid { grid-template-columns:1fr; }
+    .floor { min-height:auto; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header>
+  <div class="htop">
+    <h1>Agent Floor</h1>
+    <span class="sim solid">Simulation</span>
+    <span class="simnote">Scripted replay. No live model, no real company, no real approvals.</span>
+  </div>
+  <div class="sub">An agent workforce with the governance showing. You are the overseer.</div>
+  <div class="synthetic" id="synthetic">loading…</div>
+</header>
+
+<div class="bar">
+  <button class="primary" id="run">Start the shift</button>
+  <button id="restart" disabled>Restart</button>
+  <span class="status" id="status">Three agents, three different autonomy levels.</span>
+</div>
+
+<div class="grid">
+  <div>
+    <section class="card">
+      <h2>Autonomy ladder</h2>
+      <div class="ladder" id="ladder"></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <h2>On shift</h2>
+      <div id="agents"></div>
+    </section>
+  </div>
+
+  <section class="card floor">
+    <h2>Floor log</h2>
+    <div class="log" id="log">
+      <div class="beat" style="border-left-color:var(--line)">
+        <div class="btext" style="color:var(--dim)">Nothing has happened yet. Start the shift.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Queue</h2>
+    <div class="q" id="queue"></div>
+  </section>
+</div>
+
+<section class="card close" id="closing" style="display:none"></section>
+
+<p class="foot">
+  <b>What this is.</b> A replay of a scripted shift, not a live model — the agent reasoning was
+  generated ahead of time and checked into <code>run.json</code>, so the page stays a single
+  static file with no key and no backend. The company, the people and every ticket are invented.
+  <br /><br />
+  <b>What it is actually showing.</b> Not that agents can do work — that part is easy now. It
+  shows the scaffolding that makes them safe to run against real work: a written charter per
+  agent, an autonomy level earned rather than assigned, a human gate on anything that leaves the
+  building, and a log that records who actually pressed send.
+</p>
+
+<nav class="backlink">
+  <a class="home" href="/">← SageKey · Brett Anderson</a>
+  <span class="sep">·</span>
+  <a href="/codebreaker/">Codebreaker</a>
+  <a href="/market-arena/">Market Arena</a>
+</nav>
+
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="gate">
+    <div class="gtag" style="display:flex;align-items:center;gap:9px">
+      <span>Human gate</span>
+      <span class="sim">Simulation</span>
+    </div>
+    <h3 id="gtitle"></h3>
+    <div class="why" id="gwhy"></div>
+    <div class="simnote" style="margin-top:11px">
+      Nothing is sent either way. Your choice only steers the scripted replay.
+    </div>
+    <div class="btns">
+      <button class="primary" id="gyes">Approve</button>
+      <button id="gno">Deny</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Agent Floor — a governed agent workforce, replayed.
+//
+// The interesting part of running agents is not that they can do the work. It
+// is the scaffolding: what each one is allowed to touch, how it earns more
+// rope, what stops before it reaches a customer, and who is on the hook when
+// it does. This replays a shift where two agents stop themselves — once by
+// catching its own policy violation, once by refusing work it was capable of.
+// ---------------------------------------------------------------------------
+
+const SPEED = 2.1;                    // stretch the scripted timings for reading
+let DATA = null, playing = false, cursor = 0, tick = null;
+
+// The log order IS the narrative, so playback walks the script one beat at a
+// time rather than scheduling them all up front. An earlier version fired every
+// beat on its own timer and simply deferred whichever one collided with an open
+// gate — which let later beats overtake it and shuffled the story out of order.
+
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+const LVLCOL = ["var(--l0)", "var(--l1)", "var(--l2)", "var(--l3)"];
+
+fetch("run.json").then(r => r.json()).then(d => { DATA = d; boot(); })
+  .catch(() => { $("status").textContent = "Could not load run.json"; });
+
+function boot() {
+  $("synthetic").textContent = DATA.org.company + " · " + DATA.org.note;
+
+  // ladder
+  const L = $("ladder");
+  DATA.ladder.forEach(r => {
+    const row = el("div", "rung" + (r.level === 3 ? " unused" : ""));
+    const pip = el("div", "pip"); pip.style.background = LVLCOL[r.level];
+    row.appendChild(pip);
+    const box = el("div");
+    box.appendChild(el("div", "nm", r.name));
+    box.appendChild(el("div", "bl", r.blurb));
+    row.appendChild(box);
+    L.appendChild(row);
+  });
+
+  // agents
+  const A = $("agents");
+  DATA.agents.forEach(a => {
+    const w = el("div", "agent"); w.id = "agent-" + a.id;
+    const row = el("div", "arow");
+    const dot = el("div", "dot"); dot.style.background = LVLCOL[a.level];
+    row.appendChild(dot);
+    row.appendChild(el("div", "aname", a.name));
+    const lv = el("div", "lvl", DATA.ladder[a.level].name);
+    lv.style.color = LVLCOL[a.level]; lv.style.borderColor = LVLCOL[a.level];
+    row.appendChild(lv);
+    w.appendChild(row);
+    w.appendChild(el("div", "since", a.since));
+    const ul = el("ul", "charter");
+    a.charter.forEach(c => ul.appendChild(el("li", /^MAY NOT/.test(c) ? "deny" : "", c)));
+    w.appendChild(ul);
+    A.appendChild(w);
+  });
+
+  renderQueue();
+}
+
+function renderQueue() {
+  const Q = $("queue"); Q.innerHTML = "";
+  DATA.queue.forEach(t => {
+    const w = el("div", "t"); w.id = "tix-" + t.id;
+    w.appendChild(el("div", "tid", t.id));
+    w.appendChild(el("div", "tt", t.title));
+    const s = el("div", "ts" + (t.age >= 10 ? " aged" : ""), t.state + " · " + t.age + "d");
+    w.appendChild(s);
+    Q.appendChild(w);
+  });
+}
+
+// --- playback -------------------------------------------------------------
+function start() {
+  clear();
+  playing = true; cursor = 0;
+  $("run").disabled = true;
+  $("restart").disabled = false;
+  $("log").innerHTML = "";
+  $("closing").style.display = "none";
+  $("status").textContent = "Shift running…";
+  renderQueue();
+  advance();
+}
+
+// Render the beat at the cursor, then queue the next one. A gate stops the
+// chain entirely; resolving it calls advance() again.
+function advance() {
+  if (!playing) return;
+  if (cursor >= DATA.script.length) { finish(); return; }
+
+  const beat = DATA.script[cursor];
+  const prev = cursor > 0 ? DATA.script[cursor - 1] : null;
+  cursor++;
+  runBeat(beat);
+
+  if (beat.gate) return;                       // the gate resumes us
+  if (cursor >= DATA.script.length) { tick = setTimeout(finish, 1200); return; }
+  const wait = (DATA.script[cursor].t - beat.t) * SPEED;
+  tick = setTimeout(advance, Math.max(320, wait));
+}
+
+function clear() { clearTimeout(tick); tick = null; }
+
+function highlight(agentId) {
+  document.querySelectorAll(".agent").forEach(n => n.classList.remove("active"));
+  const n = $("agent-" + agentId);
+  if (n) n.classList.add("active");
+}
+
+function runBeat(beat) {
+  highlight(beat.agent);
+  const agent = DATA.agents.find(a => a.id === beat.agent);
+
+  const b = el("div", "beat " + beat.kind);
+  const head = el("div", "bhead");
+  const who = el("div", "who", agent ? agent.name : beat.agent);
+  who.style.color = agent ? LVLCOL[agent.level] : "var(--ink)";
+  head.appendChild(who);
+  head.appendChild(el("div", "kind", beat.kind));
+  if (beat.ticket) head.appendChild(el("div", "tix", beat.ticket));
+  b.appendChild(head);
+  b.appendChild(el("div", "btext", beat.text));
+
+  if (beat.policy) b.appendChild(el("div", "policy", "charter: " + beat.policy));
+  if (beat.detail) b.appendChild(el("div", "bdetail", beat.detail));
+
+  if (beat.draft) {
+    const m = el("div", "mail");
+    const to = el("div", "mrow"); to.innerHTML = "To <b>" + beat.draft.to + "</b>";
+    const su = el("div", "mrow"); su.innerHTML = "Subject <b>" + beat.draft.subject + "</b>";
+    m.appendChild(to); m.appendChild(su);
+    m.appendChild(el("pre", "", beat.draft.body.replace(/\\n/g, "\n")));
+    b.appendChild(m);
+  }
+  if (beat.detail2) b.appendChild(el("div", "bdetail", beat.detail2));
+  if (beat.escalation) b.appendChild(el("div", "bdetail", beat.escalation));
+
+  $("log").appendChild(b);
+  b.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+  if (beat.ticket) {
+    const t = $("tix-" + beat.ticket);
+    if (t) t.classList.add("touched");
+  }
+
+  if (beat.gate) openGate(beat, b);
+}
+
+// --- the gate -------------------------------------------------------------
+function openGate(beat, beatNode) {
+  $("gtitle").textContent = beat.gate.title;
+  $("gwhy").textContent = beat.gate.why;
+  $("scrim").classList.add("on");
+
+  // One decision per gate. Without this a double-click appends the outcome
+  // twice and, worse, schedules advance() twice — which skips a beat.
+  let settled = false;
+  const settle = ok => {
+    if (settled) return;
+    settled = true;
+    $("gyes").onclick = $("gno").onclick = null;
+    $("scrim").classList.remove("on");
+    const line = el("div", "bdetail", (ok ? "Approved by you. " : "Denied by you. ") +
+      (ok ? beat.gate.approve : beat.gate.deny));
+    line.style.borderLeftColor = ok ? "var(--l2)" : "var(--alarm)";
+    beatNode.appendChild(line);
+    tick = setTimeout(advance, 900);           // resume the shift
+  };
+  $("gyes").onclick = () => settle(true);
+  $("gno").onclick = () => settle(false);
+}
+
+function finish() {
+  playing = false;
+  document.querySelectorAll(".agent").forEach(n => n.classList.remove("active"));
+  $("run").disabled = false;
+  $("status").textContent = "Shift complete.";
+
+  const c = $("closing");
+  c.innerHTML = "";
+  c.appendChild(el("h3", "", DATA.closing.headline));
+  const ul = el("ul");
+  DATA.closing.points.forEach(p => ul.appendChild(el("li", "", p)));
+  c.appendChild(ul);
+  c.style.display = "block";
+  c.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+$("run").onclick = start;
+$("restart").onclick = () => {
+  clear(); playing = false; cursor = 0; $("scrim").classList.remove("on");
+  $("log").innerHTML = ""; $("closing").style.display = "none";
+  $("run").disabled = false; $("restart").disabled = true;
+  $("status").textContent = "Three agents, three different autonomy levels.";
+  renderQueue();
+};
+</script>
+</body>
+</html>

@@ -1,62 +1,70 @@
 #!/bin/bash
-# Rebuild the sagekey.com bundle from all four sources and deploy to Vercel.
+# Deploy sagekey.com.
 #
-# Why this exists: on GitHub Pages the three demos were separate repos that
-# GitHub served as siblings automatically. Vercel needs ONE folder, so the
-# bundle has to be reassembled from four places every time. Editing a demo
-# repo alone does nothing to the live site.
+# The repo IS the site. Vercel (project "sagekey-site") is connected to this
+# GitHub repo and rebuilds production from main on every push, so anything not
+# committed here does not exist on the live site. The three demos are developed
+# in their own repos (~/dev/sagekey/<name>), so this script copies their built
+# pages in before committing.
 #
-# Usage:  ./deploy.sh          (build, deploy to production, verify)
-#         ./deploy.sh --check  (verify the live site only, no deploy)
+# History: on 11/25-26/2026 the demos 404'd twice because they were deployed by
+# hand from a side folder and the next git push silently replaced that deploy
+# with a build of this repo, which did not contain them. Keeping them in the
+# repo removes the trap.
+#
+#   ./deploy.sh ["commit message"]   sync demos, commit, push, wait, verify
+#   ./deploy.sh --check              verify the live site only
 
 set -euo pipefail
 cd "$(dirname "$0")"
-ROOT="$(pwd)"
 SRC="$HOME/dev/sagekey"
-OUT="$ROOT/sagekey-site"
-PATHS=(/ /market-arena/ /codebreaker/ /agent-floor/ /foreman/ /ratchet/ /ete-recognition/ /agent-floor/run.json /ratchet/data.json)
+SITE="https://sagekey.com"
+PATHS=(/ /method/ /lab/ /foreman/ /agent-floor/ /agent-floor/run.json /market-arena/
+       /codebreaker/ /ratchet/ /ratchet/data.json /site.css /og.png /img/foreman.jpg
+       /robots.txt /sitemap.xml)
+# live path -> local file; the bytes must match, or the deploy has not landed
+SAME=("/:index.html" "/site.css:site.css" "/method/:method/index.html" "/lab/:lab/index.html"
+      "/agent-floor/:agent-floor/index.html" "/market-arena/:market-arena/index.html"
+      "/codebreaker/:codebreaker/index.html")
 
+sha() { shasum -a 256 | cut -d' ' -f1; }
+in_sync() {
+  for pair in "${SAME[@]}"; do
+    [ "$(curl -s --max-time 25 "$SITE${pair%%:*}" | sha)" = "$(sha < "${pair#*:}")" ] || return 1
+  done
+}
 verify() {
-  echo "--- verifying https://sagekey.com ---"
-  local bad=0
+  local bad=0 code
+  echo "--- $SITE ---"
   for p in "${PATHS[@]}"; do
-    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 "https://sagekey.com$p" || echo 000)
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 "$SITE$p" || echo 000)
     if [ "$code" = "200" ]; then printf "  %-24s %s\n" "$p" "$code"
     else printf "  %-24s %s  <<<< BROKEN\n" "$p" "$code"; bad=$((bad+1)); fi
   done
-  echo "--- cert ---"
-  echo | openssl s_client -connect sagekey.com:443 -servername sagekey.com 2>/dev/null \
-    | openssl x509 -noout -enddate 2>/dev/null | sed 's/^/  /'
-  if [ "$bad" -gt 0 ]; then echo "FAILED: $bad broken path(s)"; return 1; fi
-  echo "All ${#PATHS[@]} paths OK."
+  if in_sync; then echo "  live content matches this checkout"
+  else echo "  LIVE CONTENT DIFFERS FROM THIS CHECKOUT  <<<<"; bad=$((bad+1)); fi
+  echo "  cert: $(echo | openssl s_client -connect sagekey.com:443 -servername sagekey.com 2>/dev/null \
+      | openssl x509 -noout -enddate 2>/dev/null)"
+  [ "$bad" -eq 0 ] && echo "OK: ${#PATHS[@]} paths, content in sync." || { echo "FAILED: $bad problem(s)"; return 1; }
 }
 
 if [ "${1:-}" = "--check" ]; then verify; exit $?; fi
 
-echo "=== rebuilding bundle ==="
-rm -rf "$OUT"; mkdir -p "$OUT"
-cp "$ROOT/index.html" "$OUT/"
-for d in ete-recognition foreman ratchet; do
-  mkdir -p "$OUT/$d"; cp -R "$ROOT/$d/." "$OUT/$d/"
-done
+echo "=== syncing demos from their own repos ==="
 for d in market-arena codebreaker agent-floor; do
-  mkdir -p "$OUT/$d"; cp "$SRC/$d/index.html" "$OUT/$d/"
+  [ -f "$SRC/$d/index.html" ] || { echo "ABORT: $SRC/$d/index.html not found"; exit 1; }
+  mkdir -p "$d"; cp "$SRC/$d/index.html" "$d/"
 done
-cp "$SRC/agent-floor/run.json" "$OUT/agent-floor/"
+cp "$SRC/agent-floor/run.json" agent-floor/
 
-# every page must be present and non-empty before we ship anything
-for f in index.html market-arena/index.html codebreaker/index.html \
-         agent-floor/index.html agent-floor/run.json foreman/index.html \
-         ratchet/index.html ratchet/data.json ete-recognition/index.html; do
-  [ -s "$OUT/$f" ] || { echo "ABORT: $f missing or empty in bundle"; exit 1; }
+git add -A
+if git diff --cached --quiet; then echo "=== nothing new to commit ==="
+else git commit -q -m "${1:-Update site}"; echo "=== committed $(git rev-parse --short HEAD) ==="; fi
+git push -q origin main
+
+echo "=== waiting for Vercel to serve this commit ==="
+for i in $(seq 1 30); do
+  if in_sync; then echo "  live after ~$((i*8))s"; break; fi
+  sleep 8
 done
-echo "  $(find "$OUT" -type f ! -path '*/.vercel/*' | wc -l | tr -d ' ') files staged"
-
-echo "=== deploying (--force: skip the cache that caused the 11/26 partial deploy) ==="
-cd "$OUT"
-NPM_CONFIG_UPDATE_NOTIFIER=false npx -y vercel@latest deploy --prod --force --yes 2>&1 \
-  | grep -oE '"(message|error)": "[^"]*"' | head -3
-
-echo "=== waiting 25s for propagation ==="
-sleep 25
 verify

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The method — running a governed agent workforce · SageKey</title>
+<meta name="description" content="How to put AI agents on real operational work without losing control of them: charters, an earned autonomy ladder, human gates on anything irreversible, an append-only log and an oversight dashboard." />
+<link rel="canonical" href="https://sagekey.com/method/" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://sagekey.com/method/" />
+<meta property="og:site_name" content="SageKey" />
+<meta property="og:title" content="Running a governed agent workforce" />
+<meta property="og:description" content="Charters, an earned autonomy ladder, human gates, an append-only log. The governance model, written out in full." />
+<meta property="og:image" content="https://sagekey.com/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="theme-color" content="#0a0c10" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0c10'/%3E%3Ccircle cx='12' cy='16' r='5' fill='none' stroke='%2354d6a0' stroke-width='2.5'/%3E%3Cpath d='M17 16h10M23 16v5M27 16v4' stroke='%2354d6a0' stroke-width='2.5' fill='none'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="/site.css" />
+</head>
+<body>
+
+<nav class="top scrolled">
+  <div class="shell navrow">
+    <a class="mark" href="/">
+      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="12" cy="16" r="5" fill="none" stroke="#54d6a0" stroke-width="2.5"/>
+        <path d="M17 16h10M23 16v5M27 16v4" stroke="#54d6a0" stroke-width="2.5" fill="none"/>
+      </svg>
+      SageKey
+    </a>
+    <div class="links">
+      <a href="/#work">What I automate</a>
+      <a href="/#proof">Proof</a>
+      <a href="/#services">Services</a>
+      <a class="on" href="/method/">Method</a>
+    </div>
+    <a class="btn primary sm" href="/#contact">Start a conversation</a>
+  </div>
+</nav>
+
+<div class="shell narrow">
+<article class="essay">
+  <div class="kicker">The method</div>
+  <h1>Running a governed agent workforce</h1>
+  <p class="lede">
+    This is the part I actually get hired for, so it's worth writing down properly rather than
+    hinting at it. Everything here is described at the level of the pattern; the specifics belong
+    to the clients I built them for.
+  </p>
+
+  <h2>The hard part isn't the task</h2>
+  <p>
+    Getting a language model to do a piece of operational work stopped being the hard part some
+    time ago. Ask it to triage a ticket, reconcile two systems, draft the customer reply — it
+    will do a decent job. The hard part is everything around that: knowing what it's allowed to
+    touch, catching the confident mistake before it reaches a customer, and being able to answer
+    "who approved this?" three weeks later when someone asks.
+  </p>
+  <div class="pull">
+    A capable agent with no governance isn't an employee. It's an unsupervised contractor with
+    your credentials and no memory of what it did.
+  </div>
+  <p>
+    So the model I use treats agents like staff rather than like scripts. Staff have a written
+    job description, a level of trust they've earned, a manager who signs off on the risky
+    things, and a paper trail. All four of those turn out to have direct technical analogues.
+  </p>
+
+  <h2>1. Every agent has a charter</h2>
+  <p>
+    A charter is a short written document, kept in version control next to the code, that says
+    what one agent is for: the systems it may read, the systems it may write, the things it must
+    never do, and who owns it. It is written in plain language because its real audience is the
+    human who has to approve it, not the model.
+  </p>
+  <p>
+    The <b>MAY NOT</b> lines are the ones that earn their keep. They're usually specific and
+    slightly odd — the kind of rule that exists because of one bad afternoon. "Never link an
+    internal document to an external recipient; attach it instead." Those lines are the
+    institutional memory that would otherwise live in one person's head.
+  </p>
+
+  <h2>2. Autonomy is a ladder, and it's earned</h2>
+  <p>
+    A single "is this agent allowed to act" switch is too blunt. Four rungs cover nearly
+    everything, and an agent starts at the bottom and moves up on demonstrated track record —
+    not on how impressive its demo was.
+  </p>
+  <div class="ladder">
+    <div class="rung">
+      <div class="pip" style="background:var(--l0)"></div>
+      <div>
+        <div class="rname">Observe</div>
+        <div class="rbody">Reads systems, reports findings. Cannot change anything anywhere. Every new agent starts here.</div>
+      </div>
+    </div>
+    <div class="rung">
+      <div class="pip" style="background:var(--l1)"></div>
+      <div>
+        <div class="rname">Draft</div>
+        <div class="rbody">Prepares the work — the reply, the ticket update, the reconciliation — but a human sends it. Most of the value shows up on this rung, and a lot of agents never need to leave it.</div>
+      </div>
+    </div>
+    <div class="rung">
+      <div class="pip" style="background:var(--l2)"></div>
+      <div>
+        <div class="rname">Act with approval</div>
+        <div class="rbody">Executes inside a defined lane on its own, and stops at a gate for anything that leaves the building or crosses a threshold.</div>
+      </div>
+    </div>
+    <div class="rung unused">
+      <div class="pip" style="background:var(--l3)"></div>
+      <div>
+        <div class="rname">Autonomous</div>
+        <div class="rbody"><em>Deliberately unoccupied.</em> The rung exists so the ladder is honest about where it ends — and so that promoting something into it is a visible decision somebody has to make on purpose.</div>
+      </div>
+    </div>
+  </div>
+  <p class="caption">The ladder from <a href="/agent-floor/">Agent Floor</a>. The empty top rung is the point.</p>
+  <p>
+    Demotion matters as much as promotion. A charter violation drops an agent a rung, the same
+    way you'd pull back responsibility from someone who made a serious mistake, and it goes back
+    up by working correctly at the lower level for a while.
+  </p>
+
+  <h2>3. Human gates on anything irreversible</h2>
+  <p>
+    A gate is a hard stop in front of a specific class of action: anything that reaches a
+    customer or vendor, anything that moves money, anything that can't be undone. The agent does
+    all the work up to that line, then presents the finished artifact and waits.
+  </p>
+  <p>
+    The design detail that makes gates survive contact with reality is that <b>the gate has to
+    show its work</b>. A prompt that says "approve this action?" gets rubber-stamped within a
+    week. A gate that shows the actual email, names the rule that triggered the stop, and states
+    what happens on approve versus deny gets read. If your reviewers are clicking approve
+    without reading, you don't have a gate — you have a speed bump and a false sense of safety.
+  </p>
+
+  <h2>4. An append-only log, because someone will ask</h2>
+  <p>
+    Every action, every refusal and every human decision lands in a log that is written once and
+    never edited. Not for compliance theater — for the ordinary Tuesday when a customer asks why
+    they got a particular email and the honest answer needs to include which agent drafted it,
+    which rule let it through, and which human pressed send.
+  </p>
+  <p>
+    Refusals go in the log too, and they're the most useful entries in it. An agent that declined
+    work is telling you either that a charter is too tight or that a real hazard exists. Both are
+    worth knowing; neither shows up if you only log successes.
+  </p>
+
+  <h2>5. The oversight dashboard</h2>
+  <p>
+    Once more than two or three agents are running, the bottleneck moves to the human, and the
+    question becomes what one overseer needs on one screen to stay genuinely in control. In
+    practice it's four things:
+  </p>
+  <ul class="pts">
+    <li><b>Who's on shift and at what rung</b> — the current roster with each agent's autonomy level visible, so an escalation is noticeable rather than something you find out about later.</li>
+    <li><b>What's waiting on me</b> — the gate queue, oldest first. If this list is never empty, autonomy is set too low; if it's always empty, it's set too high.</li>
+    <li><b>What stopped, and why</b> — refusals and charter blocks, quoted against the specific rule that fired. This is the panel that tells you whether the governance is working or just decorative.</li>
+    <li><b>The running log</b> — one chronological stream across all agents, because most real problems are visible in the ordering of events rather than inside any single one.</li>
+  </ul>
+  <p>
+    The measure of the whole arrangement is simple: an overseer should be able to walk away for
+    an afternoon and, on returning, reconstruct exactly what happened and why — without asking
+    anyone.
+  </p>
+
+  <h2>Where I'd start</h2>
+  <p>
+    Pick one queue with real volume and low blast radius. Put a single agent on it at
+    <b>Draft</b> and leave it there longer than feels necessary. Write the charter before writing
+    any code. The first two weeks should produce more edits to the charter than to the
+    implementation — if they don't, the charter isn't specific enough to be doing any work.
+  </p>
+
+  <div class="endcta">
+    <h3 style="font-size:21px">See it running, or put it to work.</h3>
+    <p><a href="/foreman/">Foreman</a> is this method as a live system: describe a piece of work and it drafts the charter, the rung and the gates — and refuses you when its policy engine says no.</p>
+    <a class="btn primary" href="/#contact">Start a conversation</a>
+    <a class="btn" href="/foreman/" style="margin-left:8px">Open Foreman →</a>
+  </div>
+</article>
+</div>
+
+<footer>
+  <div class="shell foot">
+    <span>© SageKey</span>
+    <a href="/">Home</a>
+    <a href="/foreman/">Foreman</a>
+    <a href="/agent-floor/">Agent Floor</a>
+    <a href="/lab/">Lab</a>
+    <a class="sp" href="https://github.com/SageKey">GitHub</a>
+    <a href="mailto:bretta@sagekey.com">bretta@sagekey.com</a>
+  </div>
+</footer>
+</body>
+</html>

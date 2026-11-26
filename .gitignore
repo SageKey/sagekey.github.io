@@ -5,3 +5,4 @@ __pycache__/
 notes/
 .deploy/
 sagekey-site/
+.vercel

@@ -1,0 +1,151 @@
+{
+  "org": {
+    "company": "Northwind Fabrication",
+    "note": "Fictional mid-market metal fabricator. All names, tickets and data are synthetic.",
+    "overseer": "You"
+  },
+
+  "ladder": [
+    { "level": 0, "name": "read-only",        "blurb": "Observes and reports. Cannot change anything." },
+    { "level": 1, "name": "draft-only",       "blurb": "Prepares work for a human to review. Cannot send or commit." },
+    { "level": 2, "name": "act-with-approval","blurb": "Executes, but every action passes a human gate first." },
+    { "level": 3, "name": "autonomous",       "blurb": "Acts within charter without a gate. Reserved; nothing here yet." }
+  ],
+
+  "agents": [
+    {
+      "id": "triage",
+      "name": "Queue Triage",
+      "level": 2,
+      "since": "promoted after 3 weeks at draft-only with no corrections",
+      "charter": [
+        "Classify inbound requests by type and urgency.",
+        "Route to the owning team using the published routing table.",
+        "Flag anything older than 10 days.",
+        "MAY NOT close, merge, or reassign outside the routing table."
+      ]
+    },
+    {
+      "id": "approvals",
+      "name": "Approvals Chaser",
+      "level": 1,
+      "since": "held at draft-only — outbound copy always gets a human read",
+      "charter": [
+        "Identify requests stalled awaiting an approver.",
+        "Draft reminder messages for the overseer to send.",
+        "MAY NOT send anything outbound.",
+        "MAY NOT share internal-only documents with external recipients."
+      ]
+    },
+    {
+      "id": "vendor",
+      "name": "Vendor Follow-up",
+      "level": 0,
+      "since": "deployed 4 days ago — no track record yet",
+      "charter": [
+        "Read purchase orders and vendor correspondence.",
+        "Report overdue deliveries to the overseer.",
+        "MAY NOT contact vendors.",
+        "MAY NOT modify purchase orders."
+      ]
+    }
+  ],
+
+  "queue": [
+    { "id": "NF-2841", "title": "Press brake #3 calibration overdue",        "age": 12, "state": "unrouted" },
+    { "id": "NF-2839", "title": "Approve capital request — laser optics",     "age": 9,  "state": "awaiting approval" },
+    { "id": "NF-2836", "title": "Vendor Kessler: bar stock 6 days late",      "age": 6,  "state": "open" },
+    { "id": "NF-2833", "title": "New starter laptop + badge",                 "age": 4,  "state": "unrouted" },
+    { "id": "NF-2830", "title": "Approve overtime — weekend run",             "age": 14, "state": "awaiting approval" },
+    { "id": "NF-2822", "title": "Coolant disposal pickup scheduling",         "age": 2,  "state": "unrouted" },
+    { "id": "NF-2814", "title": "PO 44192 quantity mismatch on receipt",      "age": 11, "state": "open" }
+  ],
+
+  "script": [
+    {
+      "t": 0, "agent": "triage", "kind": "start",
+      "text": "Picking up 3 unrouted requests. Routing table v4 loaded."
+    },
+    {
+      "t": 1200, "agent": "triage", "kind": "act", "ticket": "NF-2833",
+      "text": "New starter laptop + badge → IT Services. Standard onboarding pattern, high confidence.",
+      "gate": {
+        "title": "Route NF-2833 to IT Services?",
+        "why": "Queue Triage sits at act-with-approval, so every routing decision passes a gate. It is right almost every time — the gate is what earns the next rung, not a sign of distrust.",
+        "approve": "Routed. Logged against Triage's record.",
+        "deny": "Held. Denials are logged too — three in a week would drop Triage back to draft-only."
+      }
+    },
+    {
+      "t": 2400, "agent": "triage", "kind": "act", "ticket": "NF-2822",
+      "text": "Coolant disposal pickup → Facilities. Matches routing table entry 'waste / environmental'."
+    },
+    {
+      "t": 3400, "agent": "triage", "kind": "flag", "ticket": "NF-2841",
+      "text": "Press brake #3 calibration is 12 days old and unrouted. Flagged as ageing.",
+      "detail": "The routing table has no entry for calibration work. Charter forbids routing outside the table, so it flags rather than guessing."
+    },
+    {
+      "t": 4200, "agent": "triage", "kind": "stop",
+      "text": "3 unrouted handled, 1 flagged. Nothing else in charter. Stopping.",
+      "detail": "An agent that stops when its charter is exhausted is worth more than one that finds something to do."
+    },
+    {
+      "t": 5000, "agent": "approvals", "kind": "start",
+      "text": "Two requests stalled awaiting approvers. Drafting reminders."
+    },
+    {
+      "t": 6000, "agent": "approvals", "kind": "draft", "ticket": "NF-2830",
+      "text": "Overtime approval has sat 14 days with no approver assigned.",
+      "draft": {
+        "to": "M. Ellery — Plant Manager",
+        "subject": "Overtime request NF-2830 — 14 days, no approver",
+        "body": "Hi Michael,\\n\\nNF-2830 (weekend overtime run) has been open 14 days with no approver assigned. Payroll cutoff is Thursday.\\n\\nCould you either approve it or name the right approver? The request detail is attached.\\n\\nThanks,\\nOps"
+      },
+      "gate": {
+        "title": "Send this reminder?",
+        "why": "Approvals Chaser is draft-only. It cannot send — it can only put words in front of you. This is the rung where an agent is genuinely useful and still cannot embarrass you.",
+        "approve": "Sent by you, not by the agent. The log records who actually pressed send.",
+        "deny": "Discarded. The agent does not retry on its own."
+      }
+    },
+    {
+      "t": 7600, "agent": "approvals", "kind": "blocked", "ticket": "NF-2839",
+      "text": "Drafted a reminder for the laser optics capital request — then blocked it myself.",
+      "detail": "The draft cited the capital approval matrix on the internal wiki. The recipient is a vendor contact outside the company, and the charter forbids sharing internal-only documents externally. Rewrote it to attach the request summary instead of linking the wiki.",
+      "policy": "MAY NOT share internal-only documents with external recipients",
+      "draft": {
+        "to": "R. Vance — Optics supplier (external)",
+        "subject": "Capital request NF-2839 — status",
+        "body": "Hi Rita,\\n\\nThe capital request covering the optics order is still with our approvers. I have attached a summary of where it stands.\\n\\nI will follow up once it clears.\\n\\nThanks,\\nOps"
+      },
+      "detail2": "The first draft would have leaked an internal link to an outside party. Nothing malicious — the agent simply had a document that answered the question. This is the failure mode governance exists for."
+    },
+    {
+      "t": 9200, "agent": "vendor", "kind": "report", "ticket": "NF-2836",
+      "text": "Kessler bar stock is 6 days past the promised date. Two other open POs with the same vendor.",
+      "detail": "Vendor Follow-up is read-only, four days into deployment. It has the information and could plausibly draft an email — but read-only means report, not act."
+    },
+    {
+      "t": 10400, "agent": "vendor", "kind": "escalate", "ticket": "NF-2814",
+      "text": "PO 44192 shows a receipt quantity mismatch. Escalating rather than acting.",
+      "detail": "Correcting a receipt would modify a purchase order, which the charter forbids outright. Not a judgement call and not a gate — outside charter is outside charter.",
+      "policy": "MAY NOT modify purchase orders",
+      "escalation": "Flagged to overseer. A human decides whether this is a receiving error or a short shipment."
+    },
+    {
+      "t": 11600, "agent": "vendor", "kind": "stop",
+      "text": "2 findings reported, 0 actions taken. Read-only run complete."
+    }
+  ],
+
+  "closing": {
+    "headline": "Three agents. Eleven actions. Two stopped themselves.",
+    "points": [
+      "Every outbound message was sent by a human, not an agent.",
+      "One agent caught its own policy violation before a human saw it.",
+      "One agent refused work it was capable of doing, because the charter said no.",
+      "Promotion up the ladder is earned on a track record, not switched on."
+    ]
+  }
+}
