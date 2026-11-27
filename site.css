@@ -867,6 +867,19 @@ footer.fat { background:#f5f5f7; }
   .ov.side .ov-open { justify-self:start; }
 }
 @media (prefers-reduced-motion:reduce) { .ov-k .dot { animation:none; } }
+/* narrower screens: the demo comes straight after the headline, first paragraph and button, so it is not buried */
+@media (max-width:999px) {
+  header.hero.split { padding-top:36px; }
+  .hero-grid { display:flex; flex-direction:column; }
+  .hero-txt { display:contents; }
+  header.hero.split h1 { order:1; margin-top:0; }
+  header.hero.split .lede { order:2; margin-top:20px; }
+  header.hero.split .herocta { order:3; margin-top:24px; }
+  .ov.side { order:4; margin-top:32px; }
+  header.hero.split .lede.sub { order:5; margin-top:28px; }
+  header.hero.split .hproof { order:6; align-self:center; margin-top:16px; }
+  header.hero.split .live { order:7; }
+}
 
 @media print {
   .rv { opacity:1 !important; transform:none !important; }
