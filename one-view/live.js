@@ -112,7 +112,7 @@
     var el = $("was"); if (!el) return;
     if (!pick) { el.innerHTML = ""; return; }
     var total = sum(V.units, function (u) { return u.enr; });
-    var open = sum(V.units.filter(function (u) { return u.status === "ask" || u.status === "stale"; }), function (u) { return u.enr; });
+    var open = sum(V.units.filter(function (u) { return status(u) === "ask" || status(u) === "stale"; }), function (u) { return u.enr; });
     el.className = "s-was" + (done ? " done" : "");
     el.innerHTML = '<div class="was-h">' + (done ? "None of the three was the real count. What each one missed:" : "The three answers") + "</div>" + R.map(function (r) {
       var d = r.value - total, gap = num(Math.abs(d));
@@ -314,7 +314,7 @@
       calling = false;
       var bad = r.status !== "accepted";
       var land = function () {
-        test = { site: u.slug, status: r.unit.status }; paint(); settle(); busy = false;
+        test = { site: u.slug, status: r.unit.status }; paint(); settle(); was(true); busy = false;
         if (bad) chip({ slug: u.slug, name: u.name, question: { text: r.questions[0].text, who: r.questions[0].owner } }, true);
         cap(bad ? "<b>3</b> <strong>Caught.</strong> It never reached the number unflagged. Nobody has to spot it in a meeting three weeks later."
           : "<b>3</b> <strong>Clean.</strong> The corrected file passed every check and went straight through.");
