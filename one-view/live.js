@@ -4,7 +4,7 @@
 // draws it. The full dashboard (view.js) is at "#/".
 (function () {
   "use strict";
-  var O = window.ONEVIEW, V = null, S = null, W = null, files = null, aif = null, joined = null, L = null, played = false, busy = false, calling = false, sel = null, test = null;
+  var O = window.ONEVIEW, V = null, S = null, W = null, files = null, aif = null, joined = null, L = null, played = false, busy = false, calling = false, sel = null, test = null, R = null, pick = null, reveal = false;
   var m = /[?&]for=([a-z]+)/.exec(location.search); if (m) O.tenant = m[1];
   var app = document.getElementById("app"), bar = document.getElementById("guidebar");
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -75,7 +75,7 @@
       '<div class="stage" id="stage" style="--glow:' + S.glow + '">' +
       '<div class="s-bar"><div class="s-cap" id="cap" aria-live="polite"></div><div class="s-act" id="act"></div></div>' +
       '<div class="legend"><span class="k-ok">Checked this morning</span><span class="k-ask">Waiting on a person</span><span class="k-stale">No fresh file</span><span class="k-manual">Uploaded by hand</span></div>' +
-      '<div id="svgwrap"></div><div class="s-tray" id="tray"></div></div>' +
+      '<div class="s-scene"><div id="svgwrap"></div><div id="intro"></div></div><div class="s-was" id="was"></div><div class="s-tray" id="tray"></div></div>' +
       '<div id="detail"></div>' +
       '<div class="s-end"><h2>Nothing wrong reached that number without a flag.</h2>' +
       '<p class="sub">That is the difference between a dashboard and numbers you can trust. Nobody replaced a system to get it. Every ' + esc(W.unit) + " kept what it runs.</p>" +
@@ -87,11 +87,44 @@
       '<a href="' + (O.site || "") + '/#about">Who builds it ›</a><a href="#/">Explore the full dashboard ›</a></div></div>';
     [].forEach.call(app.querySelectorAll(".sect button"), function (b) { b.onclick = function () { sector(b.getAttribute("data-t")); }; });
     draw();
-    if (still) finish(); else setTimeout(play, 500);
+    if (!pick && R.length) intro(); else if (still) finish(); else setTimeout(play, 500);
+  }
+
+  // ---------- the opening: one question, three people, three answers ----------
+  function intro() {
+    $("stage").classList.add("pre");
+    $("intro").innerHTML = '<div class="intro"><h2>' + esc(S.q) + "</h2><p>Ask three people and you get three answers. Which one would you take into the meeting?</p>" +
+      '<div class="rep3">' + R.map(function (r, i) { return '<button type="button" class="rep" data-k="' + r.key + '" style="animation-delay:' + (0.3 + i * 0.5).toFixed(1) + 's"><span>' + esc(r.who) + " says</span><b>" + num(r.value) + "</b><small>" + esc(r.what) + "</small></button>"; }).join("") +
+      '</div><p class="pickme">Pick one to see what is really underneath.</p></div>';
+    [].forEach.call($("intro").querySelectorAll(".rep"), function (b) { b.onclick = function () { choose(b.getAttribute("data-k")); }; });
+  }
+  function choose(k) {
+    if (pick) return;
+    pick = k; reveal = true; track("oneview_pick", { report: k });
+    $("stage").classList.remove("pre");
+    var el = $("intro").firstChild; if (el) el.classList.add("out");
+    setTimeout(function () { if ($("intro")) $("intro").innerHTML = ""; }, 400);
+    $("stage").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    if (still) finish(); else setTimeout(play, 450);
+  }
+  // the three answers, kept under the scene; once the real count is in, what each one missed
+  function was(done) {
+    var el = $("was"); if (!el) return;
+    if (!pick) { el.innerHTML = ""; return; }
+    var total = sum(V.units, function (u) { return u.enr; });
+    var open = sum(V.units.filter(function (u) { return u.status === "ask" || u.status === "stale"; }), function (u) { return u.enr; });
+    el.className = "s-was" + (done ? " done" : "");
+    el.innerHTML = '<div class="was-h">' + (done ? "None of the three was the real count. What each one missed:" : "The three answers") + "</div>" + R.map(function (r) {
+      var d = r.value - total, gap = num(Math.abs(d));
+      var why = r.key === "old" ? "It is " + esc(r.month) + "'s number, " + gap + (d < 0 ? " below" : " above") + " this month's count."
+        : r.key === "part" ? "It left out " + r.left + " " + esc(r.left === 1 ? W.unit : W.units) + " that sent no file this week, so it is " + gap + " short."
+        : "It is a plan, not a count: " + gap + (d > 0 ? " above" : " below") + " what really happened.";
+      return '<div class="was' + (r.key === pick ? " mine" : "") + '"><span>' + esc(r.who) + (r.key === pick ? " · your pick" : "") + "</span><b>" + num(r.value) + "</b>" + (done ? "<small>" + why + "</small>" : "") + "</div>"; }).join("") +
+      (done && open ? '<p class="was-f">And none of them could tell you that ' + num(open) + " of the real " + num(total) + " is still waiting on a person.</p>" : "");
   }
   function sector(id) {
     if (calling || id === O.tenant) return;
-    O.tenant = id; busy = false; files = null; aif = null; joined = null; test = null; sel = null; played = false;
+    O.tenant = id; busy = false; files = null; aif = null; joined = null; test = null; sel = null; played = false; pick = null;
     try { history.replaceState(null, "", location.pathname + (id === "distributor" ? "" : "?for=" + id)); } catch (e) {}
     track("oneview_sector");
     load();
@@ -188,7 +221,7 @@
     var mine = O.tenant;
     $("tray").innerHTML = ""; $("act").innerHTML = ""; $("act").className = "s-act";
     cap("<b>1</b> Each dot is a " + esc(W.unit) + ". Here comes each one's latest file.");
-    draw();
+    draw(); was(false);
     var seq = V.units.slice().sort(function (a, b) { var r = function (u) { return u.status === "stale" ? 3 : u.status === "manual" ? 2 : 1; }; return r(a) - r(b) || (V.units.indexOf(a) * 7) % 24 - (V.units.indexOf(b) * 7) % 24; });
     var nIn = 0, total = 0, left = seq.length;
     seq.forEach(function (u, i) {
@@ -218,7 +251,8 @@
   function finish() {
     played = true; busy = false;
     if (!$("tray").firstChild) V.units.forEach(function (u) { if (u.status === "ask" || u.status === "stale") chip(u); });
-    paint(); settle();
+    paint(); settle(); was(true);
+    if (reveal) { reveal = false; $("was").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" }); }   // the payoff of the opening, in view once
     var c = { ok: 0, ask: 0, stale: 0, manual: 0 }; V.units.forEach(function (u) { c[u.status]++; });
     cap("<b>2</b> " + (c.ok + c.manual) + " files passed. " + c.ask + " did not add up, so a person was asked." + (c.stale ? " " + c.stale + " sent nothing new." : "") + " Click an amber dot to see why.");
     acts();
@@ -403,7 +437,7 @@
   window.addEventListener("hashchange", function () { if (V) page(); });
   function load() {
     busy = false;
-    return get("/view").then(function (v) { V = v; S = v.scene; W = v.words; $("asof").textContent = ""; page(); })
+    return get("/view").then(function (v) { V = v; S = v.scene; W = v.words; R = S.reports || []; $("asof").textContent = ""; page(); })
       .catch(function () { if (O.tenant !== "distributor") { O.tenant = "distributor"; return load(); }
         app.innerHTML = '<p class="loading">The demo\'s server did not answer. It may be restarting; try again in a minute.</p>'; });
   }
