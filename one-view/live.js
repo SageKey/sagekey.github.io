@@ -6,6 +6,8 @@
   "use strict";
   var O = window.ONEVIEW, V = null, S = null, W = null, files = null, aif = null, joined = null, L = null, played = false, busy = false, calling = false, sel = null, test = null, R = null, pick = null, reveal = false;
   var m = /[?&]for=([a-z]+)/.exec(location.search); if (m) O.tenant = m[1];
+  // a visitor who already picked an answer on another page (the home page shows the same three) skips the opening
+  var came = /[?&]pick=(old|part|plan)\b/.exec(location.search); came = came && came[1];
   var app = document.getElementById("app"), bar = document.getElementById("guidebar");
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function base() { return O.api + "/api/" + O.tenant; }
@@ -437,7 +439,11 @@
   window.addEventListener("hashchange", function () { if (V) page(); });
   function load() {
     busy = false;
-    return get("/view").then(function (v) { V = v; S = v.scene; W = v.words; R = S.reports || []; $("asof").textContent = ""; page(); })
+    return get("/view").then(function (v) { V = v; S = v.scene; W = v.words; R = S.reports || []; $("asof").textContent = "";
+        if (came && R.some(function (r) { return r.key === came; })) { pick = came; reveal = true; track("oneview_pick", { report: came, from: "home" }); }
+        came = null; var arrived = pick && !played;
+        page();
+        if (arrived && $("stage")) setTimeout(function () { $("stage").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" }); }, 80); })
       .catch(function () { if (O.tenant !== "distributor") { O.tenant = "distributor"; return load(); }
         app.innerHTML = '<p class="loading">The demo\'s server did not answer. It may be restarting; try again in a minute.</p>'; });
   }

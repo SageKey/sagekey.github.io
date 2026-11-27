@@ -212,12 +212,30 @@
   </div>
 </section>
 
+<!-- ==================== ONE VIEW: the first problem, running for real ==================== -->
+<section class="band tight" id="oneview">
+  <div class="shell">
+    <div class="head">
+      <div class="kicker">The first one, running for real</div>
+      <h2 class="shead">Ask three people. Get three answers.</h2>
+      <p class="intro">Every company with more than one site, team or system has sat through this meeting. Pick the answer you'd trust, then watch a working system show what each one missed.</p>
+    </div>
+    <div class="ov" id="ov">
+      <div class="ov-tabs" id="ov-tabs" role="group" aria-label="Kind of organization"></div>
+      <div class="ov-q" id="ov-q">How many projects are on track?</div>
+      <p class="ov-sub">Which one would you take into the meeting?</p>
+      <div class="ov-reps" id="ov-reps"><a class="ov-open" href="/one-view/?for=projects">See the three answers<span class="chev"></span></a></div>
+      <div class="ov-foot"><span id="ov-note">A live demo. The organizations are made up; the system, its checks and its AI are real.</span><a class="chev" href="/one-view/">Open the whole demo</a></div>
+    </div>
+  </div>
+</section>
+
 <!-- ==================== THE DESK: pick a job, watch it done ==================== -->
 <section class="band tight" id="work">
   <div class="shell">
     <div class="head deskhead">
       <div class="kicker">The retyping problem</div>
-      <h2 class="shead">Here's one of them, working.</h2>
+      <h2 class="shead">Here's another one, working.</h2>
       <p class="intro">Four jobs most back offices know. Pick one, watch an agent prepare it, then make the call yourself.</p>
     </div>
     <div class="desk" id="desk">
@@ -847,6 +865,33 @@
   var $ = function (id) { return document.getElementById(id); };
   // Anonymous counts of what visitors do (no cookies, no personal data, never the text they type).
   function track(name, data) { try { window.va && window.va("event", { name: name, data: data || {} }); } catch (e) {} }
+
+  // ---------- one view: the demo's opening, live on this page ----------
+  (function () {
+    var box = document.getElementById("ov"); if (!box || !window.fetch) return;
+    var API = "https://one-view-production.up.railway.app/api/opening", ORDER = ["projects", "distributor", "schools", "clinics"], orgs = null, cur = null;
+    function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+    function show(id, clicked) {
+      var o = orgs.filter(function (x) { return x.id === id; })[0]; if (!o) return;
+      cur = id; box.style.setProperty("--glow", o.glow);
+      [].forEach.call(document.querySelectorAll("#ov-tabs button"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-t") === id); });
+      document.getElementById("ov-q").textContent = o.q;
+      document.getElementById("ov-reps").innerHTML = o.answers.map(function (a, i) {
+        return '<a class="ov-rep" href="/one-view/?for=' + o.id + "&pick=" + a.key + '" data-k="' + a.key + '" style="animation-delay:' + (0.08 + i * 0.16).toFixed(2) + 's"><span>' + esc(a.who) + " says</span><b>" +
+          Math.round(a.value).toLocaleString("en-US") + "</b><small>" + esc(a.what) + "</small></a>"; }).join("");
+      [].forEach.call(document.querySelectorAll("#ov-reps a"), function (a) { a.addEventListener("click", function () { track("home_oneview_pick", { sector: cur, answer: a.getAttribute("data-k") }); }); });
+      document.getElementById("ov-note").textContent = "Live from a running demo: a made-up organization with " + o.units + " " + o.unit + ". The system, its checks and its AI are real.";
+      if (clicked) track("home_oneview_sector", { sector: id });
+    }
+    fetch(API).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (d) {
+      orgs = d.organisations.filter(function (o) { return o.answers && o.answers.length === 3; });
+      orgs.sort(function (a, b) { return (ORDER.indexOf(a.id) + 99) % 99 - (ORDER.indexOf(b.id) + 99) % 99; });
+      if (!orgs.length) return;
+      document.getElementById("ov-tabs").innerHTML = orgs.map(function (o) { return '<button type="button" data-t="' + o.id + '" aria-pressed="false">' + esc(o.tab) + "</button>"; }).join("");
+      [].forEach.call(document.querySelectorAll("#ov-tabs button"), function (b) { b.addEventListener("click", function () { show(b.getAttribute("data-t"), true); }); });
+      box.classList.add("ov-on"); show(orgs[0].id);
+    }).catch(function () {});   // the demo's server is restarting: the plain link stays
+  })();
 
   // nav hairline once scrolled
   var nav = $("nav");
