@@ -1,9 +1,9 @@
 // One view — a demo of a company-level view of every site, fed from the systems each site already runs.
 // The page that loads this supplies the sites, the wording and the systems (window.VIEW).
 // Every figure is generated here from the site's name, so it is stable between visits and obviously not real.
-(function () {
+window.OneView = function (C) {
   "use strict";
-  var C = window.VIEW, app = document.getElementById("app");
+  var app = document.getElementById("app");
   // Every word a reader sees. The defaults describe a school group; a config can replace any of them
   // (C.words) so the same view can describe branches, plants or clinics.
   var W = {
@@ -93,8 +93,8 @@
       staff: staff, teachers: teachers, vac: vac, margin: margin, marginBud: marginBud, parent: parent, parentPrev: parentPrev, trend: trend,
       status: status, question: question, askedDays: days, staleDays: stale, sys: sys, term: (C.systems[sys] && C.systems[sys].term) || k.term };
   }
-  var U = (C.units || window.SCHOOLS || SCHOOLS).map(build);   // data.js declares SCHOOLS with const, so it is not on window
-  var COUNTRIES = Object.keys(C.countries).filter(function (c) { return U.some(function (u) { return u.country === c; }); })
+  var U = C.live ? C.units : (C.units || window.SCHOOLS || SCHOOLS).map(build);   // live: the API already did the sums   // data.js declares SCHOOLS with const, so it is not on window
+  var COUNTRIES = U.map(function (u) { return u.country; }).filter(function (c, i, a) { return a.indexOf(c) === i; })
     .sort(function (a, b) { return sum(of(b), function (u) { return u.enr; }) - sum(of(a), function (u) { return u.enr; }); });
   function of(c) { return U.filter(function (u) { return u.country === c; }); }
 
@@ -185,6 +185,7 @@
       '<p class="sub">' + W.sub + "</p>" +
       tiles(a) +
       '<div class="two">' + flagPanel(U, 6, "Needs a conversation") + health(a, U, 3) + "</div>" +
+      (C.live ? '<div id="runbox"></div>' : "") +
       '<div class="ask"><h3>Ask the numbers</h3><div class="hint">Example questions, answered from the figures on this page. In the real thing you type your own.</div>' +
         '<div class="chips">' + QUESTIONS.map(function (q, i) { return '<button type="button" data-q="' + i + '" aria-pressed="false">' + q[0] + "</button>"; }).join("") + '</div><div id="ans"></div></div>' +
       "<h2>" + W.groupsTitle + "</h2>" +
@@ -228,7 +229,11 @@
     var when = u.status === "manual" ? "Uploaded 3 Nov" : u.status === "stale" ? "Last good load " + u.staleDays + " days ago" : "Today 06:10";
     var q = u.question, bad = function (src) { return q && q.src === src; };
     var st = function (src, t) { return bad(src) ? '<span class="pill p-ask">Open question</span>' : u.status === "stale" && src === "records" ? '<span class="pill p-stale">No fresh data</span>' : u.status === "manual" && src === "records" ? '<span class="pill p-manual">By hand</span>' : '<span class="pill p-ok">' + t + "</span>"; };
-    var src = "<table><tr><th>Number</th><th>Where it comes from</th><th class='hide-s'>Last pulled</th><th>Checks</th></tr>" +
+    var SP = { ok: "p-ok", question: "p-ask", stale: "p-stale", manual: "p-manual" };
+    var live = u.sources && "<table><tr><th>Number</th><th>Where it comes from</th><th class='hide-s'>Last file</th><th>Checks</th></tr>" + u.sources.map(function (x) {
+      var label = x.state === "question" ? "Open question" : x.state === "stale" ? "No fresh data" : x.state === "manual" ? "By hand · " + x.passed + " of " + x.total : x.passed + " of " + x.total + " passed";
+      return "<tr><td class='name'>" + esc(x.label) + "</td><td>" + esc(x.from) + "<small style='display:block;color:var(--faint);font-size:12.5px'>" + esc(x.file) + "</small></td><td class='hide-s'>" + esc(x.when) + "</td><td><span class='pill " + SP[x.state] + "'>" + label + "</span></td></tr>"; }).join("") + "</table>";
+    var src = live || "<table><tr><th>Number</th><th>Where it comes from</th><th class='hide-s'>Last pulled</th><th>Checks</th></tr>" +
       "<tr><td class='name'>" + W.srcRows[0] + "</td><td>" + s.name + "</td><td class='hide-s'>" + when + "</td><td>" + st("records", "6 of 6 passed") + "</td></tr>" +
       "<tr><td class='name'>" + W.srcRows[1] + "</td><td>" + W.srcFrom[1] + "</td><td class='hide-s'>Today 06:12</td><td>" + st("adm", "4 of 4 passed") + "</td></tr>" +
       "<tr><td class='name'>" + W.srcRows[2] + "</td><td>" + tx(W.srcFrom[2], { g: esc(u.country) }) + "</td><td class='hide-s'>Today 05:40</td><td>" + st("fees", "5 of 5 passed") + "</td></tr>" +
@@ -256,9 +261,12 @@
     if (p[0] === "c" && p[1]) country(decodeURIComponent(p[1]));
     else if (p[0] === "s" && p[1]) school(p[1]);
     else group();
+    if (C.onRender) C.onRender();
     window.scrollTo(0, 0);
   }
-  window.addEventListener("hashchange", route);
+  window.__route = route;
+  if (!window.__routed) { window.__routed = true; window.addEventListener("hashchange", function () { window.__route(); }); }
   route();
   window.__view = { U: U, agg: agg };
-})();
+};
+if (window.VIEW) window.OneView(window.VIEW);
