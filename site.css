@@ -752,6 +752,7 @@ footer.fat { background:#f5f5f7; }
 .pb-proof, .pb-start { background:var(--tile); border-radius:16px; padding:18px 20px 20px; }
 .pb-proof p, .pb-start p { font-size:15px; line-height:1.45; color:var(--dim); margin-top:8px; }
 .pb-start .btn { margin-top:14px; }
+.pb-for { display:block; margin-top:4px; }
 .pb-proof .pb-also { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
 .pb-tag { display:inline-block; font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600;
   border-radius:980px; padding:3px 9px; border:1px solid currentColor; color:var(--warn); }
