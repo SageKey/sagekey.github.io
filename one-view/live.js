@@ -3,40 +3,46 @@
 // Everything shown comes from the API; the scene only draws it. The full dashboard (view.js) is at "#/".
 (function () {
   "use strict";
-  var O = window.ONEVIEW, base = O.api + "/api/" + O.tenant, V = null, files = null, L = null, played = false, busy = false, sel = null, test = null;
+  var O = window.ONEVIEW, base = O.api + "/api/" + O.tenant, V = null, files = null, aif = null, joined = null, L = null, played = false, busy = false, sel = null, test = null;
   var app = document.getElementById("app"), bar = document.getElementById("guidebar");
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function track(name, data) { try { window.va && window.va("event", { name: name, data: data || {} }); } catch (e) {} }
   function get(path) { return fetch(base + path).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
-  function post(path, body) { return fetch(base + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  function post(path, body) { return fetch(base + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(function (r) {
+    if (r.ok) return r.json();
+    return r.json().catch(function () { return {}; }).then(function (j) { var e = new Error(String(r.status)); e.detail = typeof j.detail === "string" ? j.detail : ""; throw e; }); }); }
   function num(n) { return Math.round(n).toLocaleString("en-US"); }
   function sum(l, f) { return l.reduce(function (t, x) { return t + f(x); }, 0); }
   var STATUS = { ok: "Checked this morning", ask: "Waiting on a person", stale: "No fresh file", manual: "Uploaded by hand" };
   var COLOR = { ok: "#54d6a0", ask: "#f0b849", stale: "#ff6b5e", manual: "#c7c7cc" };
-  var SYS = { A: { c: "#5aa9ff", what: "one row per order" }, B: { c: "#c58bff", what: "a monthly summary" }, C: { c: "#4fd1c5", what: "a JSON export" }, X: { c: "#a1a1a6", what: "an uploaded spreadsheet" } };
-  var ORDER = ["A", "B", "C", "X"];
+  var SYS = { A: { c: "#5aa9ff", what: "one row per order" }, B: { c: "#c58bff", what: "a monthly summary" }, C: { c: "#4fd1c5", what: "a JSON export" }, X: { c: "#a1a1a6", what: "an uploaded spreadsheet" }, N: { c: "#ff9f6b", what: "never seen before" } };
+  function order() { return joined ? ["A", "B", "C", "X", "N"] : ["A", "B", "C", "X"]; }
+  function sysName(k) { return k === "N" ? "New system" : V.systems[k].name; }
+  // every branch on the scene: the company's own, plus one that has just joined (if any)
+  function all() { return joined ? V.units.concat([{ slug: "joined", name: joined.name, country: joined.place, sys: "N", enr: joined.enr || 0, status: joined.mapped ? "ok" : "new" }]) : V.units; }
 
   // ---------- where everything sits (a wide scene, or a tall one on a phone) ----------
   function layout() {
     var wide = (app.clientWidth || window.innerWidth) >= 760, by = {};
-    V.units.forEach(function (u) { (by[u.sys] = by[u.sys] || []).push(u); });
-    var P = { wide: wide, W: wide ? 1120 : 400, H: wide ? 468 : 640, dot: {}, cl: {}, rd: {} };
+    all().forEach(function (u) { (by[u.sys] = by[u.sys] || []).push(u); });
+    var sh = joined && !wide ? 74 : 0, rw = joined ? 70 : 88, rstep = joined ? 76 : 96;
+    var P = { wide: wide, W: wide ? 1120 : 400, H: wide ? (joined ? 552 : 468) : 640 + sh, dot: {}, cl: {}, rd: {} };
     var per = wide ? 5 : 10, gap = wide ? 34 : 31, x0 = wide ? 44 : 34, y = wide ? 34 : 26;
-    ORDER.forEach(function (k, i) {
+    order().forEach(function (k, i) {
       var l = by[k] || [], rows = Math.ceil(l.length / per);
       P.cl[k] = { x: x0 - 12, y: y, n: l.length, states: l.map(function (u) { return u.country; }).filter(function (c, j, a) { return a.indexOf(c) === j; }) };
       l.forEach(function (u, j) { P.dot[u.slug] = { x: x0 + (j % per) * gap, y: y + 30 + Math.floor(j / per) * gap }; });
       var mid = y + 30 + (rows - 1) * gap / 2;
-      P.rd[k] = wide ? { x: 440, y: mid - 27, w: 196, h: 54 } : { x: 12 + i * 96, y: 330, w: 88, h: 40 };
+      P.rd[k] = wide ? { x: 440, y: mid - 27, w: 196, h: 54 } : { x: 12 + i * rstep, y: 330 + sh, w: rw, h: 40 };
       P.cl[k].ax = wide ? x0 + (Math.min(l.length, per) - 1) * gap + 22 : x0 + (Math.min(l.length, per) - 1) * gap / 2;
       P.cl[k].ay = wide ? mid : y + 30 + (rows - 1) * gap + 16;
       y += 30 + rows * gap + (wide ? 22 : 12);
     });
-    P.gate = wide ? { x: 742, y: 226, r: 48 } : { x: 200, y: 432, r: 36 };
-    P.tot = wide ? { x: 858, y: 126, w: 238, h: 200 } : { x: 50, y: 506, w: 300, h: 116 };
-    P.exit = wide ? { x: 742, y: 452 } : { x: 384, y: 470 };
+    P.gate = wide ? { x: 742, y: 226, r: 48 } : { x: 200, y: 432 + sh, r: 36 };
+    P.tot = wide ? { x: 858, y: 126, w: 238, h: 200 } : { x: 50, y: 506 + sh, w: 300, h: 116 };
+    P.exit = wide ? { x: 742, y: P.H - 16 } : { x: 384, y: 470 + sh };
     return P;
   }
   function route(u, held) {
@@ -77,14 +83,14 @@
   function draw() {
     L = layout();
     var s = '<svg class="' + (L.wide ? "wide" : "tall") + '" viewBox="0 0 ' + L.W + " " + L.H + '" role="img" aria-label="Each branch sends a file through its system\'s reader and six checks into one company number. Files that fail are held for a person.">';
-    ORDER.forEach(function (k) {
+    order().forEach(function (k) {
       var c = L.cl[k], r = L.rd[k], g = L.gate; if (!c.n) return;
-      s += '<text class="cl-n" x="' + c.x + '" y="' + (c.y + 4) + '" fill="' + SYS[k].c + '">' + esc(V.systems[k].name) + '<tspan class="cl-s" dx="10">' + esc(k === "X" ? c.n + " small branches" : c.states.join(", ")) + "</tspan></text>";
+      s += '<text class="cl-n" x="' + c.x + '" y="' + (c.y + 4) + '" fill="' + SYS[k].c + '">' + esc(sysName(k)) + '<tspan class="cl-s" dx="10">' + esc(k === "X" ? c.n + " small branches" : k === "N" ? joined.name + ", " + joined.place + " · just joined" : c.states.join(", ")) + "</tspan></text>";
       var rin = L.wide ? [r.x, r.y + r.h / 2] : [r.x + r.w / 2, r.y], rout = L.wide ? [r.x + r.w, r.y + r.h / 2] : [r.x + r.w / 2, r.y + r.h];
       s += (L.wide ? '<path class="wire" d="M' + c.ax + " " + c.ay + " L" + rin[0] + " " + rin[1] + '"/>' : "") + '<path class="wire" d="M' + rout[0] + " " + rout[1] + " L" + g.x + " " + g.y + '"/>';
-      s += '<rect class="rd" x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="12" stroke="' + SYS[k].c + '"/>' +
-        (L.wide ? '<text class="rd-n" x="' + (r.x + 16) + '" y="' + (r.y + 23) + '">Reads ' + esc(V.systems[k].name === "Spreadsheets only" ? "spreadsheets" : V.systems[k].name) + '</text><text class="rd-s" x="' + (r.x + 16) + '" y="' + (r.y + 41) + '">' + SYS[k].what + "</text>"
-          : '<text class="rd-n" text-anchor="middle" x="' + (r.x + r.w / 2) + '" y="' + (r.y + 25) + '">' + esc(k === "X" ? "Sheets" : V.systems[k].name) + "</text>");
+      s += '<rect class="rd' + (k === "N" && !joined.mapped ? " unk" : "") + '" x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="12" stroke="' + SYS[k].c + '"/>' +
+        (L.wide ? '<text class="rd-n" x="' + (r.x + 16) + '" y="' + (r.y + 23) + '">' + esc(k === "N" ? (joined.mapped ? "Reads it now" : "Cannot read it yet") : "Reads " + (k === "X" ? "spreadsheets" : sysName(k))) + '</text><text class="rd-s" x="' + (r.x + 16) + '" y="' + (r.y + 41) + '">' + (k === "N" && joined.mapped ? "mapped by AI, checked by code" : SYS[k].what) + "</text>"
+          : '<text class="rd-n" text-anchor="middle" x="' + (r.x + r.w / 2) + '" y="' + (r.y + 25) + '">' + esc(k === "X" ? "Sheets" : k === "N" ? "New" : sysName(k)) + "</text>");
     });
     var g = L.gate, t = L.tot;
     s += '<path class="wire" d="M' + g.x + " " + g.y + " L" + (L.wide ? t.x + " " + (t.y + t.h / 2) : (t.x + t.w / 2) + " " + t.y) + '"/>' +
@@ -95,29 +101,36 @@
       '<rect class="tot" x="' + t.x + '" y="' + t.y + '" width="' + t.w + '" height="' + t.h + '" rx="20"/>' +
       '<text class="tot-l" x="' + (t.x + 22) + '" y="' + (t.y + (L.wide ? 40 : 30)) + '">Orders shipped this month</text>' +
       '<text class="tot-v" id="tot" x="' + (t.x + 22) + '" y="' + (t.y + (L.wide ? 104 : 76)) + '">0</text>' +
-      '<text class="tot-s" id="tots" x="' + (t.x + 22) + '" y="' + (t.y + (L.wide ? 138 : 100)) + '">0 of ' + V.units.length + " branches in</text>" +
+      '<text class="tot-s" id="tots" x="' + (t.x + 22) + '" y="' + (t.y + (L.wide ? 138 : 100)) + '">0 of ' + all().length + " branches in</text>" +
       (L.wide ? '<text class="tot-s" id="totu" x="' + (t.x + 22) + '" y="' + (t.y + 162) + '"></text>' : '<text class="tot-s" id="totu" x="' + (t.x + t.w - 22) + '" y="' + (t.y + 100) + '" text-anchor="end"></text>');
-    V.units.forEach(function (u) {
+    all().forEach(function (u) {
       var d = L.dot[u.slug];
-      s += '<circle class="dot" data-s="' + u.slug + '" cx="' + d.x + '" cy="' + d.y + '" r="10" stroke="' + SYS[u.sys].c + '" tabindex="0" role="button" aria-label="' + esc(u.name) + '"><title>' + esc(u.name) + "</title></circle>";
+      s += '<circle class="dot' + (u.status === "new" ? " new" : "") + '" data-s="' + u.slug + '" cx="' + d.x + '" cy="' + d.y + '" r="10" stroke="' + SYS[u.sys].c + '" tabindex="0" role="button" aria-label="' + esc(u.name) + '"><title>' + esc(u.name) + "</title></circle>";
     });
     s += '<g id="fx"></g></svg>';
     $("svgwrap").innerHTML = s;
     [].forEach.call(document.querySelectorAll(".dot"), function (el) {
-      var pick = function () { select(el.getAttribute("data-s"), true); };
+      var pick = function () { if (el.getAttribute("data-s") !== "joined") select(el.getAttribute("data-s"), true); };
       el.addEventListener("click", pick);
       el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
     });
-    if (played) { paint(); totals(V.units.length, sum(V.units, function (u) { return u.enr; })); }
+    if (played) { paint(); settle(); }
+  }
+  // the number as it stands: every branch whose file is in
+  function settle() {
+    var inn = all().filter(function (u) { return u.status !== "new"; });
+    totals(inn.length, sum(inn, function (u) { return u.enr; }));
+    var asks = V.units.filter(function (u) { return u.status === "ask"; }).length;
+    if ($("totu")) $("totu").textContent = asks + " marked unverified";
   }
   function cap(html) { var m = /^<b>(\d)<\/b> ?/.exec(html); $("cap").innerHTML = (m ? "<b>" + m[1] + "</b>" : "") + "<span>" + html.replace(/^<b>\d<\/b> ?/, "") + "</span>"; }
   function dotEl(slug) { return document.querySelector('.dot[data-s="' + slug + '"]'); }
   function status(u) { return test && u.slug === test.site ? test.status : u.status; }
   function fill(el, c) { el.style.fill = c; el.style.stroke = c; el.classList.add("in"); }
-  function paint() { V.units.forEach(function (u) { fill(dotEl(u.slug), COLOR[status(u)]); }); if (sel) dotEl(sel).classList.add("sel"); }
+  function paint() { all().forEach(function (u) { if (status(u) !== "new") fill(dotEl(u.slug), COLOR[status(u)]); }); if (sel && dotEl(sel)) dotEl(sel).classList.add("sel"); }
   function totals(nIn, total) {
     $("tot").textContent = num(total);
-    $("tots").textContent = nIn + " of " + V.units.length + " branches in";
+    $("tots").textContent = nIn + " of " + all().length + " branches in";
   }
 
   // ---------- one file flying along its route ----------
@@ -142,7 +155,7 @@
 
   // ---------- beat 1: every branch's latest file comes in ----------
   function play() {
-    if (busy) return; busy = true; played = false; test = null;
+    if (busy) return; busy = true; played = false; test = null; joined = null;
     $("tray").innerHTML = ""; $("act").innerHTML = "";
     cap("<b>1</b> Each dot is a branch. Here comes each one's latest file.");
     draw(); totals(0, 0);
@@ -173,18 +186,22 @@
   function finish() {
     played = true;
     if (!$("tray").firstChild) V.units.forEach(function (u) { if (u.status === "ask" || u.status === "stale") chip(u); });
-    paint(); totals(V.units.length, sum(V.units, function (u) { return u.enr; }));
+    paint(); settle();
     var c = { ok: 0, ask: 0, stale: 0, manual: 0 }; V.units.forEach(function (u) { c[u.status]++; });
-    $("totu").textContent = c.ask + " marked unverified";
     cap("<b>2</b> " + (c.ok + c.manual) + " files passed. " + c.ask + " did not add up, so a person was asked. Click an amber dot to see why.");
     acts();
     [].forEach.call(document.querySelectorAll(".dot"), function (el) { var u = unit(el.getAttribute("data-s")); if (u.status === "ask") el.classList.add("beat"); });
   }
   function unit(slug) { return V.units.filter(function (u) { return u.slug === slug; })[0]; }
+  function menu() { cap("Three things to try. Each one runs for real."); acts(); }
   function acts() {
-    $("act").innerHTML = '<button type="button" class="ghost" id="replay">Replay</button><button type="button" class="hot" id="break">Send a bad file yourself ›</button>';
+    $("act").className = "s-act";
+    $("act").innerHTML = '<button type="button" class="ghost" id="replay">Replay</button><button type="button" class="hot" id="break">Send a bad file ›</button>' +
+      '<button type="button" class="hot ai" id="join">A new branch joins ›</button><button type="button" class="hot ai" id="askb">Ask it a question ›</button>';
     $("replay").onclick = function () { sel = null; $("detail").innerHTML = ""; play(); };
     $("break").onclick = chooser;
+    $("join").onclick = joinChooser;
+    $("askb").onclick = askUI;
   }
 
   // ---------- beat 2: look at one branch ----------
@@ -233,9 +250,10 @@
         if (bad) chip({ slug: u.slug, name: u.name, question: { text: r.questions[0].text, who: r.questions[0].owner } }, true);
         cap(bad ? "<b>3</b> <strong>Caught.</strong> It never reached the number unflagged. Nobody has to spot it in a meeting three weeks later."
           : "<b>3</b> <strong>Clean.</strong> The corrected file passed all six checks and went straight through.");
-        $("act").innerHTML = (bad ? '<button type="button" class="hot" id="fix">Send the corrected file ›</button>' : "") + '<button type="button" class="ghost" id="again">Try another file</button>';
+        $("act").innerHTML = (bad ? '<button type="button" class="hot" id="fix">Send the corrected file ›</button>' : "") + '<button type="button" class="ghost" id="again">Try another file</button><button type="button" class="ghost" id="more">Back</button>';
         if (bad) $("fix").onclick = function () { send("good"); };
         $("again").onclick = chooser;
+        $("more").onclick = menu;
         report(f, r);
       };
       if (still) return land();
@@ -253,6 +271,95 @@
     $("detail").innerHTML = '<div class="g-card"><div class="g-head"><div><h2>What just happened</h2><span>That ran for real, in ' + r.ms + " milliseconds, and was then undone so the next visitor starts clean.</span></div></div>" +
       '<div class="run-grid"><div><h3>The file, exactly as it arrived</h3><div class="raw"><span class="fn">' + esc(f.filename) + "</span>" + esc(f.content) + "</div><p class=\"hint\">" + esc(f.blurb) + "</p></div>" +
       '<div><h3>What the system did with it</h3><ol class="trace">' + rows + "</ol></div></div></div>";
+  }
+
+  // ---------- beat 4: a branch joins on a system nobody has seen; AI works out how to read it ----------
+  function oops(n, e) { busy = false; cap("<b>" + n + "</b> " + esc(e && e.detail ? e.detail : "That did not come back. Try again.")); acts(); }
+  function joinChooser() {
+    var show = function () {
+      if (!aif.enabled) { cap("<b>4</b> The AI features are switched off on this copy of the demo."); return acts(); }
+      cap("<b>4</b> The company has just added a branch that runs a system nobody here has seen. Pick one.");
+      $("act").innerHTML = aif.files.map(function (f) { return '<button type="button" class="hot ai" data-k="' + f.key + '">' + esc(f.name) + ", " + esc(f.place) + "</button>"; }).join("") + '<button type="button" class="ghost" id="more">Back</button>';
+      [].forEach.call($("act").querySelectorAll("button[data-k]"), function (b) { b.onclick = function () { join(b.getAttribute("data-k")); }; });
+      $("more").onclick = menu;
+    };
+    if (aif) show(); else get("/ai/files").then(function (f) { aif = f; show(); }).catch(function (e) { oops(4, e); });
+  }
+  function fileCard(f, right) {
+    return '<div class="run-grid"><div><h3>The file, exactly as it arrived</h3><div class="raw"><span class="fn">' + esc(f.filename) + "</span>" + esc(f.content) + '</div><p class="hint">' + esc(f.blurb || "") + "</p></div><div>" + right + "</div></div>";
+  }
+  function join(key) {
+    if (busy) return; busy = true;
+    var f = aif.files.filter(function (x) { return x.key === key; })[0];
+    joined = { key: key, name: f.name, place: f.place, mapped: false }; sel = null;
+    draw(); track("oneview_join", { file: key });
+    $("act").innerHTML = "";
+    cap("<b>4</b> " + esc(f.name) + " has joined. AI is reading its file and working out how it fits the company's definitions<span class=\"dots3\"></span>");
+    $("detail").innerHTML = '<div class="g-card">' + fileCard(f, '<h3>What the AI worked out</h3><p class="empty">Working on it. This is a live call to ' + esc(aif.model) + " and takes a few seconds.</p>") + "</div>";
+    $("stage").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" });
+    post("/ai/map", { file: key }).then(function (d) {
+      var done = function () {
+        busy = false; settle(); paint();
+        cap(d.ok ? "<b>4</b> <strong>Mapped.</strong> AI worked out how to read it in " + (d.cached ? "an earlier run" : (d.ms / 1000).toFixed(0) + " seconds") + ". Ordinary code then ran the six checks, and all of them passed. A person approves the mapping before it is used."
+          : "<b>4</b> The AI's proposal did not pass the checks, so nothing was added to the number. A person would sort this one out by hand.");
+        $("act").innerHTML = '<button type="button" class="hot ai" id="other">Try the other branch</button><button type="button" class="ghost" id="more">Back</button>';
+        $("other").onclick = function () { joined = null; draw(); joinChooser(); };
+        $("more").onclick = menu;
+      };
+      var cols = d.proposal.columns.map(function (c) { return "<tr><td class='name'>" + esc(c.theirs) + "</td><td>→ " + esc(c.ours) + "<small>" + esc(c.why) + "</small></td></tr>"; }).join("");
+      var lines = d.proposal.lines.map(function (c) { return "<tr><td class='name'>" + esc(c.theirs) + "</td><td>→ " + (c.ours ? esc(c.ours) : "<i>no match</i>") + "</td></tr>"; }).join("");
+      var probs = d.problems.length ? '<div class="openq"><b>Not usable as it stands</b><p>' + d.problems.map(esc).join("<br>") + "</p></div>" : "";
+      var checks = d.checks.length ? '<p class="verdict ' + (d.ok ? "ok" : "bad") + '">' + (d.ok ? "✓" : "✕") + " Then ordinary code read the file with that mapping and ran the checks: <b>" + d.passed + " of " + d.total + " passed</b>. It found " + num(d.done) + " orders shipped of " + num(d.due) + " due.</p>" : "";
+      $("detail").innerHTML = '<div class="g-card"><div class="g-head"><div><h2>' + esc(d.branch) + ", " + esc(d.place) + "</h2><span>" + (d.cached ? "Today's AI budget is used up, so this is the answer " + esc(d.model) + " gave on an earlier run." : "A live call to " + esc(d.model) + ", " + (d.ms / 1000).toFixed(1) + " seconds.") + "</span></div></div>" +
+        fileCard(f, "<h3>What the AI worked out</h3><p class=\"hint\">" + esc(d.proposal.summary) + "</p>" + probs +
+          "<table class='map'><tr><th>Their column</th><th>Our definition</th></tr>" + cols + "</table>" +
+          "<table class='map'><tr><th>Their label</th><th>Our product line</th></tr>" + lines + "</table>" + checks) + "</div>";
+      if (!d.ok) { joined.mapped = false; return done(); }
+      joined.mapped = true; joined.enr = d.done; var keep = played; draw(); paint();
+      var u = all().filter(function (x) { return x.slug === "joined"; })[0], el = dotEl("joined");
+      el.style.fill = "transparent"; el.style.stroke = SYS.N.c;
+      if (still) return done();
+      // hold the number where it was until the new branch's file lands
+      var before = V.units.filter(function (x) { return true; }); totals(before.length, sum(before, function (x) { return x.enr; }));
+      fly(route(u, false), SYS.N.c, function () { pulse(false); return null; }, done);
+    }).catch(function (e) { joined = null; draw(); $("detail").innerHTML = ""; oops(4, e); });
+  }
+
+  // ---------- beat 5: ask about the numbers in plain English ----------
+  var ASKS = ["Why is Kansas behind?", "Which branch should I worry about most?", "Where are we losing repeat customers?"];
+  function askUI() {
+    var show = function () {
+      if (!aif.enabled) { cap("<b>5</b> The AI features are switched off on this copy of the demo."); return acts(); }
+      cap("<b>5</b> Ask about this month's numbers, in your own words.");
+      $("act").className = "s-act full";
+      $("act").innerHTML = '<form id="askf"><input id="askq" maxlength="200" autocomplete="off" placeholder="' + ASKS[0] + '" aria-label="Your question"><button type="submit" class="hot ai">Ask</button><button type="button" class="ghost" id="more">Back</button></form>' +
+        '<div class="sugg">' + ASKS.map(function (q) { return '<button type="button" class="ghost">' + esc(q) + "</button>"; }).join("") + "</div>";
+      $("askf").onsubmit = function (e) { e.preventDefault(); askIt($("askq").value); };
+      [].forEach.call($("act").querySelectorAll(".sugg button"), function (b) { b.onclick = function () { askIt(b.textContent); }; });
+      $("more").onclick = menu;
+    };
+    if (aif) show(); else get("/ai/files").then(function (f) { aif = f; show(); }).catch(function (e) { oops(5, e); });
+  }
+  function askIt(q) {
+    q = (q || "").trim(); if (busy || q.length < 3) return; busy = true;
+    track("oneview_ask");
+    cap("<b>5</b> Reading the numbers<span class=\"dots3\"></span>");
+    [].forEach.call($("act").querySelectorAll("button, input"), function (b) { b.disabled = true; });
+    post("/ai/ask", { question: q }).then(function (d) {
+      busy = false; askUI();
+      cap("<b>5</b> " + (d.can_answer ? "Answered from the stored numbers. Ask another, or click a branch it mentions." : "It only answers questions about this company's numbers."));
+      [].forEach.call(document.querySelectorAll(".dot.beat"), function (el) { el.classList.remove("beat"); });
+      d.branches.forEach(function (sl) { var el = dotEl(sl); if (el) el.classList.add("beat"); });
+      var chips = d.branches.map(function (sl) { var u = unit(sl); return u ? '<button type="button" class="bchip" data-s="' + sl + '">' + esc(u.name) + "</button>" : ""; }).join("");
+      var badge = !d.can_answer ? "" : d.unverified.length
+        ? '<p class="verdict bad">✕ ' + d.unverified.length + " figure" + (d.unverified.length === 1 ? "" : "s") + " in that answer could not be matched to the stored numbers: " + d.unverified.map(esc).join(", ") + ". Treat it with care.</p>"
+        : '<p class="verdict ok">✓ Every figure in that answer was checked against the stored numbers.</p>';
+      $("detail").innerHTML = '<div class="g-card ans"><div class="who">You asked</div><h2>' + esc(d.question) + '</h2><p class="answer">' + esc(d.answer) + "</p>" + badge +
+        (chips ? '<div class="bchips"><span>Branches it mentions:</span>' + chips + "</div>" : "") +
+        '<p class="hint">Answered by ' + esc(d.model) + " in " + (d.ms / 1000).toFixed(1) + " seconds, reading a table prepared from the database. Questions are sent to the AI model, so do not type anything private.</p></div>";
+      [].forEach.call($("detail").querySelectorAll(".bchip"), function (b) { b.onclick = function () { select(b.getAttribute("data-s"), true); }; });
+      $("detail").scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" });
+    }).catch(function (e) { busy = false; askUI(); cap("<b>5</b> " + esc(e && e.detail ? e.detail : "That did not come back. Try again.")); });
   }
 
   // redraw when the page crosses between the wide and the tall scene (also covers a pane that was hidden at load)
