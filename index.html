@@ -41,7 +41,7 @@
     </a>
     <div class="links">
       <a href="#problems">Problems</a>
-      <a href="#oneview"><span class="l">Live demo</span><span class="s">Demo</span></a>
+      <a href="/one-view/"><span class="l">Live demo</span><span class="s">Demo</span></a>
       <a href="#services">Prices</a>
       <a href="#about">About</a>
       <a href="/method/"><span class="l">How it stays safe</span><span class="s">Safety</span></a>
@@ -63,8 +63,9 @@
 </div>
 
 <main>
-<header class="hero">
-  <div class="shell">
+<header class="hero split">
+  <div class="shell hero-grid">
+    <div class="hero-txt">
     <h1>Start with the problem. <em>Then put AI to work on it.</em></h1>
     <p class="lede">
       Tell me what's slow, expensive or stuck in your business. I'll tell you plainly whether
@@ -77,6 +78,16 @@
     </div>
     <a class="hproof" href="#localogy">For Localogy, publishing data went from 3 to 5 days to minutes<span class="chev"></span></a>
     <a class="live" id="live" href="/foreman/"><span class="dot"></span><span id="livetxt"></span></a>
+    </div>
+    <div class="ov side" id="ov">
+      <span id="oneview"></span>
+      <div class="ov-k"><span class="dot"></span>Live demo. One of those problems, solved.</div>
+      <div class="ov-tabs" id="ov-tabs" role="group" aria-label="Kind of organization"></div>
+      <div class="ov-q" id="ov-q">How many projects are on track?</div>
+      <p class="ov-sub">Ask three people and you get three answers. Which would you take into the meeting?</p>
+      <div class="ov-reps" id="ov-reps"><a class="ov-open" href="/one-view/?for=projects">See the three answers<span class="chev"></span></a></div>
+      <div class="ov-foot"><span id="ov-note">The organizations are made up; the system, its checks and its AI are real.</span><a class="chev" id="ov-all" href="/one-view/">Open the whole demo</a></div>
+    </div>
   </div>
 </header>
 
@@ -110,7 +121,7 @@
           <div class="pb-sec"><span class="k h">What stays with your people</span>
             <p>The definitions, and the fix at the source when a number is wrong.</p></div>
           <div class="pb-foot">
-            <div class="pb-proof"><span class="pb-tag real">Live demo</span><p>The question just below this is live. Pick an answer and watch a working system show what it missed. <a class="chev" href="/one-view/">Open the demo</a> <span class="pb-for">Also for <a href="/one-view/?for=schools">schools</a>, <a href="/one-view/?for=clinics">clinics</a> and <a href="/one-view/?for=distributor">distribution</a>.</span></p></div>
+            <div class="pb-proof"><span class="pb-tag real">Live demo</span><p>The question at the top of this page is live. Pick an answer and watch a working system show what it missed. <a class="chev" href="/one-view/">Open the demo</a> <span class="pb-for">Also for <a href="/one-view/?for=schools">schools</a>, <a href="/one-view/?for=clinics">clinics</a> and <a href="/one-view/?for=distributor">distribution</a>.</span></p></div>
             <div class="pb-start"><span class="k">Where it starts</span><p>A Readiness Review: which numbers, which systems, and how far apart they are today.</p>
               <button type="button" class="btn primary sm" data-talk="see">Talk about this one</button></div>
           </div>
@@ -206,24 +217,6 @@
       of anything that reaches a customer, moves money or can't be undone.
       <a class="chev" href="#control">How it stays safe</a>
     </p>
-  </div>
-</section>
-
-<!-- ==================== ONE VIEW: the first problem, running for real ==================== -->
-<section class="band tight" id="oneview">
-  <div class="shell">
-    <div class="head">
-      <div class="kicker">Live demo</div>
-      <h2 class="shead">Ask three people. Get three answers.</h2>
-      <p class="intro">Every company with more than one site, team or system has sat through this meeting.</p>
-    </div>
-    <div class="ov" id="ov">
-      <div class="ov-tabs" id="ov-tabs" role="group" aria-label="Kind of organization"></div>
-      <div class="ov-q" id="ov-q">How many projects are on track?</div>
-      <p class="ov-sub">Which one would you take into the meeting?</p>
-      <div class="ov-reps" id="ov-reps"><a class="ov-open" href="/one-view/?for=projects">See the three answers<span class="chev"></span></a></div>
-      <div class="ov-foot"><span id="ov-note">A live demo. The organizations are made up; the system, its checks and its AI are real.</span><a class="chev" id="ov-all" href="/one-view/">Open the whole demo</a></div>
-    </div>
   </div>
 </section>
 
@@ -836,7 +829,7 @@
           Math.round(a.value).toLocaleString("en-US") + "</b><small>" + esc(a.what) + "</small></a>"; }).join("");
       [].forEach.call(document.querySelectorAll("#ov-reps a"), function (a) { a.addEventListener("click", function () { track("home_oneview_pick", { sector: cur, answer: a.getAttribute("data-k") }); }); });
       document.getElementById("ov-all").href = "/one-view/?for=" + o.id;
-      document.getElementById("ov-note").textContent = "Live from a running demo: a made-up organization with " + o.units + " " + o.unit + ". The system, its checks and its AI are real.";
+      document.getElementById("ov-note").textContent = "A made-up organization with " + o.units + " " + o.unit + ". The system, its checks and its AI are real.";
       if (clicked) track("home_oneview_sector", { sector: id });
     }
     fetch(API).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (d) {
