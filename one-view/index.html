@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>One view of every branch: a live demo · SageKey</title>
+<title>One view of every branch: a two-minute demo · SageKey</title>
 <meta name="description" content="A working demo: 24 branches on three different systems, shown as one set of numbers. Send a broken file and watch it get caught. Made-up data, real pipeline.">
 <link rel="canonical" href="https://sagekey.com/one-view/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sagekey.com/one-view/">
 <meta property="og:site_name" content="SageKey">
-<meta property="og:title" content="One view of every branch: a live demo">
+<meta property="og:title" content="One view of every branch: a two-minute demo">
 <meta property="og:description" content="24 branches, three systems, one set of numbers. Send a broken file and watch it get caught.">
 <meta property="og:image" content="https://sagekey.com/og.png">
 <meta name="theme-color" content="#ffffff">
@@ -31,32 +31,11 @@
     <a class="cta" href="/#contact">Start a conversation</a>
   </div>
 </header>
-<div class="sample">
-  <div class="shell">A live demo. The company and its figures are made up. <b>The pipeline is real:</b> every number here was read from a file, checked, and stored in a database.</div>
-</div>
-<div class="rolebar"><div class="shell" id="rolebar"></div></div>
-<main class="shell" id="app"><p class="loading">Loading the numbers…</p></main>
-
-<section class="how">
-  <div class="shell">
-    <div class="k">"Nobody can see the whole picture."</div>
-    <h2>This is what the answer looks like.</h2>
-    <p class="lead">Nobody replaced a system to get this view. The branches kept what they run. Data agents sit between those systems and the company's numbers.</p>
-    <div class="steps">
-      <div><i>1</i><b>Agree the definitions</b>One short page per number. What counts as shipped, and on which date.</div>
-      <div><i>2</i><b>A data agent per system</b>It reads each branch's file with a mapping written for that system.</div>
-      <div><i>3</i><b>Check every file</b>Anything that doesn't add up goes to a named person. It is never guessed.</div>
-      <div><i>4</i><b>One view</b>The company, a state and a branch, all on the same numbers.</div>
-    </div>
-    <div class="go">
-      <a class="btn" href="/#contact">Talk about your version</a>
-      <a href="/#problems">Back to the problems I solve ›</a>
-    </div>
-  </div>
-</section>
+<div class="guidebar" id="guidebar"></div>
+<main class="shell" id="app"><p class="loading">Loading the demo…</p></main>
 <footer class="shell foot">A SageKey demo. Made-up company, real pipeline. <a href="/">sagekey.com</a></footer>
 
-<script>window.ONEVIEW = { api: "https://one-view-production.up.railway.app", tenant: "distributor" };</script>
+<script>window.ONEVIEW = { api: "https://one-view-production.up.railway.app", tenant: "distributor", site: "" };</script>
 <script src="view.js"></script>
 <script src="live.js"></script>
 </body>
