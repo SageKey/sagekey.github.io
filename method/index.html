@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://sagekey.com/method/" />
 <meta property="og:site_name" content="SageKey" />
 <meta property="og:title" content="How to run AI agents you can trust" />
-<meta property="og:description" content="Charters, an earned autonomy ladder, human gates, an append-only log. The governance model, written out in full." />
+<meta property="og:description" content="Charters, an earned autonomy ladder, human gates, an append-only log and an oversight dashboard. The governance model, written out in full." />
 <meta property="og:image" content="https://sagekey.com/og.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="theme-color" content="#ffffff" />
@@ -32,11 +32,11 @@
       SageKey
     </a>
     <div class="links">
-      <a href="/#problems"><span class="l">Problems I solve</span><span class="s">Problems</span></a>
-      <a href="/#control"><span class="l">How it stays safe</span><span class="s">Safety</span></a>
-      <a href="/foreman/"><span class="l">Live demo</span><span class="s">Demo</span></a>
-      <a href="/#services">Services</a>
-      <a class="on" href="/method/">Method</a>
+      <a href="/#problems">Problems</a>
+      <a href="/one-view/"><span class="l">Live demo</span><span class="s">Demo</span></a>
+      <a href="/#services">Prices</a>
+      <a href="/#about">About</a>
+      <a class="on" href="/method/"><span class="l">How it stays safe</span><span class="s">Safety</span></a>
     </div>
     <a class="btn primary sm" href="/#contact">Start a conversation</a>
   </div>
@@ -61,9 +61,9 @@
     <div class="kicker">The method</div>
     <h1>How to run AI agents <em>you can trust.</em></h1>
     <p class="lede">
-      Treat agents like staff, not scripts. Staff have a written job description, a level of
-      trust they've earned, a manager who signs off on the risky things, and a paper trail.
-      All four have direct equivalents in software.
+      Manage an agent the way you manage a new hire: a written job description, a level of
+      trust it has earned, a manager who signs off on the risky things, and a paper trail.
+      Each has a direct equivalent in software.
     </p>
   </div>
 </header>
@@ -84,8 +84,7 @@
     <span>It's an unsupervised contractor with your credentials and no memory of what it did.</span>
   </div>
   <p>
-    Everything below is described at the level of the pattern. The specifics belong to the
-    clients I built them for.
+    Everything below is described at the level of the pattern, and the examples are made up.
   </p>
 
   <!-- ============ 1 ============ -->
@@ -169,11 +168,11 @@
         <div class="pip" style="background:var(--l3)"></div>
         <div>
           <div class="rname">Autonomous</div>
-          <div class="rbody"><em>Deliberately empty.</em> The level exists so the ladder is honest about where it ends, and so that promoting something into it is a visible decision somebody has to make on purpose.</div>
+          <div class="rbody"><em>Deliberately empty.</em> The level exists so the ladder is honest about where it ends, and so that promoting something into it is a visible decision somebody has to make.</div>
         </div>
       </div>
     </div>
-    <p class="caption"><a href="/agent-floor/">The shift simulation</a> puts three agents on these levels for one shift. The empty top level is the point.</p>
+    <p class="caption"><a href="/agent-floor/">The shift simulation</a> puts three agents on these levels for one shift. Watch the top level. It stays empty.</p>
     <p>
       Demotion matters as much as promotion. A charter violation drops an agent a level, the
       same way you'd pull back responsibility from someone who made a serious mistake. It goes
@@ -216,12 +215,12 @@
           <div class="g-btns"><span class="fake yes">Approve &amp; send</span><span class="fake">Send back</span></div>
         </div>
       </div>
-      <span class="s-cap">Examples. The live version is the demo on the <a href="/#work">home page</a></span>
+      <span class="s-cap">Examples. An interactive version is on the <a href="/#work">home page</a></span>
     </div>
     <p>
       A gate that shows the actual email, names the rule that triggered the stop, and states
       what the agent wasn't sure about gets read. If your reviewers are clicking approve
-      without reading, you don't have a gate. You have a speed bump and a false sense of safety.
+      without reading, the gate isn't working.
     </p>
   </section>
 
@@ -231,8 +230,8 @@
     <h2>A log nobody can edit, because someone will ask</h2>
     <p>
       Every action, every refusal and every human decision lands in a log that is written once
-      and never edited. Not for compliance theater. For the ordinary Tuesday when a customer
-      asks why they got a particular email, and the honest answer needs to include which agent
+      and never edited. It's for the day a customer
+      asks why they got a particular email, and the answer needs to include which agent
       drafted it, which rule let it through, and which person pressed send.
     </p>
     <div class="s-art wide dark">
@@ -318,9 +317,9 @@
     </p>
     <div class="endcta">
       <h3 style="font-size:21px">See it running, or check your own job.</h3>
-      <p>The home page has a demo you can press through and a four-question check that tells you whether your job is a fit. <a href="/foreman/">The live demo</a> drafts a charter for it on a real AI model.</p>
+      <p>The home page has a four-question check that tells you whether your job is a fit. <a href="/foreman/">The rulebook demo</a> drafts the rules for it on a real AI model.</p>
       <a class="btn primary" href="/#fit">Check your job</a>
-      <a class="chev" href="/foreman/" style="margin-left:18px;font-size:19px">Open the live demo</a>
+      <a class="chev" href="/foreman/" style="margin-left:18px;font-size:19px">Open the rulebook demo</a>
     </div>
   </section>
 </article>
@@ -338,7 +337,7 @@
           </svg>
           SageKey
         </a>
-        <p>Start with the problem, then put AI to work on it. Nothing goes out without a person's OK.</p>
+        <p>Start with the problem, then put AI to work on it. A person approves anything that reaches a customer, moves money or can't be undone.</p>
       </div>
       <div>
         <h5>The work</h5>
@@ -350,9 +349,9 @@
       </div>
       <div>
         <h5>See it run</h5>
-        <a href="/foreman/">Live demo: get rules drafted for a job</a>
-        <a href="/agent-floor/">Simulation: supervise a shift</a>
-        <a href="/one-view/">Demo: one view of 24 branches</a>
+        <a href="/one-view/">Numbers demo (live)</a>
+        <a href="/foreman/">Rulebook demo (live)</a>
+        <a href="/agent-floor/">Shift simulation</a>
         <a href="/lab/">The lab</a>
       </div>
       <div>

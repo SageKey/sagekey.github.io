@@ -71,7 +71,7 @@
     window.__route = function () {};
     bar.innerHTML = ""; $("crumbs").innerHTML = "";
     var n = V.units.length, p = S.p;
-    app.innerHTML = '<div class="s-hero"><div class="sect" role="group" aria-label="Kind of organisation"><span>Show this for</span>' +
+    app.innerHTML = '<div class="s-hero"><div class="sect" role="group" aria-label="Kind of organization"><span>Show this for</span>' +
       V.sectors.map(function (x) { return '<button type="button" data-t="' + x.id + '" aria-pressed="' + (x.id === O.tenant) + '">' + esc(x.tab) + "</button>"; }).join("") + "</div>" +
       "<h1>" + tx(S.h1, { n: n }) + "</h1>" + '<p class="sub">' + esc(S.sub) + "</p></div>" +
       '<div class="stage" id="stage" style="--glow:' + S.glow + '">' +
